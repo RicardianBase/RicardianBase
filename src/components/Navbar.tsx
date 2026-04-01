@@ -27,7 +27,7 @@ const Navbar = () => {
       <div className="bg-background/95 backdrop-blur-sm rounded-[16px] shadow-[0_4px_24px_hsl(var(--foreground)/0.08)] px-6 py-3 flex items-center justify-between">
         {/* Logo */}
         <a href="#" onClick={(e) => { e.preventDefault(); window.scrollTo({ top: 0, behavior: "smooth" }); }} className="font-barlow font-bold text-lg tracking-tight text-foreground">
-          ⬡ RicardianBase
+          ⬡ Ricardian
         </a>
 
         {/* Center Links — Desktop */}

@@ -21,7 +21,7 @@ const StatsShowcase = () => {
               </div>
               <div className="mt-4">
                 <div className="flex items-center justify-between text-xs text-gray-400 mb-1">
-                  <span>RicardianBase</span>
+                  <span>Ricardian</span>
                   <span>Industry: 45 days</span>
                 </div>
                 <div className="h-1.5 bg-gray-200 rounded-full w-48 overflow-hidden">

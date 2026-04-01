@@ -59,7 +59,7 @@ const RicardianFooter = () => {
         <div className="grid grid-cols-2 md:grid-cols-7 gap-10">
           {/* Brand */}
           <div className="col-span-2">
-            <h3 className="text-xl font-semibold text-foreground">⬡ RicardianBase</h3>
+            <h3 className="text-xl font-semibold text-foreground">⬡ Ricardian</h3>
             <p className="text-sm text-muted-foreground mt-3 leading-relaxed max-w-xs">
               Hybrid Ricardian contracts on Base blockchain. Instant stablecoin payments, automated escrow, and legally binding smart contracts.
             </p>
@@ -108,7 +108,7 @@ const RicardianFooter = () => {
 
       <div className="border-t border-border">
         <div className="max-w-7xl mx-auto px-6 py-5 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <p className="text-xs text-muted-foreground">© {new Date().getFullYear()} RicardianBase. All rights reserved.</p>
+          <p className="text-xs text-muted-foreground">© {new Date().getFullYear()} Ricardian. All rights reserved.</p>
           <div className="flex items-center gap-4">
             <a href="#" className="text-xs text-muted-foreground hover:text-foreground transition-colors">Terms & Conditions</a>
             <a href="#" className="text-xs text-muted-foreground hover:text-foreground transition-colors">Privacy Policy</a>

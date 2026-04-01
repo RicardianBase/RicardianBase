@@ -8,8 +8,8 @@ const faqs = [
     a: "A Ricardian contract is a hybrid instrument that cryptographically links a human-readable legal agreement (PDF) to a machine-executable smart contract on the blockchain. This creates a tamper-proof bond between legal prose and programmatic logic.",
   },
   {
-    q: "Which blockchain does RicardianBase use?",
-    a: "RicardianBase is built on Base, Coinbase's Ethereum Layer 2 network. Base offers sub-second finality, gas fees under $0.01, and enterprise-grade reliability.",
+    q: "Which blockchain does Ricardian use?",
+    a: "Ricardian is built on Base, Coinbase's Ethereum Layer 2 network. Base offers sub-second finality, gas fees under $0.01, and enterprise-grade reliability.",
   },
   {
     q: "What stablecoins are supported for payments?",
@@ -28,7 +28,7 @@ const faqs = [
     a: "Either party can trigger a dispute at any milestone. The smart contract instantly freezes the relevant funds. Both parties submit evidence through the platform, and resolution follows the terms defined in the Ricardian contract's legal prose.",
   },
   {
-    q: "Can I integrate RicardianBase with existing enterprise tools?",
+    q: "Can I integrate Ricardian with existing enterprise tools?",
     a: "Enterprise integrations with SAP, Workday, and other procurement platforms are on our Phase 3 roadmap. Contact us for early access to our API.",
   },
   {
@@ -53,7 +53,7 @@ const FAQSection = () => {
             <span className="font-instrument italic text-emerald-500">Questions</span>
           </h2>
           <p className={`mt-4 text-muted-foreground text-lg ${isInView ? "animate-fade-in-up" : ""}`} style={{ animationDelay: "0.1s" }}>
-            Everything you need to know about RicardianBase
+            Everything you need to know about Ricardian
           </p>
         </div>
 

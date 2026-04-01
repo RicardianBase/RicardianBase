@@ -35,7 +35,7 @@ const DashboardLayout = () => {
         <div className="h-16 flex items-center justify-between px-4 border-b border-[hsl(230,20%,94%)]">
           {!collapsed && (
             <span className="text-base font-semibold text-foreground" style={{ fontFamily: "'Instrument Serif', serif" }}>
-              RicardianBase
+              Ricardian
             </span>
           )}
           <button
