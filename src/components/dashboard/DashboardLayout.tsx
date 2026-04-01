@@ -57,7 +57,7 @@ const DashboardLayout = () => {
               className={({ isActive }) =>
                 `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
                   isActive
-                    ? "bg-gradient-to-r from-[hsl(250,40%,55%)] to-[hsl(220,50%,55%)] text-white shadow-md shadow-[hsl(240,40%,60%)]/20"
+                    ? "bg-emerald-500 text-white shadow-md shadow-emerald-500/20"
                     : "text-muted-foreground hover:bg-[hsl(230,25%,95%)] hover:text-foreground"
                 } ${collapsed ? "justify-center" : ""}`
               }
@@ -73,7 +73,7 @@ const DashboardLayout = () => {
           <NavLink
             to="/dashboard/contracts/new"
             onClick={() => setMobileOpen(false)}
-            className={`flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm font-medium bg-[hsl(250,35%,95%)] text-[hsl(250,50%,45%)] hover:bg-[hsl(250,35%,90%)] transition-colors ${collapsed ? "justify-center" : ""}`}
+            className={`flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm font-medium bg-emerald-50 text-emerald-700 hover:bg-emerald-100 transition-colors ${collapsed ? "justify-center" : ""}`}
           >
             <Plus size={18} />
             {!collapsed && <span>New Contract</span>}
@@ -99,7 +99,7 @@ const DashboardLayout = () => {
               <input
                 type="text"
                 placeholder="Search contracts, milestones..."
-                className="w-full bg-[hsl(230,25%,96%)] border-0 rounded-full pl-10 pr-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:ring-2 focus:ring-[hsl(250,40%,70%)]/30 transition-shadow"
+                className="w-full bg-[hsl(230,25%,96%)] border-0 rounded-full pl-10 pr-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:ring-2 focus:ring-emerald-500/30 transition-shadow"
               />
             </div>
           </div>
@@ -111,7 +111,7 @@ const DashboardLayout = () => {
               <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-[hsl(340,80%,55%)] rounded-full" />
             </button>
             {/* Avatar */}
-            <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[hsl(250,40%,75%)] to-[hsl(220,50%,65%)] flex items-center justify-center text-sm font-medium text-white">
+            <div className="w-9 h-9 rounded-full bg-emerald-500 flex items-center justify-center text-sm font-medium text-white">
               JD
             </div>
           </div>

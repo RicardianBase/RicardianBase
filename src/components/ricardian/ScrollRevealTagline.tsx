@@ -83,7 +83,7 @@ const ScrollRevealTagline = () => {
                     opacity: wordOpacity,
                     transform: `translateY(${wordY}px)`,
                     color: word.highlight
-                      ? `hsl(140, ${35 + wordOpacity * 10}%, ${38 + wordOpacity * 5}%)`
+                      ? `hsl(142, 71%, 45%)`
                       : undefined,
                     fontStyle: word.highlight ? "italic" : undefined,
                   }}
