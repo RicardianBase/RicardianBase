@@ -10,7 +10,9 @@ const serviceIcons = [escrowIcon, hybridIcon, milestoneIcon, complianceIcon];
 
 const IconImage = ({ src }: { src: string }) => (
   <div className="w-full h-[240px] flex items-center justify-center bg-white rounded-xl">
-    <img src={src} alt="" className="w-28 h-28 object-contain" />
+    <div className="w-32 h-32 flex items-center justify-center">
+      <img src={src} alt="" className="w-full h-full object-contain" />
+    </div>
   </div>
 );
 
