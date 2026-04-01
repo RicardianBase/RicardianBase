@@ -4,8 +4,6 @@ import ServicesGrid from "@/components/ricardian/ServicesGrid";
 import OrbitalTestimonials from "@/components/ricardian/OrbitalTestimonials";
 import PreventiveSection from "@/components/ricardian/PreventiveSection";
 import ScienceSection from "@/components/ricardian/ScienceSection";
-import StatsShowcase from "@/components/ricardian/StatsShowcase";
-import EducationalResources from "@/components/ricardian/EducationalResources";
 import RicardianFooter from "@/components/ricardian/RicardianFooter";
 
 const Index = () => {
@@ -17,8 +15,6 @@ const Index = () => {
       <OrbitalTestimonials />
       <PreventiveSection />
       <ScienceSection />
-      <StatsShowcase />
-      <EducationalResources />
       <RicardianFooter />
     </div>
   );
