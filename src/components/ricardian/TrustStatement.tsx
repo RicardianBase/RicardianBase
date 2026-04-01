@@ -186,9 +186,6 @@ const TrustStatement = () => {
             }}
           >
             <p className="text-sm text-muted-foreground leading-relaxed mb-4">
-              We believe the future of enterprise contracting is trustless, instant, and legally compliant. RicardianBase combines the legal enforceability of traditional contracts with the programmatic certainty of smart contracts — creating a hybrid instrument called a Ricardian contract.
-            </p>
-            <p className="text-sm text-muted-foreground leading-relaxed mb-4">
               Every contract on our platform simultaneously generates a human-readable legal document (compliant with ESIGN Act) and a matching Base L2 smart contract. A cryptographic SHA-256 hash permanently links the two, making any tampering instantly detectable.
             </p>
             <p className="text-sm text-muted-foreground leading-relaxed">
