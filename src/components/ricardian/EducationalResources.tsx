@@ -1,7 +1,7 @@
 import { useInViewAnimation } from "@/hooks/useInViewAnimation";
-import edu1 from "@/assets/edu-1.jpg";
-import edu2 from "@/assets/edu-2.jpg";
-import edu3 from "@/assets/edu-3.jpg";
+import edu1 from "@/assets/smart-contracts-101.png";
+import edu2 from "@/assets/escrow-fundamentals.png";
+import edu3 from "@/assets/dispute-resolution.png";
 
 const resources = [
   { image: edu1, title: "Introduction to Ricardian Contracts", pill: "Procurement" },
