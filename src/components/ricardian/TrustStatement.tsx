@@ -1,201 +1,217 @@
-import { useEffect, useRef, useState } from "react";
-import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { useRef, useEffect, useState } from "react";
+import { Shield, FileText, Zap, Lock, Layers } from "lucide-react";
 
-gsap.registerPlugin(ScrollTrigger);
+const labels = [
+  { text: "SMART ESCROW", side: "left" as const },
+  { text: "RICARDIAN CONTRACTS", side: "left" as const },
+  { text: "AUTO-EXECUTION", side: "left" as const },
+  { text: "KYC/AML", side: "left" as const },
+  { text: "BASE L2", side: "left" as const },
+];
 
-const services = [
+const rightLabels = [
+  "ENTERPRISE TEMPLATES",
+  "STABLECOIN PAYMENTS",
+  "BUILT ON BASE",
+];
+
+const features = [
   {
-    num: "1",
-    title: "SMART\nESCROW",
-    desc: "Automated milestone-based escrow payments in USDC & PYUSD",
-    video: "https://images.pexels.com/videos/3129671/free-video-3129671.mp4",
-    details: [
-      "Company deposits stablecoins into the smart contract's escrow upon contract creation.",
-      "Funds are visible to both parties but locked until milestones are approved.",
-      "When approved, payment releases instantly — no invoices, no delays.",
-    ],
+    icon: Shield,
+    title: "Smart Escrow",
+    desc: "Milestone-based escrow with USDC & PYUSD stablecoins.",
   },
   {
-    num: "2",
-    title: "RICARDIAN\nLINKING",
-    desc: "Cryptographic hash binding legal prose to smart contracts",
-    video: "https://images.pexels.com/videos/3129957/free-video-3129957.mp4",
-    details: [
-      "Simultaneously generates a human-readable legal PDF and a matching Base smart contract.",
-      "A cryptographic hash permanently links the two — creating tamper-proof bond.",
-      "Any post-signing modification is instantly detectable via hash mismatch.",
-    ],
+    icon: FileText,
+    title: "Ricardian Contracts",
+    desc: "Cryptographic hash linking legal prose to smart contracts.",
   },
   {
-    num: "3",
-    title: "AUTO\nEXECUTION",
-    desc: "Click approve → instant stablecoin settlement on Base",
-    video: "https://images.pexels.com/videos/3130284/free-video-3130284.mp4",
-    details: [
-      "Contractor submits deliverables through the platform for each milestone.",
-      "Company clicks 'Approve' — smart contract instantly releases payment.",
-      "Full audit trail stored permanently on Base blockchain for compliance.",
-    ],
+    icon: Zap,
+    title: "Auto-Execution",
+    desc: "Approve milestones and trigger instant on-chain settlement.",
+  },
+  {
+    icon: Layers,
+    title: "Compliance",
+    desc: "Enterprise-grade KYC/AML verification built in.",
+  },
+  {
+    icon: Lock,
+    title: "Base L2",
+    desc: "Reliable and performant blockchain infrastructure.",
   },
 ];
 
-const ServiceCard = ({ service, index }: { service: typeof services[0]; index: number }) => {
-  const [hovered, setHovered] = useState(false);
-  const videoRef = useRef<HTMLVideoElement>(null);
+/* Animated isometric stack illustration */
+const IsometricStack = () => {
+  const [visible, setVisible] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (hovered && videoRef.current) {
-      videoRef.current.play().catch(() => {});
-    } else if (videoRef.current) {
-      videoRef.current.pause();
-      videoRef.current.currentTime = 0;
-    }
-  }, [hovered]);
+    const obs = new IntersectionObserver(
+      ([e]) => { if (e.isIntersecting) setVisible(true); },
+      { threshold: 0.3 }
+    );
+    if (ref.current) obs.observe(ref.current);
+    return () => obs.disconnect();
+  }, []);
+
+  const layers = [
+    { y: 0, label: "Smart Contract Layer", delay: "0.6s" },
+    { y: -28, label: "Ricardian Link Layer", delay: "0.4s" },
+    { y: -56, label: "Payment Layer", delay: "0.2s" },
+  ];
 
   return (
-    <div
-      className="service-card relative border border-border bg-background p-6 md:p-8 flex flex-col justify-between cursor-pointer overflow-hidden group"
-      style={{ minHeight: "420px" }}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-    >
-      {/* Number */}
-      <span className="text-lg md:text-xl font-bold text-foreground">{service.num}</span>
-
-      {/* Hover video overlay */}
-      <div
-        className="absolute inset-0 z-10 transition-opacity duration-500"
-        style={{ opacity: hovered ? 1 : 0 }}
-      >
-        <video
-          ref={videoRef}
-          className="w-full h-full object-cover"
-          src={service.video}
-          muted
-          loop
-          playsInline
-        />
-        <div className="absolute inset-0 bg-black/40" />
-        <div className="absolute bottom-6 left-6 right-6 z-20">
-          <span className="text-xs text-white/70 uppercase tracking-wider">Explore</span>
-          <h3
-            className="text-2xl md:text-3xl font-black text-white leading-none mt-1 uppercase"
-            style={{ letterSpacing: "-1px" }}
-          >
-            {service.title.replace("\n", " ")}
-          </h3>
-        </div>
-      </div>
-
-      {/* Bottom content */}
-      <div className="mt-auto">
-        <h3
-          className="text-3xl md:text-4xl lg:text-[42px] font-black text-foreground leading-[0.95] uppercase"
-          style={{ letterSpacing: "-1.5px" }}
+    <div ref={ref} className="relative w-[280px] h-[240px] mx-auto">
+      {layers.map((layer, i) => (
+        <div
+          key={i}
+          className="absolute left-1/2 w-[220px] h-[72px] rounded-xl border border-border bg-card/80 backdrop-blur-sm transition-all duration-700 ease-out"
+          style={{
+            transform: visible
+              ? `translateX(-50%) translateY(${layer.y}px)`
+              : `translateX(-50%) translateY(40px)`,
+            opacity: visible ? 1 : 0,
+            transitionDelay: layer.delay,
+            bottom: "40px",
+          }}
         >
-          {service.title.split("\n").map((line, i) => (
-            <span key={i}>
-              {line}
-              {i === 0 && <br />}
+          <div className="flex items-center justify-center h-full gap-2">
+            <div className="w-[60%] space-y-1.5 px-4">
+              <div className="h-1.5 bg-border rounded-full w-3/4" />
+              <div className="h-1.5 bg-border rounded-full w-1/2" />
+              <div className="h-1.5 bg-border rounded-full w-2/3" />
+            </div>
+            <span className="text-[9px] text-muted-foreground font-medium tracking-wider uppercase pr-3">
+              {layer.label}
             </span>
-          ))}
-        </h3>
-        <p className="text-sm text-muted-foreground mt-3 leading-relaxed">{service.desc}</p>
+          </div>
+        </div>
+      ))}
+      {/* Price tag floating */}
+      <div
+        className="absolute top-4 left-1/2 -translate-x-1/2 bg-card border border-border rounded-lg px-3 py-1.5 text-xs text-muted-foreground shadow-sm transition-all duration-700 ease-out"
+        style={{
+          opacity: visible ? 1 : 0,
+          transform: visible ? "translateX(-50%) translateY(0)" : "translateX(-50%) translateY(20px)",
+          transitionDelay: "0.8s",
+        }}
+      >
+        $179.99
       </div>
     </div>
   );
 };
 
 const TrustStatement = () => {
-  const sectionRef = useRef<HTMLDivElement>(null);
-  const headlineRef = useRef<HTMLDivElement>(null);
-  const cardsRef = useRef<HTMLDivElement>(null);
+  const [inView, setInView] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const section = sectionRef.current;
-    const headline = headlineRef.current;
-    const cards = cardsRef.current;
-    if (!section || !headline || !cards) return;
-
-    const ctx = gsap.context(() => {
-      // Pin the section
-      const tl = gsap.timeline({
-        scrollTrigger: {
-          trigger: section,
-          start: "top top",
-          end: "+=150%",
-          scrub: 1,
-          pin: true,
-        },
-      });
-
-      // Headline scrolls up and scales down
-      tl.to(headline, {
-        y: "-60vh",
-        scale: 0.6,
-        opacity: 0.15,
-        ease: "none",
-      }, 0);
-
-      // Cards rise up from below
-      tl.fromTo(
-        cards,
-        { y: "80vh", opacity: 0 },
-        { y: 0, opacity: 1, ease: "none" },
-        0
-      );
-
-      // Stagger individual cards
-      const cardEls = cards.querySelectorAll(".service-card");
-      cardEls.forEach((card, i) => {
-        tl.fromTo(
-          card,
-          { y: 60 + i * 30, opacity: 0 },
-          { y: 0, opacity: 1, ease: "none" },
-          0.2 + i * 0.05
-        );
-      });
-    }, section);
-
-    return () => ctx.revert();
+    const obs = new IntersectionObserver(
+      ([e]) => { if (e.isIntersecting) setInView(true); },
+      { threshold: 0.15 }
+    );
+    if (ref.current) obs.observe(ref.current);
+    return () => obs.disconnect();
   }, []);
 
   return (
-    <section
-      ref={sectionRef}
-      className="relative bg-background overflow-hidden"
-      style={{ minHeight: "100vh" }}
-    >
-      {/* Large bold headline — scrolls up on scroll */}
-      <div
-        ref={headlineRef}
-        className="absolute inset-0 flex items-center justify-center z-0 px-4"
-      >
-        <div className="text-center">
-          <h2
-            className="text-[12vw] md:text-[10vw] lg:text-[9vw] font-black text-foreground leading-[0.85] uppercase"
-            style={{ letterSpacing: "-4px" }}
-          >
-            RICARDIAN
-            <br />
-            <span className="inline-block ml-[5vw]">PLATFORM</span>
-            <br />
-            SERVICES
-            <span className="text-muted-foreground">(3)</span>
-          </h2>
-        </div>
-      </div>
+    <section ref={ref} className="bg-muted/30 py-24 md:py-32 px-6">
+      <div className="max-w-6xl mx-auto">
+        {/* Main card */}
+        <div
+          className="bg-card border border-border rounded-3xl p-10 md:p-16 transition-all duration-700 ease-out"
+          style={{
+            opacity: inView ? 1 : 0,
+            transform: inView ? "translateY(0)" : "translateY(30px)",
+          }}
+        >
+          {/* Header area */}
+          <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-8 mb-16">
+            <div className="max-w-xl">
+              <span className="text-xs font-medium text-muted-foreground tracking-wider uppercase flex items-center gap-2 mb-4">
+                <span className="text-sm">✦</span> What is RicardianBase?
+              </span>
+              <h2
+                className="text-3xl md:text-4xl lg:text-[42px] font-normal text-foreground leading-[1.15]"
+                style={{ fontFamily: "'Instrument Serif', serif" }}
+              >
+                A contract platform with built-in
+                escrow and on-chain execution
+              </h2>
+            </div>
+            <p className="text-sm text-muted-foreground max-w-sm leading-relaxed lg:pt-10">
+              Add enterprise contract workflows with smart escrow, Ricardian linking, auto-execution, and compliance endpoints.
+            </p>
+          </div>
 
-      {/* Cards container — rises up from below */}
-      <div
-        ref={cardsRef}
-        className="relative z-10 flex items-end justify-center px-4 md:px-8"
-        style={{ minHeight: "100vh", paddingBottom: "3rem", paddingTop: "50vh" }}
-      >
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-7xl w-full">
-          {services.map((service, i) => (
-            <ServiceCard key={i} service={service} index={i} />
+          {/* Illustration area */}
+          <div className="relative flex items-center justify-center py-12 md:py-16">
+            {/* Left labels */}
+            <div className="hidden md:flex flex-col gap-3 absolute left-0 top-1/2 -translate-y-1/2">
+              {labels.map((l, i) => (
+                <div
+                  key={i}
+                  className="flex items-center gap-3 transition-all duration-500 ease-out"
+                  style={{
+                    opacity: inView ? 1 : 0,
+                    transform: inView ? "translateX(0)" : "translateX(-20px)",
+                    transitionDelay: `${0.3 + i * 0.1}s`,
+                  }}
+                >
+                  <span className="text-[10px] font-medium text-muted-foreground tracking-wider">
+                    {l.text}
+                  </span>
+                  <div className="w-8 h-px bg-border" />
+                </div>
+              ))}
+            </div>
+
+            {/* Center illustration */}
+            <IsometricStack />
+
+            {/* Right labels */}
+            <div className="hidden md:flex flex-col gap-4 absolute right-0 top-1/2 -translate-y-1/2">
+              {rightLabels.map((l, i) => (
+                <div
+                  key={i}
+                  className="flex items-center gap-3 transition-all duration-500 ease-out"
+                  style={{
+                    opacity: inView ? 1 : 0,
+                    transform: inView ? "translateX(0)" : "translateX(20px)",
+                    transitionDelay: `${0.5 + i * 0.1}s`,
+                  }}
+                >
+                  <div className="w-8 h-px bg-border" />
+                  <span className="text-[10px] font-medium text-muted-foreground tracking-wider">
+                    {l}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Feature pills row */}
+        <div
+          className="grid grid-cols-2 md:grid-cols-5 gap-6 mt-12 px-2"
+          style={{
+            opacity: inView ? 1 : 0,
+            transform: inView ? "translateY(0)" : "translateY(20px)",
+            transition: "all 0.7s ease-out 0.8s",
+          }}
+        >
+          {features.map((f, i) => (
+            <div key={i} className="flex flex-col gap-2">
+              <div className="flex items-center gap-2 text-foreground">
+                <f.icon size={14} strokeWidth={1.5} />
+                <span className="text-sm font-medium">{f.title}</span>
+              </div>
+              <p className="text-xs text-muted-foreground leading-relaxed">{f.desc}</p>
+            </div>
           ))}
         </div>
       </div>
