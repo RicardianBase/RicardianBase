@@ -50,7 +50,7 @@ const ScrollRevealTagline = () => {
     <section
       ref={sectionRef}
       className="relative bg-background overflow-hidden"
-      style={{ minHeight: "60vh" }}
+      style={{ minHeight: "auto" }}
     >
       {/* Subtle gradient accent */}
       <div
@@ -61,7 +61,7 @@ const ScrollRevealTagline = () => {
         }}
       />
 
-      <div className="sticky top-0 min-h-screen flex items-center justify-center px-6 md:px-12">
+      <div className="relative flex items-center justify-center px-6 py-12 md:px-12 md:py-16">
         <div className="max-w-5xl mx-auto text-center">
           {/* Main headline — word-by-word reveal */}
           <h2
