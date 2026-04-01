@@ -2,11 +2,73 @@ import { ArrowRight } from "lucide-react";
 import { useState } from "react";
 
 const columns = [
-  { title: "Product", links: ["Smart Contracts", "Escrow", "Milestones", "Auto-Payments"] },
-  { title: "Solutions", links: ["Procurement", "Legal Ops", "Finance", "Contractors"] },
-  { title: "Company", links: ["About", "Blog", "Careers", "Press"] },
-  { title: "Legal", links: ["Terms & Conditions", "Privacy Policy"] },
+  {
+    title: "Navigate",
+    links: [
+      { label: "About", href: "#about" },
+      { label: "Services", href: "#services" },
+      { label: "How It Works", href: "#how-it-works" },
+      { label: "Testimonials", href: "#testimonials" },
+      { label: "Roadmap", href: "#roadmap" },
+      { label: "FAQ", href: "#faq" },
+    ],
+  },
+  {
+    title: "Product",
+    links: [
+      { label: "Smart Contracts", href: "#" },
+      { label: "Escrow", href: "#" },
+      { label: "Milestones", href: "#" },
+      { label: "Auto-Payments", href: "#" },
+    ],
+  },
+  {
+    title: "Socials",
+    isSocial: true,
+    links: [
+      { label: "X / Twitter", href: "#" },
+      { label: "Telegram", href: "#" },
+      { label: "GitHub", href: "#" },
+    ],
+  },
+  {
+    title: "Legal",
+    links: [
+      { label: "Terms & Conditions", href: "#" },
+      { label: "Privacy Policy", href: "#" },
+    ],
+  },
 ];
+
+const ComingSoonPopup = ({ name }: { name: string }) => (
+  <span className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 bg-foreground text-background text-xs font-medium px-3 py-2 rounded-lg whitespace-nowrap shadow-lg z-10 animate-fade-in">
+    {name} — Coming Soon
+    <span className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-foreground" />
+  </span>
+);
+
+const SocialLink = ({ label }: { label: string }) => {
+  const [show, setShow] = useState(false);
+
+  return (
+    <li className="relative">
+      {show && <ComingSoonPopup name={label} />}
+      <button
+        onClick={() => { setShow(true); setTimeout(() => setShow(false), 2000); }}
+        className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+      >
+        {label}
+      </button>
+    </li>
+  );
+};
+
+const handleScrollClick = (e: React.MouseEvent, href: string) => {
+  if (href === "#") return;
+  e.preventDefault();
+  const el = document.querySelector(href);
+  if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+};
 
 const socials = [
   { label: "𝕏", name: "X / Twitter" },
@@ -14,19 +76,12 @@ const socials = [
   { label: "GH", name: "GitHub" },
 ];
 
-const ComingSoonPopup = ({ name, onClose }: { name: string; onClose: () => void }) => (
-  <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 bg-foreground text-background text-xs font-medium px-3 py-2 rounded-lg whitespace-nowrap shadow-lg z-10 animate-fade-in">
-    {name} — Coming Soon
-    <div className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-foreground" />
-  </div>
-);
-
 const SocialButton = ({ social }: { social: { label: string; name: string } }) => {
   const [show, setShow] = useState(false);
 
   return (
     <div className="relative">
-      {show && <ComingSoonPopup name={social.name} onClose={() => setShow(false)} />}
+      {show && <ComingSoonPopup name={social.name} />}
       <button
         onClick={() => { setShow(true); setTimeout(() => setShow(false), 2000); }}
         className="w-8 h-8 rounded-full border border-border flex items-center justify-center text-[10px] text-muted-foreground hover:bg-secondary transition-colors"
@@ -37,22 +92,7 @@ const SocialButton = ({ social }: { social: { label: string; name: string } }) =
   );
 };
 
-const navLinks = [
-  { label: "About", href: "#about" },
-  { label: "Services", href: "#services" },
-  { label: "How It Works", href: "#how-it-works" },
-  { label: "Testimonials", href: "#testimonials" },
-  { label: "Roadmap", href: "#roadmap" },
-  { label: "FAQ", href: "#faq" },
-];
-
 const RicardianFooter = () => {
-  const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
-    e.preventDefault();
-    const el = document.querySelector(href);
-    if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
-  };
-
   return (
     <footer className="bg-secondary/30 border-t border-border">
       <div className="max-w-7xl mx-auto px-6 py-16 md:py-20">
@@ -63,20 +103,6 @@ const RicardianFooter = () => {
             <p className="text-sm text-muted-foreground mt-3 leading-relaxed max-w-xs">
               Hybrid Ricardian contracts on Base blockchain. Instant stablecoin payments, automated escrow, and legally binding smart contracts.
             </p>
-
-            {/* Nav links */}
-            <div className="mt-6 flex flex-wrap gap-x-4 gap-y-2">
-              {navLinks.map((link) => (
-                <a
-                  key={link.label}
-                  href={link.href}
-                  onClick={(e) => handleNavClick(e, link.href)}
-                  className="text-xs text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  {link.label}
-                </a>
-              ))}
-            </div>
 
             <div className="mt-6 flex">
               <input
@@ -95,11 +121,22 @@ const RicardianFooter = () => {
             <div key={col.title}>
               <p className="text-xs font-semibold text-foreground uppercase tracking-wider mb-4">{col.title}</p>
               <ul className="space-y-2.5">
-                {col.links.map((link) => (
-                  <li key={link}>
-                    <a href="#" className="text-sm text-muted-foreground hover:text-foreground transition-colors">{link}</a>
-                  </li>
-                ))}
+                {col.isSocial
+                  ? col.links.map((link) => (
+                      <SocialLink key={link.label} label={link.label} />
+                    ))
+                  : col.links.map((link) => (
+                      <li key={link.label}>
+                        <a
+                          href={link.href}
+                          onClick={(e) => handleScrollClick(e, link.href)}
+                          className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                        >
+                          {link.label}
+                        </a>
+                      </li>
+                    ))
+                }
               </ul>
             </div>
           ))}
