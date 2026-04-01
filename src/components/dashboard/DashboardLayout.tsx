@@ -99,7 +99,7 @@ const DashboardLayout = () => {
               <input
                 type="text"
                 placeholder="Search contracts, milestones..."
-                className="w-full bg-[hsl(230,25%,96%)] border-0 rounded-full pl-10 pr-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:ring-2 focus:ring-[hsl(250,40%,70%)]/30 transition-shadow"
+                className="w-full bg-[hsl(230,25%,96%)] border-0 rounded-full pl-10 pr-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:ring-2 focus:ring-emerald-500/30 transition-shadow"
               />
             </div>
           </div>
