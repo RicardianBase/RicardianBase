@@ -1,12 +1,20 @@
-import { useRef, useEffect, useState } from "react";
+import { useRef, useEffect, useState, useCallback } from "react";
 import { Shield, FileText, Zap, Lock, Layers } from "lucide-react";
 
+const features = [
+  { icon: Shield, title: "Smart Escrow", desc: "Milestone-based escrow with USDC & PYUSD stablecoins." },
+  { icon: FileText, title: "Ricardian Contracts", desc: "Cryptographic hash linking legal prose to smart contracts." },
+  { icon: Zap, title: "Auto-Execution", desc: "Approve milestones and trigger instant on-chain settlement." },
+  { icon: Layers, title: "Compliance", desc: "Enterprise-grade KYC/AML verification built in." },
+  { icon: Lock, title: "Base L2", desc: "Reliable and performant blockchain infrastructure." },
+];
+
 const labels = [
-  { text: "SMART ESCROW", side: "left" as const },
-  { text: "RICARDIAN CONTRACTS", side: "left" as const },
-  { text: "AUTO-EXECUTION", side: "left" as const },
-  { text: "KYC/AML", side: "left" as const },
-  { text: "BASE L2", side: "left" as const },
+  "SMART ESCROW",
+  "RICARDIAN CONTRACTS",
+  "AUTO-EXECUTION",
+  "KYC/AML",
+  "BASE L2",
 ];
 
 const rightLabels = [
@@ -15,91 +23,129 @@ const rightLabels = [
   "BUILT ON BASE",
 ];
 
-const features = [
-  {
-    icon: Shield,
-    title: "Smart Escrow",
-    desc: "Milestone-based escrow with USDC & PYUSD stablecoins.",
-  },
-  {
-    icon: FileText,
-    title: "Ricardian Contracts",
-    desc: "Cryptographic hash linking legal prose to smart contracts.",
-  },
-  {
-    icon: Zap,
-    title: "Auto-Execution",
-    desc: "Approve milestones and trigger instant on-chain settlement.",
-  },
-  {
-    icon: Layers,
-    title: "Compliance",
-    desc: "Enterprise-grade KYC/AML verification built in.",
-  },
-  {
-    icon: Lock,
-    title: "Base L2",
-    desc: "Reliable and performant blockchain infrastructure.",
-  },
-];
-
-/* Animated isometric stack illustration */
-const IsometricStack = () => {
-  const [visible, setVisible] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
+/* ---- Animated 3D Platform Illustration ---- */
+const PlatformIllustration = ({ visible }: { visible: boolean }) => {
+  const [tick, setTick] = useState(0);
 
   useEffect(() => {
-    const obs = new IntersectionObserver(
-      ([e]) => { if (e.isIntersecting) setVisible(true); },
-      { threshold: 0.3 }
-    );
-    if (ref.current) obs.observe(ref.current);
-    return () => obs.disconnect();
-  }, []);
+    if (!visible) return;
+    const id = setInterval(() => setTick((t) => t + 1), 2000);
+    return () => clearInterval(id);
+  }, [visible]);
 
   const layers = [
-    { y: 0, label: "Smart Contract Layer", delay: "0.6s" },
-    { y: -28, label: "Ricardian Link Layer", delay: "0.4s" },
-    { y: -56, label: "Payment Layer", delay: "0.2s" },
+    { label: "Payment Layer", gradient: "from-[hsl(220,55%,55%)] to-[hsl(250,45%,60%)]", yOff: 0, delay: 0.2 },
+    { label: "Ricardian Link", gradient: "from-[hsl(250,40%,58%)] to-[hsl(280,45%,62%)]", yOff: -36, delay: 0.4 },
+    { label: "Smart Contract", gradient: "from-[hsl(280,40%,55%)] to-[hsl(300,45%,60%)]", yOff: -72, delay: 0.6 },
   ];
 
+  const particles = Array.from({ length: 8 }, (_, i) => ({
+    angle: (i / 8) * 360,
+    radius: 100 + (i % 3) * 20,
+    size: 3 + (i % 3),
+    speed: 12 + i * 2,
+    color: i % 2 === 0 ? "hsl(250,50%,70%)" : "hsl(220,55%,65%)",
+  }));
+
   return (
-    <div ref={ref} className="relative w-[280px] h-[240px] mx-auto">
+    <div className="relative w-[340px] h-[300px] mx-auto">
+      {/* Ambient glow */}
+      <div
+        className="absolute top-1/2 left-1/2 w-[200px] h-[200px] -translate-x-1/2 -translate-y-1/2 rounded-full transition-all duration-1000"
+        style={{
+          background: "radial-gradient(circle, hsl(250,50%,70%,0.15) 0%, transparent 70%)",
+          opacity: visible ? 1 : 0,
+          transform: `translate(-50%, -50%) scale(${visible ? 1.2 : 0.5})`,
+        }}
+      />
+
+      {/* Orbital particles */}
+      {particles.map((p, i) => (
+        <div
+          key={i}
+          className="absolute top-1/2 left-1/2 rounded-full transition-opacity duration-700"
+          style={{
+            width: p.size,
+            height: p.size,
+            backgroundColor: p.color,
+            opacity: visible ? 0.6 : 0,
+            transitionDelay: `${0.8 + i * 0.1}s`,
+            animation: visible ? `orbit-${i % 3} ${p.speed}s linear infinite` : "none",
+            transform: `translate(-50%, -50%) rotate(${p.angle}deg) translateX(${p.radius}px)`,
+          }}
+        />
+      ))}
+
+      {/* Connecting lines */}
+      {visible && (
+        <svg className="absolute inset-0 w-full h-full pointer-events-none" style={{ opacity: 0.2 }}>
+          <circle cx="170" cy="150" r="80" fill="none" stroke="hsl(250,40%,65%)" strokeWidth="0.5" strokeDasharray="4 4">
+            <animateTransform attributeName="transform" type="rotate" from="0 170 150" to="360 170 150" dur="20s" repeatCount="indefinite" />
+          </circle>
+          <circle cx="170" cy="150" r="110" fill="none" stroke="hsl(220,45%,60%)" strokeWidth="0.5" strokeDasharray="2 6">
+            <animateTransform attributeName="transform" type="rotate" from="360 170 150" to="0 170 150" dur="30s" repeatCount="indefinite" />
+          </circle>
+        </svg>
+      )}
+
+      {/* Stacked layers */}
       {layers.map((layer, i) => (
         <div
           key={i}
-          className="absolute left-1/2 w-[220px] h-[72px] rounded-xl border border-border bg-card/80 backdrop-blur-sm transition-all duration-700 ease-out"
+          className={`absolute left-1/2 w-[220px] h-[56px] rounded-xl bg-gradient-to-r ${layer.gradient} shadow-lg transition-all duration-700 ease-out`}
           style={{
             transform: visible
-              ? `translateX(-50%) translateY(${layer.y}px)`
-              : `translateX(-50%) translateY(40px)`,
+              ? `translateX(-50%) translateY(${layer.yOff}px)`
+              : `translateX(-50%) translateY(60px) scale(0.9)`,
             opacity: visible ? 1 : 0,
-            transitionDelay: layer.delay,
-            bottom: "40px",
+            transitionDelay: `${layer.delay}s`,
+            bottom: "60px",
+            boxShadow: visible ? `0 8px 24px -4px hsl(250,40%,40%,0.25)` : "none",
           }}
         >
-          <div className="flex items-center justify-center h-full gap-2">
-            <div className="w-[60%] space-y-1.5 px-4">
-              <div className="h-1.5 bg-border rounded-full w-3/4" />
-              <div className="h-1.5 bg-border rounded-full w-1/2" />
-              <div className="h-1.5 bg-border rounded-full w-2/3" />
+          <div className="flex items-center h-full px-4 gap-3">
+            <div className="flex-1 space-y-1.5">
+              <div className="h-1.5 bg-white/25 rounded-full w-3/4" />
+              <div className="h-1.5 bg-white/15 rounded-full w-1/2" />
             </div>
-            <span className="text-[9px] text-muted-foreground font-medium tracking-wider uppercase pr-3">
+            <span className="text-[9px] text-white/70 font-medium tracking-wider uppercase whitespace-nowrap">
               {layer.label}
             </span>
           </div>
+
+          {/* Pulse ring on active layer */}
+          {tick % 3 === i && visible && (
+            <div className="absolute inset-0 rounded-xl border-2 border-white/30 animate-ping" style={{ animationDuration: "1.5s" }} />
+          )}
         </div>
       ))}
-      {/* Price tag floating */}
+
+      {/* Floating data badge */}
       <div
-        className="absolute top-4 left-1/2 -translate-x-1/2 bg-card border border-border rounded-lg px-3 py-1.5 text-xs text-muted-foreground shadow-sm transition-all duration-700 ease-out"
+        className="absolute top-2 left-1/2 -translate-x-1/2 bg-white/90 backdrop-blur-sm border border-[hsl(250,30%,85%)] rounded-xl px-4 py-2 shadow-lg transition-all duration-700 ease-out"
         style={{
           opacity: visible ? 1 : 0,
           transform: visible ? "translateX(-50%) translateY(0)" : "translateX(-50%) translateY(20px)",
-          transitionDelay: "0.8s",
+          transitionDelay: "1s",
         }}
       >
-        $179.99
+        <div className="flex items-center gap-2">
+          <div className="w-2 h-2 rounded-full bg-[hsl(160,50%,45%)] animate-pulse" />
+          <span className="text-[10px] font-medium text-foreground">Contract Active</span>
+          <span className="text-[10px] text-muted-foreground">$12,500</span>
+        </div>
+      </div>
+
+      {/* Floating hash badge */}
+      <div
+        className="absolute bottom-4 right-4 bg-white/90 backdrop-blur-sm border border-[hsl(250,30%,85%)] rounded-lg px-3 py-1.5 shadow-md transition-all duration-700 ease-out"
+        style={{
+          opacity: visible ? 1 : 0,
+          transform: visible ? "translateY(0) scale(1)" : "translateY(10px) scale(0.9)",
+          transitionDelay: "1.2s",
+        }}
+      >
+        <span className="text-[8px] font-mono text-muted-foreground">SHA-256: 0x3a1b…9c2d</span>
       </div>
     </div>
   );
@@ -112,44 +158,65 @@ const TrustStatement = () => {
   useEffect(() => {
     const obs = new IntersectionObserver(
       ([e]) => { if (e.isIntersecting) setInView(true); },
-      { threshold: 0.15 }
+      { threshold: 0.1 }
     );
     if (ref.current) obs.observe(ref.current);
     return () => obs.disconnect();
   }, []);
 
   return (
-    <section ref={ref} className="bg-muted/30 py-24 md:py-32 px-6">
+    <section ref={ref} className="bg-[hsl(230,25%,96%)] py-24 md:py-32 px-6">
       <div className="max-w-6xl mx-auto">
         {/* Main card */}
         <div
-          className="bg-card border border-border rounded-3xl p-10 md:p-16 transition-all duration-700 ease-out"
+          className="bg-card border border-[hsl(230,20%,90%)] rounded-3xl p-10 md:p-16 transition-all duration-700 ease-out shadow-sm"
           style={{
             opacity: inView ? 1 : 0,
             transform: inView ? "translateY(0)" : "translateY(30px)",
           }}
         >
           {/* Header area */}
-          <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-8 mb-16">
+          <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-8 mb-12">
             <div className="max-w-xl">
-              <span className="text-xs font-medium text-muted-foreground tracking-wider uppercase flex items-center gap-2 mb-4">
-                <span className="text-sm">✦</span> What is RicardianBase?
+              <span className="text-xs font-medium text-[hsl(250,40%,55%)] tracking-wider uppercase flex items-center gap-2 mb-4">
+                <span className="text-sm">✦</span> About RicardianBase
               </span>
               <h2
                 className="text-3xl md:text-4xl lg:text-[42px] font-normal text-foreground leading-[1.15]"
                 style={{ fontFamily: "'Instrument Serif', serif" }}
               >
-                A contract platform with built-in
-                escrow and on-chain execution
+                The first platform to merge{" "}
+                <em className="text-[hsl(250,40%,55%)]">legal contracts</em> with{" "}
+                <em className="text-[hsl(220,50%,55%)]">smart contracts</em>
               </h2>
             </div>
             <p className="text-sm text-muted-foreground max-w-sm leading-relaxed lg:pt-10">
-              Add enterprise contract workflows with smart escrow, Ricardian linking, auto-execution, and compliance endpoints.
+              RicardianBase is enterprise-grade infrastructure for hiring managers, procurement teams, and tech contractors. We eliminate payment friction and contract risk by fusing legally-binding prose with on-chain escrow execution on the Base blockchain.
+            </p>
+          </div>
+
+          {/* About text */}
+          <div
+            className="mb-16 max-w-3xl transition-all duration-700 ease-out"
+            style={{
+              opacity: inView ? 1 : 0,
+              transform: inView ? "translateY(0)" : "translateY(20px)",
+              transitionDelay: "0.2s",
+            }}
+          >
+            <p className="text-sm text-muted-foreground leading-relaxed mb-4">
+              We believe the future of enterprise contracting is trustless, instant, and legally compliant. RicardianBase combines the legal enforceability of traditional contracts with the programmatic certainty of smart contracts — creating a hybrid instrument called a Ricardian contract.
+            </p>
+            <p className="text-sm text-muted-foreground leading-relaxed mb-4">
+              Every contract on our platform simultaneously generates a human-readable legal document (compliant with ESIGN Act) and a matching Base L2 smart contract. A cryptographic SHA-256 hash permanently links the two, making any tampering instantly detectable.
+            </p>
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              Payments flow through milestone-based escrow in USDC and PYUSD stablecoins — always worth $1 USD, zero volatility. When a milestone is approved, funds release automatically. No invoices, no AP departments, no 30-day payment terms. Just click approve and the contractor gets paid in seconds.
             </p>
           </div>
 
           {/* Illustration area */}
-          <div className="relative flex items-center justify-center py-12 md:py-16">
+          <div className="relative flex items-center justify-center py-8 md:py-12">
             {/* Left labels */}
             <div className="hidden md:flex flex-col gap-3 absolute left-0 top-1/2 -translate-y-1/2">
               {labels.map((l, i) => (
@@ -159,19 +226,19 @@ const TrustStatement = () => {
                   style={{
                     opacity: inView ? 1 : 0,
                     transform: inView ? "translateX(0)" : "translateX(-20px)",
-                    transitionDelay: `${0.3 + i * 0.1}s`,
+                    transitionDelay: `${0.4 + i * 0.1}s`,
                   }}
                 >
                   <span className="text-[10px] font-medium text-muted-foreground tracking-wider">
-                    {l.text}
+                    {l}
                   </span>
-                  <div className="w-8 h-px bg-border" />
+                  <div className="w-8 h-px bg-gradient-to-r from-[hsl(250,40%,70%)] to-transparent" />
                 </div>
               ))}
             </div>
 
             {/* Center illustration */}
-            <IsometricStack />
+            <PlatformIllustration visible={inView} />
 
             {/* Right labels */}
             <div className="hidden md:flex flex-col gap-4 absolute right-0 top-1/2 -translate-y-1/2">
@@ -182,10 +249,10 @@ const TrustStatement = () => {
                   style={{
                     opacity: inView ? 1 : 0,
                     transform: inView ? "translateX(0)" : "translateX(20px)",
-                    transitionDelay: `${0.5 + i * 0.1}s`,
+                    transitionDelay: `${0.6 + i * 0.1}s`,
                   }}
                 >
-                  <div className="w-8 h-px bg-border" />
+                  <div className="w-8 h-px bg-gradient-to-l from-[hsl(220,50%,65%)] to-transparent" />
                   <span className="text-[10px] font-medium text-muted-foreground tracking-wider">
                     {l}
                   </span>
@@ -205,10 +272,12 @@ const TrustStatement = () => {
           }}
         >
           {features.map((f, i) => (
-            <div key={i} className="flex flex-col gap-2">
-              <div className="flex items-center gap-2 text-foreground">
-                <f.icon size={14} strokeWidth={1.5} />
-                <span className="text-sm font-medium">{f.title}</span>
+            <div key={i} className="flex flex-col gap-2 group">
+              <div className="flex items-center gap-2">
+                <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-[hsl(250,40%,92%)] to-[hsl(220,45%,90%)] flex items-center justify-center group-hover:from-[hsl(250,40%,85%)] group-hover:to-[hsl(220,45%,82%)] transition-all duration-300">
+                  <f.icon size={14} strokeWidth={1.5} className="text-[hsl(250,45%,50%)]" />
+                </div>
+                <span className="text-sm font-medium text-foreground">{f.title}</span>
               </div>
               <p className="text-xs text-muted-foreground leading-relaxed">{f.desc}</p>
             </div>
