@@ -71,7 +71,6 @@ const TrustStatement = () => {
             </p>
           </div>
 
-          {/* Illustration area */}
           {/* Video area */}
           <div
             className="relative flex items-center justify-center py-8 md:py-12 transition-all duration-700 ease-out"
