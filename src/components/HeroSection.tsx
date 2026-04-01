@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
+import { GlassButton } from "@/components/ui/glass-button";
 
 const HeroSection = () => {
   const videoRef = useRef<HTMLVideoElement>(null);
