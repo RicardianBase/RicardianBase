@@ -14,34 +14,34 @@ const Wallet = () => {
 
   return (
     <div ref={ref} className="space-y-6">
-      <h1 className={`text-2xl font-medium text-gray-900 ${isInView ? "animate-fade-in-up" : ""}`} style={{ animationDelay: "0.1s" }}>
+      <h1 className={`text-2xl font-medium text-foreground ${isInView ? "animate-fade-in-up" : ""}`} style={{ animationDelay: "0.1s" }}>
         Wallet
       </h1>
 
       {/* Balance cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {[
-          { token: "USDC", balance: "$42,500.00", icon: "💲" },
-          { token: "PYUSD", balance: "$12,800.00", icon: "🅿️" },
+          { token: "USDC", balance: "$42,500.00", icon: "💲", gradient: "from-[hsl(220,55%,55%)] to-[hsl(250,45%,60%)]" },
+          { token: "PYUSD", balance: "$12,800.00", icon: "🅿️", gradient: "from-[hsl(260,40%,55%)] to-[hsl(290,40%,60%)]" },
         ].map((b, i) => (
           <div
             key={b.token}
-            className={`bg-white rounded-2xl p-6 shadow-sm ${isInView ? "animate-fade-in-up" : ""}`}
+            className={`bg-gradient-to-br ${b.gradient} rounded-2xl p-6 shadow-lg ${isInView ? "animate-fade-in-up" : ""}`}
             style={{ animationDelay: `${0.15 + i * 0.05}s` }}
           >
             <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-lg">
+              <div className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center text-lg">
                 {b.icon}
               </div>
-              <span className="text-sm font-medium text-gray-500">{b.token}</span>
+              <span className="text-sm font-medium text-white/80">{b.token}</span>
             </div>
-            <p className="text-3xl font-semibold text-gray-900">{b.balance}</p>
-            <p className="text-xs text-gray-400 mt-1">Available balance</p>
+            <p className="text-3xl font-semibold text-white">{b.balance}</p>
+            <p className="text-xs text-white/60 mt-1">Available balance</p>
             <div className="flex gap-2 mt-5">
-              <button className="inline-flex items-center gap-1.5 text-xs font-medium bg-gray-900 text-white px-4 py-2 rounded-full hover:bg-gray-800 transition-colors">
+              <button className="inline-flex items-center gap-1.5 text-xs font-medium bg-white text-foreground px-4 py-2 rounded-full hover:bg-white/90 transition-colors">
                 <CircleDollarSign size={14} /> Fund
               </button>
-              <button className="inline-flex items-center gap-1.5 text-xs font-medium border border-gray-200 text-gray-600 px-4 py-2 rounded-full hover:bg-gray-50 transition-colors">
+              <button className="inline-flex items-center gap-1.5 text-xs font-medium border border-white/30 text-white px-4 py-2 rounded-full hover:bg-white/10 transition-colors">
                 Withdraw
               </button>
             </div>
@@ -52,32 +52,32 @@ const Wallet = () => {
       {/* Transactions */}
       <div className={`bg-white rounded-2xl p-6 shadow-sm ${isInView ? "animate-fade-in-up" : ""}`} style={{ animationDelay: "0.25s" }}>
         <div className="flex items-center justify-between mb-5">
-          <h2 className="text-base font-medium text-gray-900">Transactions</h2>
-          <button className="inline-flex items-center gap-1.5 text-xs font-medium border border-gray-200 text-gray-600 px-4 py-2 rounded-full hover:bg-gray-50 transition-colors">
+          <h2 className="text-base font-medium text-foreground">Transactions</h2>
+          <button className="inline-flex items-center gap-1.5 text-xs font-medium border border-[hsl(230,20%,90%)] text-muted-foreground px-4 py-2 rounded-full hover:bg-[hsl(230,25%,96%)] transition-colors">
             <Download size={14} /> Export
           </button>
         </div>
 
         <div className="space-y-0">
           {transactions.map((t, i) => (
-            <div key={i} className={`flex items-center gap-3 py-3.5 ${i < transactions.length - 1 ? "border-b border-gray-50" : ""}`}>
+            <div key={i} className={`flex items-center gap-3 py-3.5 ${i < transactions.length - 1 ? "border-b border-[hsl(230,20%,94%)]" : ""}`}>
               <div className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 ${
-                t.type === "in" ? "bg-emerald-50" : "bg-red-50"
+                t.type === "in" ? "bg-[hsl(160,40%,92%)]" : "bg-[hsl(340,40%,94%)]"
               }`}>
                 {t.type === "in"
-                  ? <ArrowDownLeft size={16} className="text-emerald-600" />
-                  : <ArrowUpRight size={16} className="text-red-500" />
+                  ? <ArrowDownLeft size={16} className="text-[hsl(160,50%,40%)]" />
+                  : <ArrowUpRight size={16} className="text-[hsl(340,60%,50%)]" />
                 }
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm text-gray-700 truncate">{t.desc}</p>
-                <p className="text-xs text-gray-400 mt-0.5">{t.date}</p>
+                <p className="text-sm text-muted-foreground truncate">{t.desc}</p>
+                <p className="text-xs text-muted-foreground/60 mt-0.5">{t.date}</p>
               </div>
               <div className="text-right flex-shrink-0">
-                <p className={`text-sm font-medium ${t.type === "in" ? "text-emerald-600" : "text-red-500"}`}>
+                <p className={`text-sm font-medium ${t.type === "in" ? "text-[hsl(160,50%,40%)]" : "text-[hsl(340,60%,50%)]"}`}>
                   {t.amount}
                 </p>
-                <a href="#" className="text-[10px] text-gray-400 font-mono hover:text-blue-500 inline-flex items-center gap-0.5">
+                <a href="#" className="text-[10px] text-muted-foreground/60 font-mono hover:text-[hsl(250,50%,55%)] inline-flex items-center gap-0.5">
                   {t.hash} <ArrowUpRight size={10} />
                 </a>
               </div>
