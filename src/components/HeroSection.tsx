@@ -67,7 +67,7 @@ const HeroSection = () => {
           className="text-3xl tracking-tight text-foreground"
           style={{ fontFamily: "'Instrument Serif', serif" }}
         >
-          RicardianBase<sup className="text-xs align-super">®</sup>
+          Ricardian<sup className="text-xs align-super">®</sup>
         </span>
 
         <div className="hidden md:flex items-center gap-8">
