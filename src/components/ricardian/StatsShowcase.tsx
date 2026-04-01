@@ -12,39 +12,35 @@ const StatsShowcase = () => {
           style={{ animationDelay: "0.1s" }}
         >
           <div className="flex flex-col md:flex-row">
-            {/* Left: Stats */}
             <div className="p-8 md:p-12 flex flex-col justify-center md:w-2/5">
-              <span className="text-xs text-gray-400 font-medium uppercase tracking-wider">From Data</span>
-              <p className="text-sm text-gray-600 mt-1 font-medium">Average rate</p>
-              <p className="text-[80px] md:text-[100px] font-light text-gray-900 leading-none mt-2 tracking-tight">
-                92
-                <span className="text-2xl text-gray-400 ml-1">%</span>
-              </p>
-              <div className="mt-4 h-1.5 bg-gray-200 rounded-full w-48 overflow-hidden">
-                <div className="h-full bg-blue-400 rounded-full" style={{ width: "92%" }} />
+              <span className="text-xs text-gray-400 font-medium uppercase tracking-wider">Platform Performance</span>
+              <p className="text-sm text-gray-600 mt-1 font-medium">Average payment speed</p>
+              <div className="flex items-baseline gap-2 mt-2">
+                <p className="text-[80px] md:text-[100px] font-light text-gray-900 leading-none tracking-tight">14</p>
+                <span className="text-xl text-gray-400">seconds</span>
+              </div>
+              <div className="mt-4">
+                <div className="flex items-center justify-between text-xs text-gray-400 mb-1">
+                  <span>RicardianBase</span>
+                  <span>Industry: 45 days</span>
+                </div>
+                <div className="h-1.5 bg-gray-200 rounded-full w-48 overflow-hidden">
+                  <div className="h-full bg-blue-500 rounded-full" style={{ width: "98%" }} />
+                </div>
               </div>
               <p className="text-xs text-gray-400 mt-3">
-                The score of client satisfaction in milestone-based contracts
+                Instant stablecoin settlement vs. traditional 30–90 day payment cycles
               </p>
             </div>
 
-            {/* Right: Image */}
             <div className="md:w-3/5 relative">
-              <img
-                src={statsHero}
-                alt="Advanced technology"
-                className="w-full h-full min-h-[300px] object-cover"
-                loading="lazy"
-                width={1024}
-                height={640}
-              />
-              {/* Floating pills */}
+              <img src={statsHero} alt="Platform technology" className="w-full h-full min-h-[300px] object-cover" loading="lazy" width={1024} height={640} />
               <div className="absolute top-4 right-4 flex gap-2">
                 <span className="bg-white/90 backdrop-blur-sm text-gray-700 text-xs font-medium px-4 py-1.5 rounded-full shadow-sm">
-                  Get The App
+                  View API Docs
                 </span>
                 <span className="bg-white/90 backdrop-blur-sm text-gray-700 text-xs font-medium px-4 py-1.5 rounded-full shadow-sm">
-                  View Documentation
+                  Technical Whitepaper
                 </span>
               </div>
             </div>
