@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { GlassButton } from "@/components/ui/glass-button";
+import { useWallet } from "@/contexts/WalletContext";
 
 const HeroSection = () => {
   const videoRef = useRef<HTMLVideoElement>(null);

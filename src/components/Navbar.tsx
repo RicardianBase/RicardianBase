@@ -1,5 +1,6 @@
-import { ArrowUpRight, Menu, X } from "lucide-react";
+import { ArrowUpRight, Menu, X, Wallet } from "lucide-react";
 import { useState } from "react";
+import { useWallet } from "@/contexts/WalletContext";
 
 const navLinks = [
   { label: "About", href: "#about" },
@@ -12,6 +13,7 @@ const navLinks = [
 
 const Navbar = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const { isConnected, address, openModal, disconnect } = useWallet();
 
   const handleClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
     e.preventDefault();
@@ -21,6 +23,19 @@ const Navbar = () => {
     }
     setMobileOpen(false);
   };
+
+  const handleGetStarted = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (!isConnected) {
+      openModal();
+    } else {
+      window.location.href = "/dashboard";
+    }
+  };
+
+  const truncatedAddress = address
+    ? `${address.slice(0, 4)}...${address.slice(-4)}`
+    : "";
 
   return (
     <nav className="fixed top-6 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2rem)] max-w-6xl">
@@ -45,18 +60,38 @@ const Navbar = () => {
           ))}
         </ul>
 
-        {/* CTA + Mobile toggle */}
-        <div className="flex items-center gap-3">
-          <a
-            href="#cta"
-            onClick={(e) => handleClick(e, "#cta")}
+        {/* CTA + Connect + Mobile toggle */}
+        <div className="flex items-center gap-2">
+          {/* Connect Wallet button */}
+          {isConnected ? (
+            <button
+              onClick={disconnect}
+              className="hidden sm:flex items-center gap-2 border border-[hsl(140,38%,38%)]/30 bg-[hsl(140,38%,38%)]/5 text-[hsl(140,38%,38%)] font-barlow font-medium text-[13px] px-4 py-2.5 rounded-full hover:bg-[hsl(140,38%,38%)]/10 transition-colors"
+            >
+              <Wallet size={14} />
+              {truncatedAddress}
+            </button>
+          ) : (
+            <button
+              onClick={openModal}
+              className="hidden sm:flex items-center gap-2 border border-border text-foreground/70 font-barlow font-medium text-[13px] px-4 py-2.5 rounded-full hover:bg-secondary hover:text-foreground transition-colors"
+            >
+              <Wallet size={14} />
+              Connect
+            </button>
+          )}
+
+          {/* Get Started */}
+          <button
+            onClick={handleGetStarted}
             className="hidden sm:flex items-center gap-2.5 bg-foreground text-background font-barlow font-medium text-[13px] pl-5 pr-3 py-2.5 rounded-full hover:opacity-90 transition-opacity"
           >
             Get Started
             <span className="w-7 h-7 rounded-full bg-background/15 flex items-center justify-center">
               <ArrowUpRight size={14} className="text-background" />
             </span>
-          </a>
+          </button>
+
           <button
             onClick={() => setMobileOpen(!mobileOpen)}
             className="lg:hidden w-9 h-9 flex items-center justify-center rounded-full hover:bg-secondary transition-colors"
@@ -81,6 +116,15 @@ const Navbar = () => {
                 </a>
               </li>
             ))}
+            <li>
+              <button
+                onClick={() => { openModal(); setMobileOpen(false); }}
+                className="w-full text-left px-4 py-2.5 rounded-xl text-sm font-medium text-foreground/70 hover:text-foreground hover:bg-secondary/50 transition-colors flex items-center gap-2"
+              >
+                <Wallet size={14} />
+                {isConnected ? truncatedAddress : "Connect Wallet"}
+              </button>
+            </li>
           </ul>
         </div>
       )}
