@@ -172,19 +172,18 @@ const TrustStatement = () => {
         ref={headlineRef}
         className="absolute inset-0 flex items-center justify-center z-0 px-4"
       >
-        <div className="text-center max-w-5xl">
-          <span className="text-xs font-medium text-muted-foreground border border-border rounded-full px-4 py-1.5 uppercase tracking-wider">
-            About RicardianBase
-          </span>
+        <div className="text-center">
           <h2
-            className="text-[7vw] md:text-[5.5vw] lg:text-[4.5vw] font-black text-foreground leading-[1.1] uppercase mt-8"
-            style={{ letterSpacing: "-2px" }}
+            className="text-[12vw] md:text-[10vw] lg:text-[9vw] font-black text-foreground leading-[0.85] uppercase"
+            style={{ letterSpacing: "-4px" }}
           >
-            Our platform is built for enterprise teams who demand speed, security, and certainty in tech sourcing.
+            RICARDIAN
+            <br />
+            <span className="inline-block ml-[5vw]">PLATFORM</span>
+            <br />
+            SERVICES
+            <span className="text-muted-foreground">(3)</span>
           </h2>
-          <p className="text-base md:text-lg text-muted-foreground mt-6 max-w-2xl mx-auto leading-relaxed">
-            We are committed to eliminating payment friction and contract risk. From hiring managers to global enterprises, RicardianBase makes contractor payments instant, automatic, and legally binding on Base blockchain.
-          </p>
         </div>
       </div>
 
