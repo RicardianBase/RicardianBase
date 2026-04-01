@@ -1,9 +1,11 @@
 import { useEffect, useRef } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { GlassButton } from "@/components/ui/glass-button";
+import { useWallet } from "@/contexts/WalletContext";
 
 const HeroSection = () => {
   const videoRef = useRef<HTMLVideoElement>(null);
+  const { isConnected, openModal } = useWallet();
 
   useEffect(() => {
     const video = videoRef.current;
@@ -125,11 +127,19 @@ const HeroSection = () => {
           Through Ricardian smart contracts on Base, we make payments instant, automatic, and legally binding.
         </p>
 
-        <Link to="/dashboard" className="animate-fade-rise-delay-2 inline-block mt-12">
-          <GlassButton contentClassName="px-14 py-5 text-lg">
-            Explore Platform
-          </GlassButton>
-        </Link>
+        {isConnected ? (
+          <Link to="/dashboard" className="animate-fade-rise-delay-2 inline-block mt-12">
+            <GlassButton contentClassName="px-14 py-5 text-lg">
+              Explore Platform
+            </GlassButton>
+          </Link>
+        ) : (
+          <div className="animate-fade-rise-delay-2 inline-block mt-12">
+            <GlassButton contentClassName="px-14 py-5 text-lg" onClick={openModal}>
+              Explore Platform
+            </GlassButton>
+          </div>
+        )}
       </section>
     </div>
   );
