@@ -71,9 +71,6 @@ const FlipCard = ({ service, index, isInView }: { service: typeof services[0]; i
               ))}
             </div>
           </div>
-          <div className="mt-4 pt-3 border-t border-border">
-            <p className="text-2xl font-medium text-foreground">{service.price}<span className="text-sm text-muted-foreground ml-1">{service.priceSuffix}</span></p>
-          </div>
         </div>
       </div>
     </div>
