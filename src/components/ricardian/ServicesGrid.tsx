@@ -2,54 +2,77 @@ import { ArrowRight, ArrowUpRight, RotateCcw, GripHorizontal } from "lucide-reac
 import { useRef, useState, useEffect } from "react";
 import { useInViewAnimation } from "@/hooks/useInViewAnimation";
 
-/* ---- Animated icon components ---- */
+/* ---- Animated icon components with video palette ---- */
 
-const EscrowIcon = () => {
+const useInViewActive = () => {
   const [active, setActive] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
-
   useEffect(() => {
-    const obs = new IntersectionObserver(([e]) => { if (e.isIntersecting) setActive(true); }, { threshold: 0.5 });
+    const obs = new IntersectionObserver(([e]) => { if (e.isIntersecting) setActive(true); }, { threshold: 0.3 });
     if (ref.current) obs.observe(ref.current);
     return () => obs.disconnect();
   }, []);
+  return { ref, active };
+};
+
+const EscrowIcon = () => {
+  const { ref, active } = useInViewActive();
+  const [pulse, setPulse] = useState(0);
+
+  useEffect(() => {
+    if (!active) return;
+    const id = setInterval(() => setPulse(p => p + 1), 2500);
+    return () => clearInterval(id);
+  }, [active]);
 
   return (
-    <div ref={ref} className="w-full h-[240px] flex items-center justify-center bg-gradient-to-br from-muted/50 to-muted rounded-xl overflow-hidden">
-      <div className="relative w-32 h-32">
+    <div ref={ref} className="w-full h-[240px] flex items-center justify-center bg-gradient-to-br from-[hsl(250,35%,95%)] via-[hsl(230,30%,93%)] to-[hsl(220,35%,90%)] rounded-xl overflow-hidden relative">
+      {/* Background rings */}
+      <svg className="absolute inset-0 w-full h-full" style={{ opacity: active ? 0.15 : 0 }}>
+        <circle cx="50%" cy="50%" r="60" fill="none" stroke="hsl(250,40%,65%)" strokeWidth="0.5">
+          <animateTransform attributeName="transform" type="rotate" from="0 150 120" to="360 150 120" dur="15s" repeatCount="indefinite" />
+        </circle>
+        <circle cx="50%" cy="50%" r="85" fill="none" stroke="hsl(220,45%,60%)" strokeWidth="0.5" strokeDasharray="3 5">
+          <animateTransform attributeName="transform" type="rotate" from="360 150 120" to="0 150 120" dur="20s" repeatCount="indefinite" />
+        </circle>
+      </svg>
+
+      <div className="relative w-36 h-36">
         {/* Vault circle */}
         <div
-          className="absolute inset-0 rounded-full border-2 border-foreground/10 transition-all duration-1000 ease-out"
+          className="absolute inset-0 rounded-full border-2 border-[hsl(250,40%,70%)]/30 transition-all duration-1000 ease-out"
+          style={{ transform: active ? "scale(1)" : "scale(0.5)", opacity: active ? 1 : 0 }}
+        />
+        {/* Inner glow */}
+        <div
+          className="absolute inset-4 rounded-full transition-all duration-1000 ease-out"
           style={{
-            transform: active ? "scale(1)" : "scale(0.5)",
+            background: "radial-gradient(circle, hsl(250,45%,70%,0.12) 0%, transparent 70%)",
+            transform: active ? "scale(1)" : "scale(0)",
             opacity: active ? 1 : 0,
+            transitionDelay: "0.2s",
           }}
         />
-        {/* Lock */}
+        {/* Lock icon */}
         <div
           className="absolute inset-0 flex items-center justify-center transition-all duration-700 ease-out"
-          style={{
-            transform: active ? "translateY(0)" : "translateY(10px)",
-            opacity: active ? 1 : 0,
-            transitionDelay: "0.3s",
-          }}
+          style={{ transform: active ? "translateY(0) scale(1)" : "translateY(10px) scale(0.8)", opacity: active ? 1 : 0, transitionDelay: "0.3s" }}
         >
-          <svg width="40" height="44" viewBox="0 0 40 44" fill="none" className="text-foreground">
-            <rect x="4" y="18" width="32" height="22" rx="4" stroke="currentColor" strokeWidth="1.5" />
-            <path d="M12 18V12C12 7.58 15.58 4 20 4C24.42 4 28 7.58 28 12V18" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-            <circle cx="20" cy="29" r="3" stroke="currentColor" strokeWidth="1.5" />
+          <svg width="40" height="44" viewBox="0 0 40 44" fill="none">
+            <rect x="4" y="18" width="32" height="22" rx="4" stroke="hsl(250,40%,55%)" strokeWidth="1.5" />
+            <path d="M12 18V12C12 7.58 15.58 4 20 4C24.42 4 28 7.58 28 12V18" stroke="hsl(250,40%,55%)" strokeWidth="1.5" strokeLinecap="round" />
+            <circle cx="20" cy="29" r="3" fill="hsl(250,45%,60%)" opacity="0.4" />
           </svg>
         </div>
         {/* Orbiting coins */}
         {[0, 120, 240].map((deg, i) => (
           <div
             key={i}
-            className="absolute w-5 h-5 rounded-full border border-foreground/20 bg-card flex items-center justify-center text-[8px] font-medium text-muted-foreground transition-all duration-1000 ease-out"
+            className="absolute w-6 h-6 rounded-full bg-gradient-to-br from-[hsl(220,55%,55%)] to-[hsl(250,45%,60%)] flex items-center justify-center text-[9px] font-bold text-white shadow-md transition-all duration-1000 ease-out"
             style={{
-              top: "50%",
-              left: "50%",
+              top: "50%", left: "50%",
               transform: active
-                ? `rotate(${deg + 30}deg) translateX(52px) rotate(-${deg + 30}deg)`
+                ? `rotate(${deg + pulse * 30}deg) translateX(56px) rotate(-${deg + pulse * 30}deg)`
                 : `rotate(${deg}deg) translateX(20px) rotate(-${deg}deg)`,
               opacity: active ? 1 : 0,
               transitionDelay: `${0.5 + i * 0.15}s`,
@@ -64,59 +87,52 @@ const EscrowIcon = () => {
 };
 
 const RicardianIcon = () => {
-  const [active, setActive] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const obs = new IntersectionObserver(([e]) => { if (e.isIntersecting) setActive(true); }, { threshold: 0.5 });
-    if (ref.current) obs.observe(ref.current);
-    return () => obs.disconnect();
-  }, []);
+  const { ref, active } = useInViewActive();
 
   return (
-    <div ref={ref} className="w-full h-[240px] flex items-center justify-center bg-gradient-to-br from-muted/50 to-muted rounded-xl overflow-hidden">
-      <div className="relative flex items-center gap-6">
+    <div ref={ref} className="w-full h-[240px] flex items-center justify-center bg-gradient-to-br from-[hsl(260,30%,95%)] via-[hsl(240,25%,93%)] to-[hsl(250,30%,90%)] rounded-xl overflow-hidden relative">
+      {/* Connecting beam */}
+      <div
+        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[2px] bg-gradient-to-r from-[hsl(250,50%,65%)] via-[hsl(260,45%,70%)] to-[hsl(220,50%,60%)] transition-all duration-1000 ease-out"
+        style={{ width: active ? "120px" : "0px", opacity: active ? 0.5 : 0, transitionDelay: "0.4s" }}
+      />
+
+      <div className="relative flex items-center gap-8">
         {/* PDF doc */}
         <div
-          className="w-16 h-20 rounded-lg border border-foreground/15 bg-card flex flex-col items-center justify-center gap-1 transition-all duration-700 ease-out"
-          style={{
-            transform: active ? "translateX(0)" : "translateX(20px)",
-            opacity: active ? 1 : 0,
-          }}
+          className="w-[72px] h-[88px] rounded-xl border border-[hsl(250,30%,80%)] bg-white shadow-lg flex flex-col items-center justify-center gap-1.5 transition-all duration-700 ease-out"
+          style={{ transform: active ? "translateX(0) rotate(0deg)" : "translateX(30px) rotate(5deg)", opacity: active ? 1 : 0 }}
         >
-          <div className="w-8 h-1 bg-foreground/10 rounded-full" />
-          <div className="w-6 h-1 bg-foreground/10 rounded-full" />
-          <div className="w-7 h-1 bg-foreground/10 rounded-full" />
-          <span className="text-[7px] text-muted-foreground mt-1">PDF</span>
+          <div className="w-9 h-1.5 bg-[hsl(250,30%,85%)] rounded-full" />
+          <div className="w-7 h-1.5 bg-[hsl(250,30%,88%)] rounded-full" />
+          <div className="w-8 h-1.5 bg-[hsl(250,30%,85%)] rounded-full" />
+          <span className="text-[8px] font-medium text-[hsl(250,40%,55%)] mt-1 bg-[hsl(250,40%,95%)] px-2 py-0.5 rounded">PDF</span>
         </div>
+
         {/* Hash link */}
         <div
-          className="flex flex-col items-center gap-1 transition-all duration-700 ease-out"
-          style={{
-            opacity: active ? 1 : 0,
-            transitionDelay: "0.4s",
-          }}
+          className="flex flex-col items-center gap-1.5 transition-all duration-700 ease-out"
+          style={{ opacity: active ? 1 : 0, transitionDelay: "0.5s", transform: active ? "scale(1)" : "scale(0.5)" }}
         >
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" className="text-foreground/40">
-            <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-            <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-          </svg>
-          <span className="text-[7px] text-muted-foreground font-mono">SHA-256</span>
+          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[hsl(250,45%,60%)] to-[hsl(280,40%,65%)] flex items-center justify-center shadow-lg">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+              <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" stroke="white" strokeWidth="2" strokeLinecap="round" />
+              <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" stroke="white" strokeWidth="2" strokeLinecap="round" />
+            </svg>
+          </div>
+          <span className="text-[8px] text-[hsl(250,40%,55%)] font-mono font-medium">SHA-256</span>
         </div>
+
         {/* Smart contract */}
         <div
-          className="w-16 h-20 rounded-lg border border-foreground/15 bg-card flex flex-col items-center justify-center gap-1 transition-all duration-700 ease-out"
-          style={{
-            transform: active ? "translateX(0)" : "translateX(-20px)",
-            opacity: active ? 1 : 0,
-            transitionDelay: "0.2s",
-          }}
+          className="w-[72px] h-[88px] rounded-xl border border-[hsl(220,35%,80%)] bg-white shadow-lg flex flex-col items-center justify-center gap-1.5 transition-all duration-700 ease-out"
+          style={{ transform: active ? "translateX(0) rotate(0deg)" : "translateX(-30px) rotate(-5deg)", opacity: active ? 1 : 0, transitionDelay: "0.2s" }}
         >
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" className="text-foreground/30">
-            <rect x="3" y="3" width="18" height="18" rx="3" stroke="currentColor" strokeWidth="1.5" />
-            <path d="M8 8h8M8 12h5M8 16h6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+            <rect x="3" y="3" width="18" height="18" rx="3" stroke="hsl(220,50%,55%)" strokeWidth="1.5" />
+            <path d="M8 8h8M8 12h5M8 16h6" stroke="hsl(220,50%,60%)" strokeWidth="1.5" strokeLinecap="round" />
           </svg>
-          <span className="text-[7px] text-muted-foreground">0x…</span>
+          <span className="text-[8px] font-medium text-[hsl(220,50%,50%)] bg-[hsl(220,45%,95%)] px-2 py-0.5 rounded font-mono">0x…</span>
         </div>
       </div>
     </div>
@@ -124,54 +140,66 @@ const RicardianIcon = () => {
 };
 
 const AutoExecIcon = () => {
-  const [active, setActive] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
+  const { ref, active } = useInViewActive();
+  const [activeStep, setActiveStep] = useState(-1);
 
   useEffect(() => {
-    const obs = new IntersectionObserver(([e]) => { if (e.isIntersecting) setActive(true); }, { threshold: 0.5 });
-    if (ref.current) obs.observe(ref.current);
-    return () => obs.disconnect();
-  }, []);
+    if (!active) return;
+    const steps = [0, 1, 2, 3];
+    let i = 0;
+    const id = setInterval(() => {
+      setActiveStep(steps[i % steps.length]);
+      i++;
+    }, 800);
+    setTimeout(() => clearInterval(id), 4000);
+    return () => clearInterval(id);
+  }, [active]);
+
+  const steps = [
+    { label: "Submit", color: "from-[hsl(250,45%,60%)] to-[hsl(250,40%,55%)]" },
+    { label: "Review", color: "from-[hsl(240,45%,58%)] to-[hsl(230,45%,55%)]" },
+    { label: "Approve", color: "from-[hsl(220,50%,55%)] to-[hsl(210,50%,50%)]" },
+  ];
 
   return (
-    <div ref={ref} className="w-full h-[240px] flex items-center justify-center bg-gradient-to-br from-muted/50 to-muted rounded-xl overflow-hidden">
+    <div ref={ref} className="w-full h-[240px] flex items-center justify-center bg-gradient-to-br from-[hsl(220,30%,95%)] via-[hsl(235,25%,93%)] to-[hsl(250,30%,90%)] rounded-xl overflow-hidden relative">
       <div className="flex flex-col items-center gap-3">
-        {["Submit", "Approve", "Pay"].map((step, i) => (
+        {steps.map((step, i) => (
           <div
             key={i}
-            className="flex items-center gap-3 transition-all duration-600 ease-out"
+            className="flex items-center gap-3 transition-all duration-500 ease-out"
             style={{
               opacity: active ? 1 : 0,
-              transform: active ? "translateY(0)" : "translateY(15px)",
-              transitionDelay: `${i * 0.25}s`,
+              transform: active ? "translateY(0) translateX(0)" : "translateY(20px) translateX(-10px)",
+              transitionDelay: `${i * 0.2}s`,
             }}
           >
             <div
-              className="w-8 h-8 rounded-full border border-foreground/15 bg-card flex items-center justify-center text-xs text-muted-foreground transition-colors duration-500"
-              style={{ transitionDelay: `${0.8 + i * 0.2}s`, borderColor: active ? "hsl(var(--foreground) / 0.3)" : undefined }}
+              className={`w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold transition-all duration-500 ${
+                activeStep >= i
+                  ? `bg-gradient-to-br ${step.color} text-white shadow-lg`
+                  : "bg-white border border-[hsl(230,20%,85%)] text-muted-foreground"
+              }`}
+              style={{ transitionDelay: `${0.1 * i}s` }}
             >
-              {i + 1}
+              {activeStep >= i ? "✓" : i + 1}
             </div>
-            <span className="text-xs text-muted-foreground w-14">{step}</span>
+            <span className={`text-xs font-medium w-16 transition-colors duration-300 ${activeStep >= i ? "text-foreground" : "text-muted-foreground"}`}>{step.label}</span>
             {i < 2 && (
-              <svg width="12" height="12" viewBox="0 0 12 12" className="text-foreground/20 ml-1">
-                <path d="M6 2v8M6 10l-2-2M6 10l2-2" stroke="currentColor" strokeWidth="1" strokeLinecap="round" />
-              </svg>
+              <div className="w-px h-4 ml-1 transition-all duration-500" style={{ backgroundColor: activeStep > i ? "hsl(250,45%,60%)" : "hsl(230,20%,85%)" }} />
             )}
           </div>
         ))}
-        {/* Checkmark */}
+        {/* Final checkmark */}
         <div
-          className="mt-1 transition-all duration-500 ease-out"
+          className="mt-2 w-10 h-10 rounded-full bg-gradient-to-br from-[hsl(160,50%,45%)] to-[hsl(180,45%,40%)] flex items-center justify-center shadow-lg transition-all duration-500 ease-out"
           style={{
-            opacity: active ? 1 : 0,
-            transform: active ? "scale(1)" : "scale(0.5)",
-            transitionDelay: "1s",
+            opacity: activeStep >= 2 ? 1 : 0,
+            transform: activeStep >= 2 ? "scale(1)" : "scale(0.3)",
           }}
         >
-          <svg width="20" height="20" viewBox="0 0 20 20" className="text-foreground/40">
-            <circle cx="10" cy="10" r="9" stroke="currentColor" strokeWidth="1" fill="none" />
-            <path d="M6 10l3 3 5-5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+          <svg width="18" height="18" viewBox="0 0 20 20" className="text-white">
+            <path d="M5 10l4 4 6-7" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" fill="none" />
           </svg>
         </div>
       </div>
@@ -180,64 +208,63 @@ const AutoExecIcon = () => {
 };
 
 const ComplianceIcon = () => {
-  const [active, setActive] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const obs = new IntersectionObserver(([e]) => { if (e.isIntersecting) setActive(true); }, { threshold: 0.5 });
-    if (ref.current) obs.observe(ref.current);
-    return () => obs.disconnect();
-  }, []);
+  const { ref, active } = useInViewActive();
 
   return (
-    <div ref={ref} className="w-full h-[240px] flex items-center justify-center bg-gradient-to-br from-muted/50 to-muted rounded-xl overflow-hidden">
+    <div ref={ref} className="w-full h-[240px] flex items-center justify-center bg-gradient-to-br from-[hsl(280,25%,95%)] via-[hsl(260,25%,93%)] to-[hsl(250,30%,90%)] rounded-xl overflow-hidden relative">
+      {/* Background pattern */}
+      <svg className="absolute inset-0 w-full h-full" style={{ opacity: active ? 0.05 : 0, transition: "opacity 1s" }}>
+        {Array.from({ length: 6 }, (_, i) => (
+          <line key={i} x1="0" y1={i * 48} x2="300" y2={i * 48} stroke="hsl(260,40%,50%)" strokeWidth="0.5" />
+        ))}
+      </svg>
+
       <div className="relative">
         {/* Shield */}
         <svg
-          width="48"
-          height="56"
-          viewBox="0 0 48 56"
-          fill="none"
-          className="text-foreground/20 transition-all duration-700 ease-out"
-          style={{
-            opacity: active ? 1 : 0,
-            transform: active ? "translateY(0)" : "translateY(15px)",
-          }}
+          width="52" height="60" viewBox="0 0 48 56" fill="none"
+          className="transition-all duration-700 ease-out"
+          style={{ opacity: active ? 1 : 0, transform: active ? "translateY(0) scale(1)" : "translateY(15px) scale(0.8)" }}
         >
+          <defs>
+            <linearGradient id="shield-grad" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stopColor="hsl(250,45%,60%)" />
+              <stop offset="100%" stopColor="hsl(280,40%,65%)" />
+            </linearGradient>
+          </defs>
           <path
             d="M24 2L4 12v16c0 14.36 8.54 24.62 20 28 11.46-3.38 20-13.64 20-28V12L24 2z"
-            stroke="currentColor"
-            strokeWidth="1.5"
-            fill="none"
+            stroke="url(#shield-grad)" strokeWidth="2" fill="none"
           />
           <path
             d="M16 28l6 6 10-12"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="transition-all duration-500"
+            stroke="url(#shield-grad)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
             style={{
               strokeDasharray: 30,
               strokeDashoffset: active ? 0 : 30,
-              transitionDelay: "0.5s",
+              transition: "stroke-dashoffset 0.8s ease-out 0.5s",
             }}
           />
         </svg>
+
         {/* Floating badges */}
-        {["KYC", "AML", "SOC2"].map((badge, i) => (
+        {[
+          { label: "KYC", color: "from-[hsl(250,45%,60%)] to-[hsl(270,40%,65%)]" },
+          { label: "AML", color: "from-[hsl(220,50%,55%)] to-[hsl(240,45%,60%)]" },
+          { label: "SOC2", color: "from-[hsl(280,40%,58%)] to-[hsl(300,40%,62%)]" },
+        ].map((badge, i) => (
           <div
             key={i}
-            className="absolute bg-card border border-border rounded-full px-2 py-0.5 text-[8px] text-muted-foreground font-medium transition-all duration-700 ease-out"
+            className={`absolute bg-gradient-to-r ${badge.color} text-white rounded-full px-2.5 py-1 text-[9px] font-bold shadow-md transition-all duration-700 ease-out`}
             style={{
-              top: `${10 + i * 18}px`,
-              right: "-40px",
+              top: `${8 + i * 20}px`,
+              right: "-48px",
               opacity: active ? 1 : 0,
-              transform: active ? "translateX(0)" : "translateX(-10px)",
+              transform: active ? "translateX(0) scale(1)" : "translateX(-15px) scale(0.7)",
               transitionDelay: `${0.7 + i * 0.15}s`,
             }}
           >
-            {badge}
+            {badge.label}
           </div>
         ))}
       </div>
@@ -325,20 +352,20 @@ const FlipCard = ({ service, index, isInView }: { service: typeof services[0]; i
       >
         {/* Front */}
         <div
-          className="w-full border border-border rounded-2xl p-4 bg-card hover:shadow-lg transition-shadow duration-300"
+          className="w-full border border-[hsl(230,20%,90%)] rounded-2xl p-4 bg-card hover:shadow-xl hover:shadow-[hsl(250,40%,60%)]/10 transition-all duration-300"
           style={{ backfaceVisibility: "hidden" }}
         >
           <div className="relative rounded-xl overflow-hidden">
             <IconComp />
             <div className="absolute bottom-3 left-3 flex flex-wrap gap-2">
               {service.pills.map((pill) => (
-                <span key={pill} className="bg-background/90 backdrop-blur-sm text-foreground text-xs font-medium px-3 py-1 rounded-full shadow-sm">
+                <span key={pill} className="bg-white/90 backdrop-blur-sm text-foreground text-xs font-medium px-3 py-1 rounded-full shadow-sm border border-[hsl(250,30%,90%)]">
                   {pill}
                 </span>
               ))}
             </div>
             <div className="absolute top-3 right-3">
-              <span className="bg-background/80 backdrop-blur-sm text-muted-foreground text-[10px] px-2 py-1 rounded-full flex items-center gap-1">
+              <span className="bg-white/80 backdrop-blur-sm text-muted-foreground text-[10px] px-2 py-1 rounded-full flex items-center gap-1">
                 <RotateCcw size={10} /> Tap for details
               </span>
             </div>
@@ -352,7 +379,7 @@ const FlipCard = ({ service, index, isInView }: { service: typeof services[0]; i
                 <span className="text-lg text-muted-foreground">{service.priceSuffix}</span>
               </p>
             </div>
-            <span className="mt-1 text-muted-foreground hover:text-foreground transition-colors">
+            <span className="mt-1 text-[hsl(250,40%,55%)] hover:text-foreground transition-colors">
               <ArrowUpRight size={20} />
             </span>
           </div>
@@ -360,12 +387,12 @@ const FlipCard = ({ service, index, isInView }: { service: typeof services[0]; i
 
         {/* Back */}
         <div
-          className="absolute inset-0 w-full border border-border rounded-2xl p-6 bg-card flex flex-col justify-between"
+          className="absolute inset-0 w-full border border-[hsl(230,20%,90%)] rounded-2xl p-6 bg-gradient-to-br from-card to-[hsl(250,25%,97%)] flex flex-col justify-between"
           style={{ backfaceVisibility: "hidden", transform: "rotateY(180deg)" }}
         >
           <div>
             <div className="flex items-center justify-between mb-4">
-              <span className="text-[10px] font-medium text-muted-foreground border border-border rounded-full px-3 py-1">
+              <span className="text-[10px] font-medium text-white bg-gradient-to-r from-[hsl(250,40%,55%)] to-[hsl(220,50%,55%)] rounded-full px-3 py-1">
                 {service.pills[0]}
               </span>
               <span className="text-[10px] text-muted-foreground flex items-center gap-1">
@@ -376,13 +403,13 @@ const FlipCard = ({ service, index, isInView }: { service: typeof services[0]; i
             <div className="space-y-3">
               {service.backDetails.map((detail, j) => (
                 <div key={j} className="flex gap-2">
-                  <span className="text-xs font-medium text-muted-foreground/60 mt-0.5 flex-shrink-0">0{j + 1}</span>
+                  <span className="text-xs font-bold text-[hsl(250,40%,60%)] mt-0.5 flex-shrink-0">0{j + 1}</span>
                   <p className="text-xs text-muted-foreground leading-relaxed">{detail}</p>
                 </div>
               ))}
             </div>
           </div>
-          <div className="mt-4 pt-3 border-t border-border">
+          <div className="mt-4 pt-3 border-t border-[hsl(230,20%,90%)]">
             <p className="text-2xl font-medium text-foreground">
               {service.price}<span className="text-sm text-muted-foreground ml-1">{service.priceSuffix}</span>
             </p>
@@ -421,6 +448,7 @@ const ServicesGrid = () => {
           style={{ animationDelay: "0.1s" }}
         >
           <div>
+            <span className="text-xs font-medium text-[hsl(250,40%,55%)] tracking-wider uppercase mb-3 block">✦ Our Services</span>
             <h2
               className="text-4xl md:text-5xl lg:text-6xl font-normal text-foreground leading-[1.1]"
               style={{ fontFamily: "'Instrument Serif', serif" }}
@@ -432,7 +460,7 @@ const ServicesGrid = () => {
             <p className="text-sm text-muted-foreground max-w-xs md:text-right">
               A comprehensive suite of Ricardian contract services covering the full lifecycle of tech contractor engagements.
             </p>
-            <a href="#" className="inline-flex items-center gap-1.5 text-sm font-medium text-foreground border border-border rounded-full px-5 py-2.5 hover:bg-muted transition-colors">
+            <a href="#" className="inline-flex items-center gap-1.5 text-sm font-medium text-white bg-gradient-to-r from-[hsl(250,40%,55%)] to-[hsl(220,50%,55%)] rounded-full px-5 py-2.5 hover:shadow-lg hover:shadow-[hsl(250,40%,55%)]/20 transition-all">
               Schedule Demo <ArrowRight size={14} />
             </a>
           </div>
