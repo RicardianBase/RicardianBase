@@ -86,7 +86,7 @@ const RoadmapSection = () => {
 
   return (
     <section ref={sectionRef} className="bg-background py-24 md:py-32 px-6">
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="text-center mb-16">
           <span className="inline-block text-xs font-medium tracking-widest uppercase text-muted-foreground mb-4">
