@@ -15,12 +15,11 @@ const Settings = () => {
 
   return (
     <div ref={ref} className="space-y-6">
-      <h1 className={`text-2xl font-medium text-gray-900 ${isInView ? "animate-fade-in-up" : ""}`} style={{ animationDelay: "0.1s" }}>
+      <h1 className={`text-2xl font-medium text-foreground ${isInView ? "animate-fade-in-up" : ""}`} style={{ animationDelay: "0.1s" }}>
         Settings
       </h1>
 
       <div className="flex flex-col md:flex-row gap-6">
-        {/* Tabs */}
         <div className={`md:w-[200px] flex-shrink-0 ${isInView ? "animate-fade-in-up" : ""}`} style={{ animationDelay: "0.15s" }}>
           <div className="flex md:flex-col gap-1 overflow-x-auto md:overflow-visible">
             {tabs.map((t) => (
@@ -28,7 +27,9 @@ const Settings = () => {
                 key={t.id}
                 onClick={() => setActiveTab(t.id)}
                 className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-colors whitespace-nowrap ${
-                  activeTab === t.id ? "bg-gray-900 text-white" : "text-gray-500 hover:bg-gray-100"
+                  activeTab === t.id
+                    ? "bg-gradient-to-r from-[hsl(250,40%,55%)] to-[hsl(220,50%,55%)] text-white shadow-md shadow-[hsl(240,40%,60%)]/20"
+                    : "text-muted-foreground hover:bg-[hsl(230,25%,95%)]"
                 }`}
               >
                 <t.icon size={16} />
@@ -38,33 +39,32 @@ const Settings = () => {
           </div>
         </div>
 
-        {/* Content */}
         <div className={`flex-1 bg-white rounded-2xl p-6 shadow-sm ${isInView ? "animate-fade-in-up" : ""}`} style={{ animationDelay: "0.2s" }}>
           {activeTab === "profile" && (
             <div className="space-y-6">
               <div className="flex items-center gap-4">
-                <div className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-100 to-blue-200 flex items-center justify-center text-xl font-medium text-blue-600">
+                <div className="w-16 h-16 rounded-full bg-gradient-to-br from-[hsl(250,40%,75%)] to-[hsl(220,50%,65%)] flex items-center justify-center text-xl font-medium text-white">
                   JD
                 </div>
-                <button className="text-xs font-medium border border-gray-200 text-gray-600 px-4 py-2 rounded-full hover:bg-gray-50 transition-colors">
+                <button className="text-xs font-medium border border-[hsl(230,20%,90%)] text-muted-foreground px-4 py-2 rounded-full hover:bg-[hsl(230,25%,96%)] transition-colors">
                   Change Avatar
                 </button>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="text-xs text-gray-500 mb-1.5 block">First Name</label>
-                  <input type="text" defaultValue="John" className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-gray-200" />
+                  <label className="text-xs text-muted-foreground mb-1.5 block">First Name</label>
+                  <input type="text" defaultValue="John" className="w-full border border-[hsl(230,20%,90%)] rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[hsl(250,40%,70%)]/30" />
                 </div>
                 <div>
-                  <label className="text-xs text-gray-500 mb-1.5 block">Last Name</label>
-                  <input type="text" defaultValue="Doe" className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-gray-200" />
+                  <label className="text-xs text-muted-foreground mb-1.5 block">Last Name</label>
+                  <input type="text" defaultValue="Doe" className="w-full border border-[hsl(230,20%,90%)] rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[hsl(250,40%,70%)]/30" />
                 </div>
                 <div className="sm:col-span-2">
-                  <label className="text-xs text-gray-500 mb-1.5 block">Email</label>
-                  <input type="email" defaultValue="john@example.com" className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-gray-200" />
+                  <label className="text-xs text-muted-foreground mb-1.5 block">Email</label>
+                  <input type="email" defaultValue="john@example.com" className="w-full border border-[hsl(230,20%,90%)] rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[hsl(250,40%,70%)]/30" />
                 </div>
               </div>
-              <button className="text-sm font-medium bg-gray-900 text-white px-6 py-2.5 rounded-full hover:bg-gray-800 transition-colors">
+              <button className="text-sm font-medium bg-gradient-to-r from-[hsl(250,40%,55%)] to-[hsl(220,50%,55%)] text-white px-6 py-2.5 rounded-full hover:shadow-lg hover:shadow-[hsl(240,40%,60%)]/20 transition-all">
                 Save Changes
               </button>
             </div>
@@ -73,11 +73,11 @@ const Settings = () => {
           {activeTab === "notifications" && (
             <div className="space-y-4">
               {["Email notifications", "Milestone updates", "Payment alerts", "Dispute notifications", "Weekly digest"].map((label) => (
-                <div key={label} className="flex items-center justify-between py-3 border-b border-gray-50 last:border-0">
-                  <span className="text-sm text-gray-700">{label}</span>
+                <div key={label} className="flex items-center justify-between py-3 border-b border-[hsl(230,20%,94%)] last:border-0">
+                  <span className="text-sm text-foreground">{label}</span>
                   <label className="relative inline-flex cursor-pointer">
                     <input type="checkbox" defaultChecked className="sr-only peer" />
-                    <div className="w-10 h-5 bg-gray-200 rounded-full peer peer-checked:bg-gray-900 transition-colors after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-transform peer-checked:after:translate-x-5" />
+                    <div className="w-10 h-5 bg-[hsl(230,20%,85%)] rounded-full peer peer-checked:bg-[hsl(250,40%,55%)] transition-colors after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-transform peer-checked:after:translate-x-5" />
                   </label>
                 </div>
               ))}
@@ -86,27 +86,27 @@ const Settings = () => {
 
           {activeTab === "security" && (
             <div className="space-y-4">
-              <div className="bg-gray-50 rounded-xl p-5 flex items-center justify-between">
+              <div className="bg-[hsl(230,25%,96%)] rounded-xl p-5 flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <Shield size={20} className="text-gray-500" />
+                  <Shield size={20} className="text-muted-foreground" />
                   <div>
-                    <p className="text-sm font-medium text-gray-900">Two-Factor Authentication</p>
-                    <p className="text-xs text-gray-400">Add an extra layer of security</p>
+                    <p className="text-sm font-medium text-foreground">Two-Factor Authentication</p>
+                    <p className="text-xs text-muted-foreground">Add an extra layer of security</p>
                   </div>
                 </div>
-                <button className="text-xs font-medium bg-gray-900 text-white px-4 py-2 rounded-full hover:bg-gray-800 transition-colors">
+                <button className="text-xs font-medium bg-gradient-to-r from-[hsl(250,40%,55%)] to-[hsl(220,50%,55%)] text-white px-4 py-2 rounded-full hover:shadow-lg transition-all">
                   Enable
                 </button>
               </div>
-              <div className="bg-gray-50 rounded-xl p-5 flex items-center justify-between">
+              <div className="bg-[hsl(230,25%,96%)] rounded-xl p-5 flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <Key size={20} className="text-gray-500" />
+                  <Key size={20} className="text-muted-foreground" />
                   <div>
-                    <p className="text-sm font-medium text-gray-900">Change Password</p>
-                    <p className="text-xs text-gray-400">Last changed 30 days ago</p>
+                    <p className="text-sm font-medium text-foreground">Change Password</p>
+                    <p className="text-xs text-muted-foreground">Last changed 30 days ago</p>
                   </div>
                 </div>
-                <button className="text-xs font-medium border border-gray-200 text-gray-600 px-4 py-2 rounded-full hover:bg-gray-50 transition-colors">
+                <button className="text-xs font-medium border border-[hsl(230,20%,90%)] text-muted-foreground px-4 py-2 rounded-full hover:bg-[hsl(230,25%,93%)] transition-colors">
                   Update
                 </button>
               </div>
@@ -115,21 +115,21 @@ const Settings = () => {
 
           {activeTab === "api" && (
             <div className="space-y-4">
-              <div className="bg-gray-50 rounded-xl p-4">
-                <p className="text-xs text-gray-400 mb-2">API Key</p>
+              <div className="bg-[hsl(230,25%,96%)] rounded-xl p-4">
+                <p className="text-xs text-muted-foreground mb-2">API Key</p>
                 <div className="flex items-center gap-2">
-                  <code className="flex-1 text-sm text-gray-700 font-mono bg-gray-100 rounded-lg px-3 py-2 truncate">
+                  <code className="flex-1 text-sm text-foreground font-mono bg-[hsl(230,25%,93%)] rounded-lg px-3 py-2 truncate">
                     rbase_live_sk_1a2b3c4d5e6f7g8h9i0j...
                   </code>
-                  <button className="w-8 h-8 rounded-full hover:bg-gray-200 flex items-center justify-center transition-colors">
-                    <Copy size={14} className="text-gray-500" />
+                  <button className="w-8 h-8 rounded-full hover:bg-[hsl(230,25%,90%)] flex items-center justify-center transition-colors">
+                    <Copy size={14} className="text-muted-foreground" />
                   </button>
                 </div>
               </div>
-              <button className="inline-flex items-center gap-1.5 text-xs font-medium border border-gray-200 text-gray-600 px-4 py-2 rounded-full hover:bg-gray-50 transition-colors">
+              <button className="inline-flex items-center gap-1.5 text-xs font-medium border border-[hsl(230,20%,90%)] text-muted-foreground px-4 py-2 rounded-full hover:bg-[hsl(230,25%,96%)] transition-colors">
                 <RefreshCw size={12} /> Regenerate Key
               </button>
-              <p className="text-xs text-red-400">Warning: Regenerating will invalidate the current key.</p>
+              <p className="text-xs text-[hsl(340,60%,50%)]">Warning: Regenerating will invalidate the current key.</p>
             </div>
           )}
         </div>

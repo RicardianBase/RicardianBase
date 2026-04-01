@@ -26,49 +26,47 @@ const CreateContract = () => {
     <div ref={ref} className="space-y-6 max-w-3xl mx-auto">
       <Link
         to="/dashboard/contracts"
-        className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-800 border border-gray-200 rounded-full px-4 py-2 transition-colors"
+        className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground border border-[hsl(230,20%,90%)] rounded-full px-4 py-2 transition-colors"
       >
         <ArrowLeft size={14} /> Back
       </Link>
 
-      <h1 className={`text-2xl font-medium text-gray-900 ${isInView ? "animate-fade-in-up" : ""}`} style={{ animationDelay: "0.1s" }}>
+      <h1 className={`text-2xl font-medium text-foreground ${isInView ? "animate-fade-in-up" : ""}`} style={{ animationDelay: "0.1s" }}>
         Create Contract
       </h1>
 
-      {/* Step indicator */}
       <div className={`bg-white rounded-2xl p-6 shadow-sm ${isInView ? "animate-fade-in-up" : ""}`} style={{ animationDelay: "0.15s" }}>
         <div className="flex items-center justify-between mb-8">
           {steps.map((s, i) => (
             <div key={s} className="flex items-center">
               <div className="flex flex-col items-center">
                 <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium transition-colors ${
-                  i < step ? "bg-emerald-500 text-white" : i === step ? "bg-gray-900 text-white" : "bg-gray-100 text-gray-400"
+                  i < step ? "bg-[hsl(160,50%,45%)] text-white" : i === step ? "bg-gradient-to-r from-[hsl(250,40%,55%)] to-[hsl(220,50%,55%)] text-white" : "bg-[hsl(230,25%,94%)] text-muted-foreground"
                 }`}>
                   {i < step ? <Check size={14} /> : i + 1}
                 </div>
-                <span className="text-[10px] text-gray-400 mt-1.5 hidden sm:block">{s}</span>
+                <span className="text-[10px] text-muted-foreground mt-1.5 hidden sm:block">{s}</span>
               </div>
-              {i < steps.length - 1 && <div className="w-8 sm:w-16 h-px bg-gray-200 mx-2" />}
+              {i < steps.length - 1 && <div className="w-8 sm:w-16 h-px bg-[hsl(230,20%,90%)] mx-2" />}
             </div>
           ))}
         </div>
 
-        {/* Step content */}
         {step === 0 && (
           <div className="space-y-3">
-            <p className="text-sm text-gray-500 mb-4">Select a contract template</p>
+            <p className="text-sm text-muted-foreground mb-4">Select a contract template</p>
             {templates.map((t) => (
               <button
                 key={t.id}
                 onClick={() => setSelectedTemplate(t.id)}
                 className={`w-full text-left p-4 rounded-xl border-2 transition-all duration-200 ${
                   selectedTemplate === t.id
-                    ? "border-gray-900 bg-gray-50"
-                    : "border-gray-100 hover:border-gray-200"
+                    ? "border-[hsl(250,40%,55%)] bg-[hsl(250,35%,97%)]"
+                    : "border-[hsl(230,20%,92%)] hover:border-[hsl(230,20%,85%)]"
                 }`}
               >
-                <p className="text-sm font-medium text-gray-900">{t.title}</p>
-                <p className="text-xs text-gray-400 mt-0.5">{t.desc}</p>
+                <p className="text-sm font-medium text-foreground">{t.title}</p>
+                <p className="text-xs text-muted-foreground mt-0.5">{t.desc}</p>
               </button>
             ))}
           </div>
@@ -77,27 +75,27 @@ const CreateContract = () => {
         {step === 1 && (
           <div className="space-y-4">
             <div>
-              <label className="text-xs text-gray-500 mb-1.5 block">Contract Title</label>
+              <label className="text-xs text-muted-foreground mb-1.5 block">Contract Title</label>
               <input
                 type="text"
                 placeholder="e.g. Brand Redesign Project"
-                className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-gray-200 transition-shadow"
+                className="w-full border border-[hsl(230,20%,90%)] rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[hsl(250,40%,70%)]/30 transition-shadow"
               />
             </div>
             <div>
-              <label className="text-xs text-gray-500 mb-1.5 block">Contractor Wallet Address</label>
+              <label className="text-xs text-muted-foreground mb-1.5 block">Contractor Wallet Address</label>
               <input
                 type="text"
                 placeholder="0x..."
-                className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm font-mono outline-none focus:ring-2 focus:ring-gray-200 transition-shadow"
+                className="w-full border border-[hsl(230,20%,90%)] rounded-xl px-4 py-2.5 text-sm font-mono outline-none focus:ring-2 focus:ring-[hsl(250,40%,70%)]/30 transition-shadow"
               />
             </div>
             <div>
-              <label className="text-xs text-gray-500 mb-1.5 block">Description</label>
+              <label className="text-xs text-muted-foreground mb-1.5 block">Description</label>
               <textarea
                 rows={3}
                 placeholder="Describe the scope of work..."
-                className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-gray-200 transition-shadow resize-none"
+                className="w-full border border-[hsl(230,20%,90%)] rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[hsl(250,40%,70%)]/30 transition-shadow resize-none"
               />
             </div>
           </div>
@@ -105,11 +103,11 @@ const CreateContract = () => {
 
         {step === 2 && (
           <div className="space-y-3">
-            <p className="text-sm text-gray-500 mb-4">Define project milestones</p>
+            <p className="text-sm text-muted-foreground mb-4">Define project milestones</p>
             {milestones.map((m, i) => (
-              <div key={i} className="flex items-center gap-3 bg-gray-50 rounded-xl p-3">
-                <GripVertical size={16} className="text-gray-300 cursor-grab flex-shrink-0" />
-                <span className="w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center text-[10px] font-medium text-gray-500 flex-shrink-0">
+              <div key={i} className="flex items-center gap-3 bg-[hsl(230,25%,96%)] rounded-xl p-3">
+                <GripVertical size={16} className="text-muted-foreground/40 cursor-grab flex-shrink-0" />
+                <span className="w-6 h-6 rounded-full bg-[hsl(230,25%,90%)] flex items-center justify-center text-[10px] font-medium text-muted-foreground flex-shrink-0">
                   {i + 1}
                 </span>
                 <input
@@ -124,7 +122,7 @@ const CreateContract = () => {
                   className="flex-1 bg-transparent text-sm outline-none"
                 />
                 <div className="flex items-center gap-1">
-                  <span className="text-xs text-gray-400">$</span>
+                  <span className="text-xs text-muted-foreground">$</span>
                   <input
                     type="text"
                     value={m.amount}
@@ -141,7 +139,7 @@ const CreateContract = () => {
             ))}
             <button
               onClick={addMilestone}
-              className="w-full flex items-center justify-center gap-1.5 text-xs text-gray-500 border border-dashed border-gray-200 rounded-xl py-3 hover:bg-gray-50 transition-colors"
+              className="w-full flex items-center justify-center gap-1.5 text-xs text-muted-foreground border border-dashed border-[hsl(230,20%,85%)] rounded-xl py-3 hover:bg-[hsl(230,25%,96%)] transition-colors"
             >
               <Plus size={14} /> Add Milestone
             </button>
@@ -150,19 +148,19 @@ const CreateContract = () => {
 
         {step === 3 && (
           <div className="space-y-4">
-            <p className="text-sm text-gray-500 mb-2">Review your contract</p>
+            <p className="text-sm text-muted-foreground mb-2">Review your contract</p>
             <div className="space-y-3 text-sm">
-              <div className="flex justify-between py-2 border-b border-gray-50">
-                <span className="text-gray-400">Template</span>
-                <span className="text-gray-900 font-medium">Milestone-Based</span>
+              <div className="flex justify-between py-2 border-b border-[hsl(230,20%,94%)]">
+                <span className="text-muted-foreground">Template</span>
+                <span className="text-foreground font-medium">Milestone-Based</span>
               </div>
-              <div className="flex justify-between py-2 border-b border-gray-50">
-                <span className="text-gray-400">Milestones</span>
-                <span className="text-gray-900 font-medium">{milestones.length}</span>
+              <div className="flex justify-between py-2 border-b border-[hsl(230,20%,94%)]">
+                <span className="text-muted-foreground">Milestones</span>
+                <span className="text-foreground font-medium">{milestones.length}</span>
               </div>
-              <div className="flex justify-between py-2 border-b border-gray-50">
-                <span className="text-gray-400">Total Value</span>
-                <span className="text-gray-900 font-medium">
+              <div className="flex justify-between py-2 border-b border-[hsl(230,20%,94%)]">
+                <span className="text-muted-foreground">Total Value</span>
+                <span className="text-foreground font-medium">
                   ${milestones.reduce((sum, m) => sum + (parseFloat(m.amount) || 0), 0).toLocaleString()}
                 </span>
               </div>
@@ -171,16 +169,16 @@ const CreateContract = () => {
         )}
 
         {/* Navigation */}
-        <div className="flex justify-between mt-8 pt-6 border-t border-gray-50">
+        <div className="flex justify-between mt-8 pt-6 border-t border-[hsl(230,20%,94%)]">
           <button
             onClick={() => setStep(Math.max(0, step - 1))}
-            className={`inline-flex items-center gap-1.5 text-sm font-medium border border-gray-200 text-gray-600 px-5 py-2.5 rounded-full hover:bg-gray-50 transition-colors ${step === 0 ? "invisible" : ""}`}
+            className={`inline-flex items-center gap-1.5 text-sm font-medium border border-[hsl(230,20%,90%)] text-muted-foreground px-5 py-2.5 rounded-full hover:bg-[hsl(230,25%,96%)] transition-colors ${step === 0 ? "invisible" : ""}`}
           >
             <ArrowLeft size={14} /> Back
           </button>
           <button
             onClick={() => setStep(Math.min(steps.length - 1, step + 1))}
-            className="inline-flex items-center gap-1.5 text-sm font-medium bg-gray-900 text-white px-5 py-2.5 rounded-full hover:bg-gray-800 transition-colors shadow-sm"
+            className="inline-flex items-center gap-1.5 text-sm font-medium bg-gradient-to-r from-[hsl(250,40%,55%)] to-[hsl(220,50%,55%)] text-white px-5 py-2.5 rounded-full hover:shadow-lg hover:shadow-[hsl(240,40%,60%)]/20 transition-all shadow-sm"
           >
             {step === steps.length - 1 ? "Create Contract" : "Next"} <ArrowRight size={14} />
           </button>
