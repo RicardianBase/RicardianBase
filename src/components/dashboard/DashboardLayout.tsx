@@ -1,0 +1,125 @@
+import { useState } from "react";
+import { Outlet, NavLink, useLocation } from "react-router-dom";
+import {
+  LayoutDashboard, FileText, Wallet, AlertTriangle, Settings, Search,
+  Bell, ChevronLeft, ChevronRight, Plus, Menu,
+} from "lucide-react";
+
+const navItems = [
+  { to: "/dashboard", icon: LayoutDashboard, label: "Dashboard", end: true },
+  { to: "/dashboard/contracts", icon: FileText, label: "Contracts", end: false },
+  { to: "/dashboard/wallet", icon: Wallet, label: "Wallet", end: false },
+  { to: "/dashboard/disputes", icon: AlertTriangle, label: "Disputes", end: false },
+  { to: "/dashboard/settings", icon: Settings, label: "Settings", end: false },
+];
+
+const DashboardLayout = () => {
+  const [collapsed, setCollapsed] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const location = useLocation();
+
+  return (
+    <div className="min-h-screen bg-gray-50/80 flex" style={{ fontFamily: "'PP Neue Montreal', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" }}>
+      {/* Mobile overlay */}
+      {mobileOpen && (
+        <div className="fixed inset-0 bg-black/20 z-40 md:hidden" onClick={() => setMobileOpen(false)} />
+      )}
+
+      {/* Sidebar */}
+      <aside
+        className={`fixed md:sticky top-0 left-0 h-screen z-50 bg-white border-r border-gray-100 flex flex-col transition-all duration-300 ease-out ${
+          collapsed ? "w-[72px]" : "w-[240px]"
+        } ${mobileOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"}`}
+      >
+        {/* Logo */}
+        <div className="h-16 flex items-center justify-between px-4 border-b border-gray-50">
+          {!collapsed && <span className="text-base font-semibold text-gray-900">RicardianBase</span>}
+          <button
+            onClick={() => { setCollapsed(!collapsed); setMobileOpen(false); }}
+            className="w-8 h-8 rounded-full hover:bg-gray-100 flex items-center justify-center transition-colors"
+          >
+            {collapsed ? <ChevronRight size={16} className="text-gray-500" /> : <ChevronLeft size={16} className="text-gray-500" />}
+          </button>
+        </div>
+
+        {/* Nav */}
+        <nav className="flex-1 py-4 px-3 space-y-1">
+          {navItems.map((item) => (
+            <NavLink
+              key={item.to}
+              to={item.to}
+              end={item.end}
+              onClick={() => setMobileOpen(false)}
+              className={({ isActive }) =>
+                `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
+                  isActive
+                    ? "bg-gray-900 text-white shadow-sm"
+                    : "text-gray-500 hover:bg-gray-50 hover:text-gray-800"
+                } ${collapsed ? "justify-center" : ""}`
+              }
+            >
+              <item.icon size={20} className="flex-shrink-0" />
+              {!collapsed && <span>{item.label}</span>}
+            </NavLink>
+          ))}
+        </nav>
+
+        {/* Create button */}
+        <div className="p-3 border-t border-gray-50">
+          <NavLink
+            to="/dashboard/contracts/new"
+            onClick={() => setMobileOpen(false)}
+            className={`flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm font-medium bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors ${collapsed ? "justify-center" : ""}`}
+          >
+            <Plus size={18} />
+            {!collapsed && <span>New Contract</span>}
+          </NavLink>
+        </div>
+      </aside>
+
+      {/* Main */}
+      <div className="flex-1 flex flex-col min-w-0">
+        {/* Header */}
+        <header className="sticky top-0 z-30 bg-white/80 backdrop-blur-md border-b border-gray-100 h-16 flex items-center px-4 md:px-8 gap-4">
+          <button
+            onClick={() => setMobileOpen(true)}
+            className="md:hidden w-9 h-9 rounded-full hover:bg-gray-100 flex items-center justify-center"
+          >
+            <Menu size={20} className="text-gray-600" />
+          </button>
+
+          {/* Search */}
+          <div className="flex-1 max-w-md">
+            <div className="relative">
+              <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Search contracts, milestones..."
+                className="w-full bg-gray-50 border-0 rounded-full pl-10 pr-4 py-2.5 text-sm text-gray-700 placeholder:text-gray-400 outline-none focus:ring-2 focus:ring-gray-200 transition-shadow"
+              />
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3 ml-auto">
+            {/* Notification */}
+            <button className="relative w-9 h-9 rounded-full hover:bg-gray-100 flex items-center justify-center transition-colors">
+              <Bell size={18} className="text-gray-500" />
+              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-400 rounded-full" />
+            </button>
+            {/* Avatar */}
+            <div className="w-9 h-9 rounded-full bg-gradient-to-br from-blue-100 to-blue-200 flex items-center justify-center text-sm font-medium text-blue-600">
+              JD
+            </div>
+          </div>
+        </header>
+
+        {/* Content */}
+        <main className="flex-1 p-4 md:p-8">
+          <Outlet />
+        </main>
+      </div>
+    </div>
+  );
+};
+
+export default DashboardLayout;
