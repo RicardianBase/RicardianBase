@@ -50,7 +50,7 @@ const ScrollRevealTagline = () => {
     <section
       ref={sectionRef}
       className="relative bg-background overflow-hidden"
-      style={{ minHeight: "80vh" }}
+      style={{ minHeight: "60vh" }}
     >
       {/* Subtle gradient accent */}
       <div
