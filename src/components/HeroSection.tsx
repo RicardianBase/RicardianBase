@@ -5,7 +5,19 @@ import { useWallet } from "@/contexts/WalletContext";
 
 const HeroSection = () => {
   const videoRef = useRef<HTMLVideoElement>(null);
-  const { isConnected, openModal } = useWallet();
+  const { isConnected, address, openModal, disconnect } = useWallet();
+
+  const truncatedAddress = address
+    ? `${address.slice(0, 4)}...${address.slice(-4)}`
+    : "";
+
+  const handleGetStarted = () => {
+    if (!isConnected) {
+      openModal();
+    } else {
+      window.location.href = "/dashboard";
+    }
+  };
 
   useEffect(() => {
     const video = videoRef.current;
