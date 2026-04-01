@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
+import { GlassButton } from "@/components/ui/glass-button";
 
 const HeroSection = () => {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -124,12 +125,10 @@ const HeroSection = () => {
           Through Ricardian smart contracts on Base, we make payments instant, automatic, and legally binding.
         </p>
 
-        <Link
-          to="/dashboard"
-          className="rounded-full px-14 py-5 text-base mt-12 text-white transition-transform hover:scale-[1.03] animate-fade-rise-delay-2"
-          style={{ backgroundColor: "#000000" }}
-        >
-          Explore Platform
+        <Link to="/dashboard" className="animate-fade-rise-delay-2 inline-block">
+          <GlassButton size="lg" className="px-14 py-5">
+            Explore Platform
+          </GlassButton>
         </Link>
       </section>
     </div>
