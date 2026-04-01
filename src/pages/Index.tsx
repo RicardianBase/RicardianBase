@@ -13,6 +13,7 @@ const Index = () => {
     <div className="relative" style={{ fontFamily: "'PP Neue Montreal', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" }}>
       <HeroSection />
       <TrustStatement />
+      <ServicesGrid />
       <OrbitalTestimonials />
       <PreventiveSection />
       <ScienceSection />
