@@ -87,17 +87,23 @@ const HeroSection = () => {
 
         <div className="hidden md:flex items-center gap-8">
           {[
-            { label: "Product", active: true },
-            { label: "Solutions", active: false },
-            { label: "Company", active: false },
-            { label: "Resources", active: false },
-            { label: "Contact", active: false },
+            { label: "About", href: "#about" },
+            { label: "Services", href: "#services" },
+            { label: "How It Works", href: "#how-it-works" },
+            { label: "Testimonials", href: "#testimonials" },
+            { label: "Roadmap", href: "#roadmap" },
+            { label: "FAQ", href: "#faq" },
           ].map((item) => (
             <a
               key={item.label}
-              href="#"
-              className="text-sm transition-colors"
-              style={{ color: item.active ? "#000000" : "#6F6F6F" }}
+              href={item.href}
+              onClick={(e) => {
+                e.preventDefault();
+                const el = document.querySelector(item.href);
+                if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+              }}
+              className="text-sm transition-colors hover:text-foreground"
+              style={{ color: "#6F6F6F" }}
             >
               {item.label}
             </a>
