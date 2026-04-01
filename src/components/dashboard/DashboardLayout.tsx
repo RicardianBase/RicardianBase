@@ -19,7 +19,7 @@ const DashboardLayout = () => {
   const location = useLocation();
 
   return (
-    <div className="min-h-screen bg-gray-50/80 flex" style={{ fontFamily: "'PP Neue Montreal', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" }}>
+    <div className="min-h-screen bg-[hsl(230,25%,96%)] flex" style={{ fontFamily: "'PP Neue Montreal', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" }}>
       {/* Mobile overlay */}
       {mobileOpen && (
         <div className="fixed inset-0 bg-black/20 z-40 md:hidden" onClick={() => setMobileOpen(false)} />
@@ -27,18 +27,22 @@ const DashboardLayout = () => {
 
       {/* Sidebar */}
       <aside
-        className={`fixed md:sticky top-0 left-0 h-screen z-50 bg-white border-r border-gray-100 flex flex-col transition-all duration-300 ease-out ${
+        className={`fixed md:sticky top-0 left-0 h-screen z-50 bg-white border-r border-[hsl(230,20%,92%)] flex flex-col transition-all duration-300 ease-out ${
           collapsed ? "w-[72px]" : "w-[240px]"
         } ${mobileOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"}`}
       >
         {/* Logo */}
-        <div className="h-16 flex items-center justify-between px-4 border-b border-gray-50">
-          {!collapsed && <span className="text-base font-semibold text-gray-900">RicardianBase</span>}
+        <div className="h-16 flex items-center justify-between px-4 border-b border-[hsl(230,20%,94%)]">
+          {!collapsed && (
+            <span className="text-base font-semibold text-foreground" style={{ fontFamily: "'Instrument Serif', serif" }}>
+              RicardianBase
+            </span>
+          )}
           <button
             onClick={() => { setCollapsed(!collapsed); setMobileOpen(false); }}
-            className="w-8 h-8 rounded-full hover:bg-gray-100 flex items-center justify-center transition-colors"
+            className="w-8 h-8 rounded-full hover:bg-[hsl(230,25%,95%)] flex items-center justify-center transition-colors"
           >
-            {collapsed ? <ChevronRight size={16} className="text-gray-500" /> : <ChevronLeft size={16} className="text-gray-500" />}
+            {collapsed ? <ChevronRight size={16} className="text-muted-foreground" /> : <ChevronLeft size={16} className="text-muted-foreground" />}
           </button>
         </div>
 
@@ -53,8 +57,8 @@ const DashboardLayout = () => {
               className={({ isActive }) =>
                 `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
                   isActive
-                    ? "bg-gray-900 text-white shadow-sm"
-                    : "text-gray-500 hover:bg-gray-50 hover:text-gray-800"
+                    ? "bg-gradient-to-r from-[hsl(250,40%,55%)] to-[hsl(220,50%,55%)] text-white shadow-md shadow-[hsl(240,40%,60%)]/20"
+                    : "text-muted-foreground hover:bg-[hsl(230,25%,95%)] hover:text-foreground"
                 } ${collapsed ? "justify-center" : ""}`
               }
             >
@@ -65,11 +69,11 @@ const DashboardLayout = () => {
         </nav>
 
         {/* Create button */}
-        <div className="p-3 border-t border-gray-50">
+        <div className="p-3 border-t border-[hsl(230,20%,94%)]">
           <NavLink
             to="/dashboard/contracts/new"
             onClick={() => setMobileOpen(false)}
-            className={`flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm font-medium bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors ${collapsed ? "justify-center" : ""}`}
+            className={`flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm font-medium bg-[hsl(250,35%,95%)] text-[hsl(250,50%,45%)] hover:bg-[hsl(250,35%,90%)] transition-colors ${collapsed ? "justify-center" : ""}`}
           >
             <Plus size={18} />
             {!collapsed && <span>New Contract</span>}
@@ -80,34 +84,34 @@ const DashboardLayout = () => {
       {/* Main */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Header */}
-        <header className="sticky top-0 z-30 bg-white/80 backdrop-blur-md border-b border-gray-100 h-16 flex items-center px-4 md:px-8 gap-4">
+        <header className="sticky top-0 z-30 bg-white/80 backdrop-blur-md border-b border-[hsl(230,20%,92%)] h-16 flex items-center px-4 md:px-8 gap-4">
           <button
             onClick={() => setMobileOpen(true)}
-            className="md:hidden w-9 h-9 rounded-full hover:bg-gray-100 flex items-center justify-center"
+            className="md:hidden w-9 h-9 rounded-full hover:bg-[hsl(230,25%,95%)] flex items-center justify-center"
           >
-            <Menu size={20} className="text-gray-600" />
+            <Menu size={20} className="text-muted-foreground" />
           </button>
 
           {/* Search */}
           <div className="flex-1 max-w-md">
             <div className="relative">
-              <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
+              <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" />
               <input
                 type="text"
                 placeholder="Search contracts, milestones..."
-                className="w-full bg-gray-50 border-0 rounded-full pl-10 pr-4 py-2.5 text-sm text-gray-700 placeholder:text-gray-400 outline-none focus:ring-2 focus:ring-gray-200 transition-shadow"
+                className="w-full bg-[hsl(230,25%,96%)] border-0 rounded-full pl-10 pr-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:ring-2 focus:ring-[hsl(250,40%,70%)]/30 transition-shadow"
               />
             </div>
           </div>
 
           <div className="flex items-center gap-3 ml-auto">
             {/* Notification */}
-            <button className="relative w-9 h-9 rounded-full hover:bg-gray-100 flex items-center justify-center transition-colors">
-              <Bell size={18} className="text-gray-500" />
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-400 rounded-full" />
+            <button className="relative w-9 h-9 rounded-full hover:bg-[hsl(230,25%,95%)] flex items-center justify-center transition-colors">
+              <Bell size={18} className="text-muted-foreground" />
+              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-[hsl(340,80%,55%)] rounded-full" />
             </button>
             {/* Avatar */}
-            <div className="w-9 h-9 rounded-full bg-gradient-to-br from-blue-100 to-blue-200 flex items-center justify-center text-sm font-medium text-blue-600">
+            <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[hsl(250,40%,75%)] to-[hsl(220,50%,65%)] flex items-center justify-center text-sm font-medium text-white">
               JD
             </div>
           </div>
