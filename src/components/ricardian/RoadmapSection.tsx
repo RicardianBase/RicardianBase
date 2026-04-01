@@ -94,7 +94,7 @@ const RoadmapSection = () => {
           </span>
           <h2 className="text-4xl md:text-5xl font-medium text-foreground leading-tight">
             Implementation{" "}
-            <span className="font-instrument italic text-emerald-500">Timeline</span>
+            <span className="font-instrument italic text-[hsl(140,38%,38%)]">Timeline</span>
           </h2>
           <p className="mt-4 text-muted-foreground text-lg">
             From concept to mainnet in 32 weeks
