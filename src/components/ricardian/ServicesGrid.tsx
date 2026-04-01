@@ -49,7 +49,7 @@ const FlipCard = ({ service, index, isInView }: { service: typeof services[0]; i
             <div>
               <h3 className="text-sm font-medium text-foreground">{service.title}</h3>
               <p className="text-xs text-muted-foreground mt-1">{service.desc}</p>
-              <p className="text-3xl font-medium text-foreground mt-3">{service.price}<span className="text-lg text-muted-foreground">{service.priceSuffix}</span></p>
+              
             </div>
             <span className="mt-1 text-[hsl(140,38%,40%)] hover:text-foreground transition-colors"><ArrowUpRight size={20} /></span>
           </div>
