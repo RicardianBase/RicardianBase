@@ -1,4 +1,4 @@
-import { useRef, useEffect, useState, useCallback } from "react";
+import { useRef, useEffect, useState } from "react";
 import { Shield, FileText, Zap, Lock, Layers } from "lucide-react";
 
 const features = [
@@ -9,21 +9,9 @@ const features = [
   { icon: Lock, title: "Base L2", desc: "Reliable and performant blockchain infrastructure." },
 ];
 
-const labels = [
-  "SMART ESCROW",
-  "RICARDIAN CONTRACTS",
-  "AUTO-EXECUTION",
-  "KYC/AML",
-  "BASE L2",
-];
+const labels = ["SMART ESCROW", "RICARDIAN CONTRACTS", "AUTO-EXECUTION", "KYC/AML", "BASE L2"];
+const rightLabels = ["ENTERPRISE TEMPLATES", "STABLECOIN PAYMENTS", "BUILT ON BASE"];
 
-const rightLabels = [
-  "ENTERPRISE TEMPLATES",
-  "STABLECOIN PAYMENTS",
-  "BUILT ON BASE",
-];
-
-/* ---- Animated 3D Platform Illustration ---- */
 const PlatformIllustration = ({ visible }: { visible: boolean }) => {
   const [tick, setTick] = useState(0);
 
@@ -34,18 +22,10 @@ const PlatformIllustration = ({ visible }: { visible: boolean }) => {
   }, [visible]);
 
   const layers = [
-    { label: "Payment Layer", gradient: "from-[hsl(220,55%,55%)] to-[hsl(250,45%,60%)]", yOff: 0, delay: 0.2 },
-    { label: "Ricardian Link", gradient: "from-[hsl(250,40%,58%)] to-[hsl(280,45%,62%)]", yOff: -36, delay: 0.4 },
-    { label: "Smart Contract", gradient: "from-[hsl(280,40%,55%)] to-[hsl(300,45%,60%)]", yOff: -72, delay: 0.6 },
+    { label: "Payment Layer", gradient: "from-[hsl(140,40%,45%)] to-[hsl(160,45%,50%)]", yOff: 0, delay: 0.2 },
+    { label: "Ricardian Link", gradient: "from-[hsl(150,38%,42%)] to-[hsl(130,40%,48%)]", yOff: -36, delay: 0.4 },
+    { label: "Smart Contract", gradient: "from-[hsl(120,35%,40%)] to-[hsl(145,40%,45%)]", yOff: -72, delay: 0.6 },
   ];
-
-  const particles = Array.from({ length: 8 }, (_, i) => ({
-    angle: (i / 8) * 360,
-    radius: 100 + (i % 3) * 20,
-    size: 3 + (i % 3),
-    speed: 12 + i * 2,
-    color: i % 2 === 0 ? "hsl(250,50%,70%)" : "hsl(220,55%,65%)",
-  }));
 
   return (
     <div className="relative w-[340px] h-[300px] mx-auto">
@@ -53,40 +33,43 @@ const PlatformIllustration = ({ visible }: { visible: boolean }) => {
       <div
         className="absolute top-1/2 left-1/2 w-[200px] h-[200px] -translate-x-1/2 -translate-y-1/2 rounded-full transition-all duration-1000"
         style={{
-          background: "radial-gradient(circle, hsl(250,50%,70%,0.15) 0%, transparent 70%)",
+          background: "radial-gradient(circle, hsl(140,40%,55%,0.12) 0%, transparent 70%)",
           opacity: visible ? 1 : 0,
           transform: `translate(-50%, -50%) scale(${visible ? 1.2 : 0.5})`,
         }}
       />
 
-      {/* Orbital particles */}
-      {particles.map((p, i) => (
-        <div
-          key={i}
-          className="absolute top-1/2 left-1/2 rounded-full transition-opacity duration-700"
-          style={{
-            width: p.size,
-            height: p.size,
-            backgroundColor: p.color,
-            opacity: visible ? 0.6 : 0,
-            transitionDelay: `${0.8 + i * 0.1}s`,
-            animation: visible ? `orbit-${i % 3} ${p.speed}s linear infinite` : "none",
-            transform: `translate(-50%, -50%) rotate(${p.angle}deg) translateX(${p.radius}px)`,
-          }}
-        />
-      ))}
-
-      {/* Connecting lines */}
+      {/* Orbital rings */}
       {visible && (
-        <svg className="absolute inset-0 w-full h-full pointer-events-none" style={{ opacity: 0.2 }}>
-          <circle cx="170" cy="150" r="80" fill="none" stroke="hsl(250,40%,65%)" strokeWidth="0.5" strokeDasharray="4 4">
+        <svg className="absolute inset-0 w-full h-full pointer-events-none" style={{ opacity: 0.18 }}>
+          <circle cx="170" cy="150" r="80" fill="none" stroke="hsl(140,35%,50%)" strokeWidth="0.5" strokeDasharray="4 4">
             <animateTransform attributeName="transform" type="rotate" from="0 170 150" to="360 170 150" dur="20s" repeatCount="indefinite" />
           </circle>
-          <circle cx="170" cy="150" r="110" fill="none" stroke="hsl(220,45%,60%)" strokeWidth="0.5" strokeDasharray="2 6">
+          <circle cx="170" cy="150" r="110" fill="none" stroke="hsl(150,40%,55%)" strokeWidth="0.5" strokeDasharray="2 6">
             <animateTransform attributeName="transform" type="rotate" from="360 170 150" to="0 170 150" dur="30s" repeatCount="indefinite" />
           </circle>
         </svg>
       )}
+
+      {/* Orbital particles */}
+      {Array.from({ length: 8 }, (_, i) => {
+        const angle = (i / 8) * 360;
+        const radius = 100 + (i % 3) * 20;
+        return (
+          <div
+            key={i}
+            className="absolute top-1/2 left-1/2 rounded-full transition-opacity duration-700"
+            style={{
+              width: 3 + (i % 3),
+              height: 3 + (i % 3),
+              backgroundColor: i % 2 === 0 ? "hsl(140,40%,55%)" : "hsl(160,45%,50%)",
+              opacity: visible ? 0.5 : 0,
+              transitionDelay: `${0.8 + i * 0.1}s`,
+              transform: `translate(-50%, -50%) rotate(${angle}deg) translateX(${radius}px)`,
+            }}
+          />
+        );
+      })}
 
       {/* Stacked layers */}
       {layers.map((layer, i) => (
@@ -100,7 +83,7 @@ const PlatformIllustration = ({ visible }: { visible: boolean }) => {
             opacity: visible ? 1 : 0,
             transitionDelay: `${layer.delay}s`,
             bottom: "60px",
-            boxShadow: visible ? `0 8px 24px -4px hsl(250,40%,40%,0.25)` : "none",
+            boxShadow: visible ? `0 8px 24px -4px hsl(140,35%,35%,0.25)` : "none",
           }}
         >
           <div className="flex items-center h-full px-4 gap-3">
@@ -112,8 +95,6 @@ const PlatformIllustration = ({ visible }: { visible: boolean }) => {
               {layer.label}
             </span>
           </div>
-
-          {/* Pulse ring on active layer */}
           {tick % 3 === i && visible && (
             <div className="absolute inset-0 rounded-xl border-2 border-white/30 animate-ping" style={{ animationDuration: "1.5s" }} />
           )}
@@ -122,7 +103,7 @@ const PlatformIllustration = ({ visible }: { visible: boolean }) => {
 
       {/* Floating data badge */}
       <div
-        className="absolute top-2 left-1/2 -translate-x-1/2 bg-white/90 backdrop-blur-sm border border-[hsl(250,30%,85%)] rounded-xl px-4 py-2 shadow-lg transition-all duration-700 ease-out"
+        className="absolute top-2 left-1/2 -translate-x-1/2 bg-white/90 backdrop-blur-sm border border-[hsl(140,25%,85%)] rounded-xl px-4 py-2 shadow-lg transition-all duration-700 ease-out"
         style={{
           opacity: visible ? 1 : 0,
           transform: visible ? "translateX(-50%) translateY(0)" : "translateX(-50%) translateY(20px)",
@@ -130,7 +111,7 @@ const PlatformIllustration = ({ visible }: { visible: boolean }) => {
         }}
       >
         <div className="flex items-center gap-2">
-          <div className="w-2 h-2 rounded-full bg-[hsl(160,50%,45%)] animate-pulse" />
+          <div className="w-2 h-2 rounded-full bg-[hsl(140,50%,45%)] animate-pulse" />
           <span className="text-[10px] font-medium text-foreground">Contract Active</span>
           <span className="text-[10px] text-muted-foreground">$12,500</span>
         </div>
@@ -138,7 +119,7 @@ const PlatformIllustration = ({ visible }: { visible: boolean }) => {
 
       {/* Floating hash badge */}
       <div
-        className="absolute bottom-4 right-4 bg-white/90 backdrop-blur-sm border border-[hsl(250,30%,85%)] rounded-lg px-3 py-1.5 shadow-md transition-all duration-700 ease-out"
+        className="absolute bottom-4 right-4 bg-white/90 backdrop-blur-sm border border-[hsl(140,25%,85%)] rounded-lg px-3 py-1.5 shadow-md transition-all duration-700 ease-out"
         style={{
           opacity: visible ? 1 : 0,
           transform: visible ? "translateY(0) scale(1)" : "translateY(10px) scale(0.9)",
@@ -165,11 +146,11 @@ const TrustStatement = () => {
   }, []);
 
   return (
-    <section ref={ref} className="bg-[hsl(230,25%,96%)] py-24 md:py-32 px-6">
-      <div className="max-w-6xl mx-auto">
+    <section ref={ref} className="bg-background py-20 md:py-28 px-6">
+      <div className="max-w-7xl mx-auto">
         {/* Main card */}
         <div
-          className="bg-card border border-[hsl(230,20%,90%)] rounded-3xl p-10 md:p-16 transition-all duration-700 ease-out shadow-sm"
+          className="bg-card border border-border rounded-3xl p-10 md:p-16 transition-all duration-700 ease-out shadow-sm"
           style={{
             opacity: inView ? 1 : 0,
             transform: inView ? "translateY(0)" : "translateY(30px)",
@@ -178,7 +159,7 @@ const TrustStatement = () => {
           {/* Header area */}
           <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-8 mb-12">
             <div className="max-w-xl">
-              <span className="text-xs font-medium text-[hsl(250,40%,55%)] tracking-wider uppercase flex items-center gap-2 mb-4">
+              <span className="text-xs font-medium text-[hsl(140,40%,40%)] tracking-wider uppercase flex items-center gap-2 mb-4">
                 <span className="text-sm">✦</span> About RicardianBase
               </span>
               <h2
@@ -186,8 +167,8 @@ const TrustStatement = () => {
                 style={{ fontFamily: "'Instrument Serif', serif" }}
               >
                 The first platform to merge{" "}
-                <em className="text-[hsl(250,40%,55%)]">legal contracts</em> with{" "}
-                <em className="text-[hsl(220,50%,55%)]">smart contracts</em>
+                <em className="text-[hsl(140,38%,38%)]">legal contracts</em> with{" "}
+                <em className="text-[hsl(150,40%,42%)]">smart contracts</em>
               </h2>
             </div>
             <p className="text-sm text-muted-foreground max-w-sm leading-relaxed lg:pt-10">
@@ -229,15 +210,12 @@ const TrustStatement = () => {
                     transitionDelay: `${0.4 + i * 0.1}s`,
                   }}
                 >
-                  <span className="text-[10px] font-medium text-muted-foreground tracking-wider">
-                    {l}
-                  </span>
-                  <div className="w-8 h-px bg-gradient-to-r from-[hsl(250,40%,70%)] to-transparent" />
+                  <span className="text-[10px] font-medium text-muted-foreground tracking-wider">{l}</span>
+                  <div className="w-8 h-px bg-gradient-to-r from-[hsl(140,35%,55%)] to-transparent" />
                 </div>
               ))}
             </div>
 
-            {/* Center illustration */}
             <PlatformIllustration visible={inView} />
 
             {/* Right labels */}
@@ -252,10 +230,8 @@ const TrustStatement = () => {
                     transitionDelay: `${0.6 + i * 0.1}s`,
                   }}
                 >
-                  <div className="w-8 h-px bg-gradient-to-l from-[hsl(220,50%,65%)] to-transparent" />
-                  <span className="text-[10px] font-medium text-muted-foreground tracking-wider">
-                    {l}
-                  </span>
+                  <div className="w-8 h-px bg-gradient-to-l from-[hsl(150,40%,50%)] to-transparent" />
+                  <span className="text-[10px] font-medium text-muted-foreground tracking-wider">{l}</span>
                 </div>
               ))}
             </div>
@@ -274,8 +250,8 @@ const TrustStatement = () => {
           {features.map((f, i) => (
             <div key={i} className="flex flex-col gap-2 group">
               <div className="flex items-center gap-2">
-                <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-[hsl(250,40%,92%)] to-[hsl(220,45%,90%)] flex items-center justify-center group-hover:from-[hsl(250,40%,85%)] group-hover:to-[hsl(220,45%,82%)] transition-all duration-300">
-                  <f.icon size={14} strokeWidth={1.5} className="text-[hsl(250,45%,50%)]" />
+                <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-[hsl(140,30%,92%)] to-[hsl(150,35%,88%)] flex items-center justify-center group-hover:from-[hsl(140,35%,85%)] group-hover:to-[hsl(150,38%,80%)] transition-all duration-300">
+                  <f.icon size={14} strokeWidth={1.5} className="text-[hsl(140,40%,38%)]" />
                 </div>
                 <span className="text-sm font-medium text-foreground">{f.title}</span>
               </div>
