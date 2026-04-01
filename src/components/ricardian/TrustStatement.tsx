@@ -80,16 +80,16 @@ const TrustStatement = () => {
               transitionDelay: "0.4s",
             }}
           >
-            <div className="relative w-full max-w-2xl mx-auto rounded-2xl overflow-hidden" style={{
-              maskImage: "radial-gradient(ellipse 80% 80% at 50% 50%, black 40%, transparent 100%)",
-              WebkitMaskImage: "radial-gradient(ellipse 80% 80% at 50% 50%, black 40%, transparent 100%)",
+            <div className="relative w-[340px] h-[300px] mx-auto overflow-hidden" style={{
+              maskImage: "radial-gradient(ellipse 70% 70% at 50% 50%, black 30%, transparent 100%)",
+              WebkitMaskImage: "radial-gradient(ellipse 70% 70% at 50% 50%, black 30%, transparent 100%)",
             }}>
               <video
                 autoPlay
                 loop
                 muted
                 playsInline
-                className="w-full h-auto"
+                className="w-full h-full object-cover"
                 src="/videos/about-section.mp4"
               />
             </div>
