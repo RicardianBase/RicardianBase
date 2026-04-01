@@ -1,4 +1,5 @@
 import HeroSection from "@/components/HeroSection";
+import ScrollRevealTagline from "@/components/ricardian/ScrollRevealTagline";
 import TrustStatement from "@/components/ricardian/TrustStatement";
 import ServicesGrid from "@/components/ricardian/ServicesGrid";
 import OrbitalTestimonials from "@/components/ricardian/OrbitalTestimonials";
@@ -10,6 +11,7 @@ const Index = () => {
   return (
     <div className="relative" style={{ fontFamily: "'PP Neue Montreal', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" }}>
       <HeroSection />
+      <ScrollRevealTagline />
       <TrustStatement />
       <ServicesGrid />
       <OrbitalTestimonials />
