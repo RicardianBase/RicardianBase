@@ -1,13 +1,254 @@
-import { ArrowRight, ArrowUpRight, GripHorizontal, RotateCcw } from "lucide-react";
-import { useRef, useState } from "react";
+import { ArrowRight, ArrowUpRight, RotateCcw, GripHorizontal } from "lucide-react";
+import { useRef, useState, useEffect } from "react";
 import { useInViewAnimation } from "@/hooks/useInViewAnimation";
-import service1 from "@/assets/service-1.jpg";
-import service2 from "@/assets/service-2.jpg";
-import service3 from "@/assets/service-3.jpg";
+
+/* ---- Animated icon components ---- */
+
+const EscrowIcon = () => {
+  const [active, setActive] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const obs = new IntersectionObserver(([e]) => { if (e.isIntersecting) setActive(true); }, { threshold: 0.5 });
+    if (ref.current) obs.observe(ref.current);
+    return () => obs.disconnect();
+  }, []);
+
+  return (
+    <div ref={ref} className="w-full h-[240px] flex items-center justify-center bg-gradient-to-br from-muted/50 to-muted rounded-xl overflow-hidden">
+      <div className="relative w-32 h-32">
+        {/* Vault circle */}
+        <div
+          className="absolute inset-0 rounded-full border-2 border-foreground/10 transition-all duration-1000 ease-out"
+          style={{
+            transform: active ? "scale(1)" : "scale(0.5)",
+            opacity: active ? 1 : 0,
+          }}
+        />
+        {/* Lock */}
+        <div
+          className="absolute inset-0 flex items-center justify-center transition-all duration-700 ease-out"
+          style={{
+            transform: active ? "translateY(0)" : "translateY(10px)",
+            opacity: active ? 1 : 0,
+            transitionDelay: "0.3s",
+          }}
+        >
+          <svg width="40" height="44" viewBox="0 0 40 44" fill="none" className="text-foreground">
+            <rect x="4" y="18" width="32" height="22" rx="4" stroke="currentColor" strokeWidth="1.5" />
+            <path d="M12 18V12C12 7.58 15.58 4 20 4C24.42 4 28 7.58 28 12V18" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+            <circle cx="20" cy="29" r="3" stroke="currentColor" strokeWidth="1.5" />
+          </svg>
+        </div>
+        {/* Orbiting coins */}
+        {[0, 120, 240].map((deg, i) => (
+          <div
+            key={i}
+            className="absolute w-5 h-5 rounded-full border border-foreground/20 bg-card flex items-center justify-center text-[8px] font-medium text-muted-foreground transition-all duration-1000 ease-out"
+            style={{
+              top: "50%",
+              left: "50%",
+              transform: active
+                ? `rotate(${deg + 30}deg) translateX(52px) rotate(-${deg + 30}deg)`
+                : `rotate(${deg}deg) translateX(20px) rotate(-${deg}deg)`,
+              opacity: active ? 1 : 0,
+              transitionDelay: `${0.5 + i * 0.15}s`,
+            }}
+          >
+            $
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+const RicardianIcon = () => {
+  const [active, setActive] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const obs = new IntersectionObserver(([e]) => { if (e.isIntersecting) setActive(true); }, { threshold: 0.5 });
+    if (ref.current) obs.observe(ref.current);
+    return () => obs.disconnect();
+  }, []);
+
+  return (
+    <div ref={ref} className="w-full h-[240px] flex items-center justify-center bg-gradient-to-br from-muted/50 to-muted rounded-xl overflow-hidden">
+      <div className="relative flex items-center gap-6">
+        {/* PDF doc */}
+        <div
+          className="w-16 h-20 rounded-lg border border-foreground/15 bg-card flex flex-col items-center justify-center gap-1 transition-all duration-700 ease-out"
+          style={{
+            transform: active ? "translateX(0)" : "translateX(20px)",
+            opacity: active ? 1 : 0,
+          }}
+        >
+          <div className="w-8 h-1 bg-foreground/10 rounded-full" />
+          <div className="w-6 h-1 bg-foreground/10 rounded-full" />
+          <div className="w-7 h-1 bg-foreground/10 rounded-full" />
+          <span className="text-[7px] text-muted-foreground mt-1">PDF</span>
+        </div>
+        {/* Hash link */}
+        <div
+          className="flex flex-col items-center gap-1 transition-all duration-700 ease-out"
+          style={{
+            opacity: active ? 1 : 0,
+            transitionDelay: "0.4s",
+          }}
+        >
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" className="text-foreground/40">
+            <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+            <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+          </svg>
+          <span className="text-[7px] text-muted-foreground font-mono">SHA-256</span>
+        </div>
+        {/* Smart contract */}
+        <div
+          className="w-16 h-20 rounded-lg border border-foreground/15 bg-card flex flex-col items-center justify-center gap-1 transition-all duration-700 ease-out"
+          style={{
+            transform: active ? "translateX(0)" : "translateX(-20px)",
+            opacity: active ? 1 : 0,
+            transitionDelay: "0.2s",
+          }}
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" className="text-foreground/30">
+            <rect x="3" y="3" width="18" height="18" rx="3" stroke="currentColor" strokeWidth="1.5" />
+            <path d="M8 8h8M8 12h5M8 16h6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+          </svg>
+          <span className="text-[7px] text-muted-foreground">0x…</span>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const AutoExecIcon = () => {
+  const [active, setActive] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const obs = new IntersectionObserver(([e]) => { if (e.isIntersecting) setActive(true); }, { threshold: 0.5 });
+    if (ref.current) obs.observe(ref.current);
+    return () => obs.disconnect();
+  }, []);
+
+  return (
+    <div ref={ref} className="w-full h-[240px] flex items-center justify-center bg-gradient-to-br from-muted/50 to-muted rounded-xl overflow-hidden">
+      <div className="flex flex-col items-center gap-3">
+        {["Submit", "Approve", "Pay"].map((step, i) => (
+          <div
+            key={i}
+            className="flex items-center gap-3 transition-all duration-600 ease-out"
+            style={{
+              opacity: active ? 1 : 0,
+              transform: active ? "translateY(0)" : "translateY(15px)",
+              transitionDelay: `${i * 0.25}s`,
+            }}
+          >
+            <div
+              className="w-8 h-8 rounded-full border border-foreground/15 bg-card flex items-center justify-center text-xs text-muted-foreground transition-colors duration-500"
+              style={{ transitionDelay: `${0.8 + i * 0.2}s`, borderColor: active ? "hsl(var(--foreground) / 0.3)" : undefined }}
+            >
+              {i + 1}
+            </div>
+            <span className="text-xs text-muted-foreground w-14">{step}</span>
+            {i < 2 && (
+              <svg width="12" height="12" viewBox="0 0 12 12" className="text-foreground/20 ml-1">
+                <path d="M6 2v8M6 10l-2-2M6 10l2-2" stroke="currentColor" strokeWidth="1" strokeLinecap="round" />
+              </svg>
+            )}
+          </div>
+        ))}
+        {/* Checkmark */}
+        <div
+          className="mt-1 transition-all duration-500 ease-out"
+          style={{
+            opacity: active ? 1 : 0,
+            transform: active ? "scale(1)" : "scale(0.5)",
+            transitionDelay: "1s",
+          }}
+        >
+          <svg width="20" height="20" viewBox="0 0 20 20" className="text-foreground/40">
+            <circle cx="10" cy="10" r="9" stroke="currentColor" strokeWidth="1" fill="none" />
+            <path d="M6 10l3 3 5-5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+          </svg>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const ComplianceIcon = () => {
+  const [active, setActive] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const obs = new IntersectionObserver(([e]) => { if (e.isIntersecting) setActive(true); }, { threshold: 0.5 });
+    if (ref.current) obs.observe(ref.current);
+    return () => obs.disconnect();
+  }, []);
+
+  return (
+    <div ref={ref} className="w-full h-[240px] flex items-center justify-center bg-gradient-to-br from-muted/50 to-muted rounded-xl overflow-hidden">
+      <div className="relative">
+        {/* Shield */}
+        <svg
+          width="48"
+          height="56"
+          viewBox="0 0 48 56"
+          fill="none"
+          className="text-foreground/20 transition-all duration-700 ease-out"
+          style={{
+            opacity: active ? 1 : 0,
+            transform: active ? "translateY(0)" : "translateY(15px)",
+          }}
+        >
+          <path
+            d="M24 2L4 12v16c0 14.36 8.54 24.62 20 28 11.46-3.38 20-13.64 20-28V12L24 2z"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            fill="none"
+          />
+          <path
+            d="M16 28l6 6 10-12"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="transition-all duration-500"
+            style={{
+              strokeDasharray: 30,
+              strokeDashoffset: active ? 0 : 30,
+              transitionDelay: "0.5s",
+            }}
+          />
+        </svg>
+        {/* Floating badges */}
+        {["KYC", "AML", "SOC2"].map((badge, i) => (
+          <div
+            key={i}
+            className="absolute bg-card border border-border rounded-full px-2 py-0.5 text-[8px] text-muted-foreground font-medium transition-all duration-700 ease-out"
+            style={{
+              top: `${10 + i * 18}px`,
+              right: "-40px",
+              opacity: active ? 1 : 0,
+              transform: active ? "translateX(0)" : "translateX(-10px)",
+              transitionDelay: `${0.7 + i * 0.15}s`,
+            }}
+          >
+            {badge}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+const iconComponents = [EscrowIcon, RicardianIcon, AutoExecIcon, ComplianceIcon];
 
 const services = [
   {
-    image: service1,
     pills: ["Smart Escrow"],
     title: "Automated Escrow Payments",
     price: "$320",
@@ -22,7 +263,6 @@ const services = [
     ],
   },
   {
-    image: service2,
     pills: ["Ricardian Linking"],
     title: "Hybrid Contract Generation",
     price: "≈$2.5k",
@@ -37,7 +277,6 @@ const services = [
     ],
   },
   {
-    image: service3,
     pills: ["Auto-Execution"],
     title: "Milestone Auto-Payments",
     price: "$5,000",
@@ -52,7 +291,6 @@ const services = [
     ],
   },
   {
-    image: service1,
     pills: ["KYC/AML"],
     title: "Compliance & Verification",
     price: "$1,200",
@@ -70,6 +308,7 @@ const services = [
 
 const FlipCard = ({ service, index, isInView }: { service: typeof services[0]; index: number; isInView: boolean }) => {
   const [flipped, setFlipped] = useState(false);
+  const IconComp = iconComponents[index];
 
   return (
     <div
@@ -89,8 +328,8 @@ const FlipCard = ({ service, index, isInView }: { service: typeof services[0]; i
           className="w-full border border-border rounded-2xl p-4 bg-card hover:shadow-lg transition-shadow duration-300"
           style={{ backfaceVisibility: "hidden" }}
         >
-          <div className="relative rounded-xl overflow-hidden h-[240px]">
-            <img src={service.image} alt={service.title} className="w-full h-full object-cover" loading="lazy" width={640} height={640} />
+          <div className="relative rounded-xl overflow-hidden">
+            <IconComp />
             <div className="absolute bottom-3 left-3 flex flex-wrap gap-2">
               {service.pills.map((pill) => (
                 <span key={pill} className="bg-background/90 backdrop-blur-sm text-foreground text-xs font-medium px-3 py-1 rounded-full shadow-sm">
@@ -182,13 +421,16 @@ const ServicesGrid = () => {
           style={{ animationDelay: "0.1s" }}
         >
           <div>
-            <h2 className="text-4xl md:text-5xl lg:text-6xl font-medium text-foreground leading-[1.1]">
+            <h2
+              className="text-4xl md:text-5xl lg:text-6xl font-normal text-foreground leading-[1.1]"
+              style={{ fontFamily: "'Instrument Serif', serif" }}
+            >
               Platform<br />Services
             </h2>
           </div>
           <div className="mt-6 md:mt-0 flex flex-col items-start md:items-end gap-3">
             <p className="text-sm text-muted-foreground max-w-xs md:text-right">
-              We provide a comprehensive suite of Ricardian contract services covering the full lifecycle of tech contractor engagements.
+              A comprehensive suite of Ricardian contract services covering the full lifecycle of tech contractor engagements.
             </p>
             <a href="#" className="inline-flex items-center gap-1.5 text-sm font-medium text-foreground border border-border rounded-full px-5 py-2.5 hover:bg-muted transition-colors">
               Schedule Demo <ArrowRight size={14} />
