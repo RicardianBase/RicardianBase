@@ -73,7 +73,7 @@ const DashboardLayout = () => {
           <NavLink
             to="/dashboard/contracts/new"
             onClick={() => setMobileOpen(false)}
-            className={`flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm font-medium bg-[hsl(250,35%,95%)] text-[hsl(250,50%,45%)] hover:bg-[hsl(250,35%,90%)] transition-colors ${collapsed ? "justify-center" : ""}`}
+            className={`flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm font-medium bg-emerald-50 text-emerald-700 hover:bg-emerald-100 transition-colors ${collapsed ? "justify-center" : ""}`}
           >
             <Plus size={18} />
             {!collapsed && <span>New Contract</span>}
