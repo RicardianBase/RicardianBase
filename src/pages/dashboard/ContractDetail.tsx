@@ -101,7 +101,7 @@ contract BrandRedesign {
         </div>
         <div className="bg-white rounded-xl p-5 shadow-sm">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[hsl(250,35%,85%)] to-[hsl(220,40%,80%)] flex items-center justify-center text-xs font-medium text-[hsl(250,50%,40%)]">AC</div>
+            <div className="w-10 h-10 rounded-full bg-emerald-50 flex items-center justify-center text-xs font-medium text-emerald-700">AC</div>
             <div>
               <p className="text-sm font-medium text-foreground">Alice Chen</p>
               <div className="flex items-center gap-1 mt-0.5">
