@@ -1,46 +1,90 @@
 import { Play } from "lucide-react";
-
-const VIDEO_URL =
-  "https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260228_065522_522e2295-ba22-457e-8fdb-fbcd68109c73.mp4";
+import { motion } from "framer-motion";
 
 const HeroSection = () => {
   return (
-    <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden">
-      {/* Video Background */}
-      <video
-        autoPlay
-        muted
-        loop
-        playsInline
-        className="absolute inset-0 w-full h-full object-cover"
-      >
-        <source src={VIDEO_URL} type="video/mp4" />
-      </video>
+    <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-[hsl(var(--section-dark))]">
+      <div className="absolute inset-0 grid-pattern opacity-60" />
+      
+      <motion.div
+        animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.5, 0.3] }}
+        transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+        className="absolute top-1/4 left-1/4 w-[500px] h-[500px] rounded-full bg-primary/20 blur-[120px]"
+      />
+      <motion.div
+        animate={{ scale: [1.2, 1, 1.2], opacity: [0.2, 0.4, 0.2] }}
+        transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
+        className="absolute bottom-1/4 right-1/4 w-[400px] h-[400px] rounded-full bg-accent/20 blur-[100px]"
+      />
 
-      {/* Content */}
-      <div className="relative z-10 flex flex-col items-center text-center px-4 pt-28 pb-16">
-        {/* Headline */}
-        <h1 className="text-background">
-          <span className="block font-barlow font-bold text-[clamp(28px,5vw,56px)] tracking-[-4px] leading-tight">
-            Agency that makes your
+      <div className="relative z-10 text-center px-4 max-w-5xl mx-auto">
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.2 }}
+          className="mb-6"
+        >
+          <span className="inline-block font-barlow font-medium text-sm tracking-widest uppercase text-primary-foreground/50 border border-primary-foreground/10 rounded-full px-5 py-2">
+            Legal Contracts Meet Smart Contracts
           </span>
-          <span className="block font-instrument italic text-[clamp(42px,7vw,84px)] leading-[1.1] mt-1">
-            videos & reels viral
-          </span>
-        </h1>
+        </motion.div>
 
-        {/* Subtext */}
-        <p className="font-barlow font-medium text-[clamp(14px,1.5vw,18px)] text-background/80 mt-6 max-w-lg">
-          Short-form video editing for Influencers, Creators and Brands
-        </p>
-
-        {/* CTA */}
-        <button className="mt-10 flex items-center gap-3 bg-background text-foreground font-barlow font-medium text-[16px] pl-5 pr-7 py-3.5 rounded-full shadow-[0_8px_32px_hsl(var(--foreground)/0.12)] hover:shadow-[0_8px_40px_hsl(var(--foreground)/0.2)] transition-shadow">
-          <span className="w-9 h-9 rounded-full bg-foreground flex items-center justify-center">
-            <Play size={14} className="text-background ml-0.5" fill="currentColor" />
+        <motion.h1
+          initial={{ opacity: 0, y: 40 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.4 }}
+          className="mb-4"
+        >
+          <span className="block font-barlow font-bold text-primary-foreground tracking-[-3px] text-[clamp(2rem,5vw,3.5rem)] leading-[1.1]">
+            Two documents, one truth.
           </span>
-          See Our Workreel
-        </button>
+          <span className="block font-instrument italic text-primary-foreground text-[clamp(2.5rem,7vw,5.5rem)] leading-[1.05] mt-2">
+            payments you can trust
+          </span>
+        </motion.h1>
+
+        <motion.p
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.6 }}
+          className="font-barlow font-medium text-[18px] text-primary-foreground/60 max-w-xl mx-auto mb-10"
+        >
+          Milestone-based escrow on Base blockchain. Ricardian contracts bind
+          legal prose to smart contract code — tamper-proof, instant, non-custodial.
+        </motion.p>
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.8 }}
+          className="flex flex-col sm:flex-row items-center justify-center gap-4"
+        >
+          <button className="flex items-center gap-3 bg-primary-foreground text-foreground font-barlow font-semibold text-base px-8 py-4 rounded-full hover:scale-105 transition-transform shadow-[0_8px_30px_rgba(255,255,255,0.15)]">
+            <Play size={16} className="fill-current" />
+            See How It Works
+          </button>
+          <button className="font-barlow font-medium text-base text-primary-foreground/70 hover:text-primary-foreground transition-colors px-6 py-4 border border-primary-foreground/20 rounded-full hover:border-primary-foreground/40">
+            Read the Docs
+          </button>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 40 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 1, delay: 1.2 }}
+          className="mt-20 grid grid-cols-3 gap-8 max-w-lg mx-auto"
+        >
+          {[
+            { value: "14s", label: "Avg Pay Time" },
+            { value: "$2.4M", label: "Value Secured" },
+            { value: "99.99%", label: "Uptime" },
+          ].map((stat) => (
+            <div key={stat.label} className="text-center">
+              <div className="font-barlow font-bold text-2xl text-primary-foreground">{stat.value}</div>
+              <div className="font-barlow text-xs text-primary-foreground/40 mt-1">{stat.label}</div>
+            </div>
+          ))}
+        </motion.div>
       </div>
     </section>
   );
