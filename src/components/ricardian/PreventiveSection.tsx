@@ -22,7 +22,7 @@ const PreventiveSection = () => {
         >
           <h2 className="text-3xl md:text-4xl lg:text-[42px] font-medium text-foreground leading-[1.25] max-w-2xl">
             We also offer educational resources to help you understand Ricardian contracts.{" "}
-            <span className="text-muted-foreground">Our specialists will guide you through every step of implementation.</span>
+            <span className="text-emerald-500">Our specialists will guide you through every step of implementation.</span>
           </h2>
           <a
             href="#"
