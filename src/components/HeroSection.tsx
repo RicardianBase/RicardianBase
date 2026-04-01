@@ -5,6 +5,7 @@ import { useWallet } from "@/contexts/WalletContext";
 
 const HeroSection = () => {
   const videoRef = useRef<HTMLVideoElement>(null);
+  const { isConnected, openModal } = useWallet();
 
   useEffect(() => {
     const video = videoRef.current;
