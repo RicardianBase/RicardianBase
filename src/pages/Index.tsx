@@ -9,6 +9,14 @@ import ProjectsSection from "@/components/vortex/ProjectsSection";
 import PartnerCTA from "@/components/vortex/PartnerCTA";
 import VortexFooter from "@/components/vortex/VortexFooter";
 import FixedBottomNav from "@/components/vortex/FixedBottomNav";
+import TrustStatement from "@/components/ricardian/TrustStatement";
+import ServicesGrid from "@/components/ricardian/ServicesGrid";
+import OrbitalTestimonials from "@/components/ricardian/OrbitalTestimonials";
+import PreventiveSection from "@/components/ricardian/PreventiveSection";
+import ScienceSection from "@/components/ricardian/ScienceSection";
+import StatsShowcase from "@/components/ricardian/StatsShowcase";
+import EducationalResources from "@/components/ricardian/EducationalResources";
+import RicardianFooter from "@/components/ricardian/RicardianFooter";
 
 const Index = () => {
   return (
@@ -23,6 +31,17 @@ const Index = () => {
       <ProjectsSection />
       <PartnerCTA />
       <VortexFooter />
+
+      {/* RicardianBase Sections */}
+      <TrustStatement />
+      <ServicesGrid />
+      <OrbitalTestimonials />
+      <PreventiveSection />
+      <ScienceSection />
+      <StatsShowcase />
+      <EducationalResources />
+      <RicardianFooter />
+
       <FixedBottomNav />
     </div>
   );
