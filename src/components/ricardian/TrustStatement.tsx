@@ -65,7 +65,7 @@ const TrustStatement = () => {
           <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-8 mb-12">
             <div className="max-w-xl">
               <span className="text-xs font-medium text-[hsl(140,40%,40%)] tracking-wider uppercase flex items-center gap-2 mb-4">
-                <span className="text-sm">✦</span> About RicardianBase
+                <span className="text-sm">✦</span> About Ricardian
               </span>
               <h2
                 className="text-3xl md:text-4xl lg:text-[42px] font-normal text-foreground leading-[1.15]"
@@ -77,7 +77,7 @@ const TrustStatement = () => {
               </h2>
             </div>
             <p className="text-sm text-muted-foreground max-w-sm leading-relaxed lg:pt-10">
-              RicardianBase is enterprise-grade infrastructure for hiring managers, procurement teams, and tech contractors. We eliminate payment friction and contract risk by fusing legally-binding prose with on-chain escrow execution on the Base blockchain.
+              Ricardian is enterprise-grade infrastructure for hiring managers, procurement teams, and tech contractors. We eliminate payment friction and contract risk by fusing legally-binding prose with on-chain escrow execution on the Base blockchain.
             </p>
           </div>
 
