@@ -1,21 +1,20 @@
-import { ArrowRight, ArrowUpRight, RotateCcw, GripHorizontal, Lock, Link, Zap, ShieldCheck } from "lucide-react";
+import { ArrowRight, ArrowUpRight, RotateCcw, GripHorizontal } from "lucide-react";
 import { useRef, useState } from "react";
 import { useInViewAnimation } from "@/hooks/useInViewAnimation";
+import escrowIcon from "@/assets/Money_Transfer_Arrow.png";
+import hybridIcon from "@/assets/Bill_Payment_Icon.png";
+import milestoneIcon from "@/assets/Mobile_Banking_App.png";
+import complianceIcon from "@/assets/Safe_Login_Shield.png";
 
-const SimpleIcon = ({ icon: Icon }: { icon: React.ElementType }) => (
+const serviceIcons = [escrowIcon, hybridIcon, milestoneIcon, complianceIcon];
+
+const IconImage = ({ src }: { src: string }) => (
   <div className="w-full h-[240px] flex items-center justify-center bg-white rounded-xl">
-    <div className="w-20 h-20 rounded-2xl bg-[hsl(140,30%,96%)] flex items-center justify-center">
-      <Icon size={36} strokeWidth={1.5} className="text-[hsl(140,40%,42%)]" />
-    </div>
+    <img src={src} alt="" className="w-28 h-28 object-contain" />
   </div>
 );
 
-const iconComponents = [
-  () => <SimpleIcon icon={Lock} />,
-  () => <SimpleIcon icon={Link} />,
-  () => <SimpleIcon icon={Zap} />,
-  () => <SimpleIcon icon={ShieldCheck} />,
-];
+const iconComponents = serviceIcons.map((src) => () => <IconImage src={src} />);
 
 const services = [
   { pills: ["Smart Escrow"], title: "Automated Escrow Payments", price: "$320", priceSuffix: ".00", desc: "Milestone-based escrow for guaranteed payments", backTitle: "How Smart Escrow Works", backDetails: ["Company deposits USDC/PYUSD into the smart contract's escrow upon contract creation.", "Funds are visible to both parties but untouchable until milestones are approved.", "When a milestone is approved, payment releases instantly — no invoices, no AP department.", "Configurable timeout enforcement: if review isn't completed in time, auto-release kicks in."] },
