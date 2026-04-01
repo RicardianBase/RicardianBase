@@ -3,10 +3,10 @@ import { useState } from "react";
 import { useInViewAnimation } from "@/hooks/useInViewAnimation";
 
 const tabs = [
-  "Advancing the science of blockchain agreements",
-  "Building transparent ledger systems",
-  "Automating compliance workflows",
-  "Decentralized dispute resolution",
+  "Advancing the science of blockchain-based enterprise agreements",
+  "Ricardian Hash Linking — binding legal prose to smart contracts",
+  "Base Blockchain Integration — low-cost, high-speed settlement",
+  "Stablecoin Orchestration — USDC & PYUSD payment rails",
 ];
 
 const advantages = [
@@ -22,33 +22,25 @@ const ScienceSection = () => {
   return (
     <section ref={ref} className="bg-white py-24 md:py-32 px-6">
       <div className="max-w-7xl mx-auto">
-        {/* Header row */}
         <div
           className={`flex flex-col md:flex-row md:items-center md:justify-between mb-12 ${isInView ? "animate-fade-in-up" : ""}`}
           style={{ animationDelay: "0.1s" }}
         >
           <h2 className="text-3xl md:text-4xl lg:text-[42px] font-medium text-gray-900 leading-tight">
-            The Science Behind<br />Our Services
+            The Technology Behind<br />Our Platform
           </h2>
           <div className="mt-4 md:mt-0 flex items-center gap-4">
             <div className="flex gap-1.5">
               <span className="w-2 h-2 rounded-full bg-gray-800" />
               <span className="w-2 h-2 rounded-full bg-gray-200" />
             </div>
-            <a
-              href="#"
-              className="text-xs font-medium text-gray-500 border border-gray-200 rounded-full px-4 py-2 hover:bg-gray-50 transition-colors"
-            >
-              View all resources
+            <a href="#" className="text-xs font-medium text-gray-500 border border-gray-200 rounded-full px-4 py-2 hover:bg-gray-50 transition-colors">
+              View Documentation
             </a>
           </div>
         </div>
 
-        {/* Nav arrows & tabs */}
-        <div
-          className={`${isInView ? "animate-fade-in-up" : ""}`}
-          style={{ animationDelay: "0.2s" }}
-        >
+        <div className={`${isInView ? "animate-fade-in-up" : ""}`} style={{ animationDelay: "0.2s" }}>
           <div className="flex items-center gap-2 mb-6">
             <button className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center hover:bg-gray-50 transition-colors">
               <ChevronLeft size={14} className="text-gray-600" />
@@ -58,7 +50,6 @@ const ScienceSection = () => {
             </button>
           </div>
 
-          {/* Accordion tabs */}
           <div className="space-y-0 border-t border-gray-100">
             {tabs.map((tab, i) => (
               <button
@@ -79,13 +70,12 @@ const ScienceSection = () => {
           </div>
         </div>
 
-        {/* Advantages */}
         <div className="mt-20">
           <div
             className={`flex items-center justify-between mb-10 ${isInView ? "animate-fade-in-up" : ""}`}
             style={{ animationDelay: "0.3s" }}
           >
-            <span className="text-xs text-gray-400">Your Trust, Our Expertise</span>
+            <span className="text-xs text-gray-400">Enterprise-Grade Infrastructure</span>
             <h3 className="text-3xl md:text-4xl font-medium text-gray-900">Our Advantages</h3>
           </div>
 
@@ -100,10 +90,7 @@ const ScienceSection = () => {
                   <span className="text-[10px] font-medium text-gray-500 border border-gray-200 rounded-full px-3 py-1">
                     Advantage
                   </span>
-                  <ArrowUpRight
-                    size={20}
-                    className="text-gray-300 group-hover:text-gray-600 transition-colors"
-                  />
+                  <ArrowUpRight size={20} className="text-gray-300 group-hover:text-gray-600 transition-colors" />
                 </div>
                 <h4 className="text-base font-medium text-gray-900 leading-snug">{a.title}</h4>
                 <p className="text-[64px] md:text-[80px] font-light text-gray-200 leading-none mt-4 tracking-tight" style={{ fontFamily: "serif" }}>

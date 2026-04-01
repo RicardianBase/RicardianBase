@@ -1,4 +1,3 @@
-import Navbar from "@/components/Navbar";
 import HeroSection from "@/components/HeroSection";
 import TrustStatement from "@/components/ricardian/TrustStatement";
 import ServicesGrid from "@/components/ricardian/ServicesGrid";
@@ -12,7 +11,6 @@ import RicardianFooter from "@/components/ricardian/RicardianFooter";
 const Index = () => {
   return (
     <div className="relative" style={{ fontFamily: "'PP Neue Montreal', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" }}>
-      <Navbar />
       <HeroSection />
       <TrustStatement />
       <ServicesGrid />
