@@ -100,8 +100,7 @@ const HeroSection = () => {
 
       {/* Hero content */}
       <section
-        className="relative z-10 flex flex-col items-center justify-center text-center px-6 pb-40"
-        style={{ paddingTop: "calc(8rem - 75px)" }}
+        className="relative z-10 flex flex-col items-center justify-center text-center px-6 min-h-[calc(100vh-88px)]"
       >
         <h1
           className="text-5xl sm:text-7xl md:text-8xl max-w-7xl font-normal animate-fade-rise"
