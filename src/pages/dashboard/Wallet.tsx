@@ -77,7 +77,7 @@ const Wallet = () => {
                 <p className={`text-sm font-medium ${t.type === "in" ? "text-[hsl(160,50%,40%)]" : "text-[hsl(340,60%,50%)]"}`}>
                   {t.amount}
                 </p>
-                <a href="#" className="text-[10px] text-muted-foreground/60 font-mono hover:text-[hsl(250,50%,55%)] inline-flex items-center gap-0.5">
+                <a href="#" className="text-[10px] text-muted-foreground/60 font-mono hover:text-emerald-600 inline-flex items-center gap-0.5">
                   {t.hash} <ArrowUpRight size={10} />
                 </a>
               </div>
