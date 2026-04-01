@@ -207,7 +207,7 @@ const RoadmapSection = () => {
         <div className="mt-12 text-center">
           <p className="text-xs text-muted-foreground">
             Timelines subject to adjustment based on audit findings and beta feedback.{" "}
-            <a href="mailto:hello@ricardianbase.com" className="underline hover:text-foreground transition-colors">
+            <a href="mailto:hello@ricardian.com" className="underline hover:text-foreground transition-colors">
               Contact us
             </a>
           </p>

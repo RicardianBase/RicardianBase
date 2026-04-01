@@ -8,7 +8,7 @@ const words = [
   { text: "legally compliant.", highlight: true },
 ];
 
-const secondLine = "RicardianBase combines the legal enforceability of traditional contracts with the programmatic certainty of smart contracts — creating a hybrid instrument called a Ricardian contract.";
+const secondLine = "Ricardian combines the legal enforceability of traditional contracts with the programmatic certainty of smart contracts — creating a hybrid instrument called a Ricardian contract.";
 
 const ScrollRevealTagline = () => {
   const sectionRef = useRef<HTMLDivElement>(null);
