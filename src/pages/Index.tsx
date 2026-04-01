@@ -18,6 +18,7 @@ const Index = () => {
       <OrbitalTestimonials />
       <PreventiveSection />
       <ScienceSection />
+      <RoadmapSection />
       <RicardianFooter />
     </div>
   );
