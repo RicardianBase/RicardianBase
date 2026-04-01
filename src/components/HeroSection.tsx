@@ -1,46 +1,77 @@
-import { Play } from "lucide-react";
-
-const VIDEO_URL =
-  "https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260228_065522_522e2295-ba22-457e-8fdb-fbcd68109c73.mp4";
+import { ArrowRight } from "lucide-react";
+import { Link } from "react-router-dom";
+import heroProduct from "@/assets/hero-product.jpg";
 
 const HeroSection = () => {
   return (
-    <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden">
-      {/* Video Background */}
-      <video
-        autoPlay
-        muted
-        loop
-        playsInline
-        className="absolute inset-0 w-full h-full object-cover"
-      >
-        <source src={VIDEO_URL} type="video/mp4" />
-      </video>
+    <section className="relative bg-[#0a0a0a] min-h-[90vh] overflow-hidden">
+      {/* Background image */}
+      <div className="absolute inset-0">
+        <img
+          src={heroProduct}
+          alt="RicardianBase smart contract platform"
+          className="w-full h-full object-cover opacity-60"
+          width={1280}
+          height={720}
+        />
+        <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/30" />
+      </div>
 
-      {/* Content */}
-      <div className="relative z-10 flex flex-col items-center text-center px-4 pt-28 pb-16">
-        {/* Headline */}
-        <h1 className="text-background">
-          <span className="block font-barlow font-bold text-[clamp(28px,5vw,56px)] tracking-[-4px] leading-tight">
-            Agency that makes your
-          </span>
-          <span className="block font-instrument italic text-[clamp(42px,7vw,84px)] leading-[1.1] mt-1">
-            videos & reels viral
-          </span>
-        </h1>
+      {/* Nav */}
+      <nav className="relative z-20 flex items-center justify-between px-6 md:px-12 py-5 max-w-7xl mx-auto">
+        <span className="text-white text-lg font-semibold tracking-tight">⬡ RicardianBase</span>
+        <div className="hidden md:flex items-center gap-8">
+          {["Product", "Solutions", "Resources", "Pricing", "Contact"].map((link) => (
+            <a key={link} href="#" className="text-sm text-white/60 hover:text-white transition-colors">{link}</a>
+          ))}
+        </div>
+        <div className="flex items-center gap-3">
+          <a href="#" className="hidden sm:block text-sm text-white/80 hover:text-white transition-colors">Login</a>
+          <Link
+            to="/dashboard"
+            className="bg-blue-600 text-white text-sm font-medium px-5 py-2 rounded-full hover:bg-blue-500 transition-colors"
+          >
+            Signup
+          </Link>
+        </div>
+      </nav>
 
-        {/* Subtext */}
-        <p className="font-barlow font-medium text-[clamp(14px,1.5vw,18px)] text-background/80 mt-6 max-w-lg">
-          Short-form video editing for Influencers, Creators and Brands
-        </p>
+      {/* Hero content */}
+      <div className="relative z-10 max-w-7xl mx-auto px-6 md:px-12 pt-16 md:pt-24 pb-20 md:pb-32">
+        <div className="max-w-2xl">
+          <h1 className="text-4xl md:text-6xl lg:text-7xl font-medium text-white leading-[1.05] tracking-tight">
+            Scale Contracts<br />
+            With Smarter<br />
+            Payments
+          </h1>
 
-        {/* CTA */}
-        <button className="mt-10 flex items-center gap-3 bg-background text-foreground font-barlow font-medium text-[16px] pl-5 pr-7 py-3.5 rounded-full shadow-[0_8px_32px_hsl(var(--foreground)/0.12)] hover:shadow-[0_8px_40px_hsl(var(--foreground)/0.2)] transition-shadow">
-          <span className="w-9 h-9 rounded-full bg-foreground flex items-center justify-center">
-            <Play size={14} className="text-background ml-0.5" fill="currentColor" />
-          </span>
-          See Our Workreel
-        </button>
+          {/* Floating card */}
+          <div className="mt-8 inline-flex items-center gap-3 bg-white/10 backdrop-blur-md border border-white/10 rounded-2xl px-4 py-3">
+            <div className="w-9 h-9 rounded-full bg-blue-600 flex items-center justify-center text-white text-sm">$</div>
+            <div>
+              <p className="text-white text-sm font-medium">Milestone Payment</p>
+              <p className="text-white/50 text-xs">Auto-executed</p>
+            </div>
+            <span className="text-white font-semibold text-sm ml-4">$12,500</span>
+          </div>
+        </div>
+
+        {/* Bottom row */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-end justify-between mt-16 gap-6">
+          <p className="text-sm text-white/50 max-w-xs leading-relaxed">
+            From hiring managers to global enterprises, our platform makes contractor payments instant, automatic, and legally binding on Base blockchain.
+          </p>
+          <Link
+            to="/dashboard"
+            className="inline-flex items-center gap-2 text-sm text-white border border-white/20 rounded-full px-5 py-2.5 hover:bg-white/10 transition-colors"
+          >
+            Talk to Sales
+            <span className="w-7 h-7 rounded-full bg-blue-600 flex items-center justify-center">
+              <ArrowRight size={14} className="text-white" />
+            </span>
+          </Link>
+        </div>
       </div>
     </section>
   );
