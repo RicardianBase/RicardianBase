@@ -118,7 +118,7 @@ const TrustStatement = () => {
               ))}
             </div>
 
-            <PlatformIllustration visible={inView} />
+            <PlatformVideo visible={inView} />
 
             {/* Right labels */}
             <div className="hidden md:flex flex-col gap-4 absolute right-0 top-1/2 -translate-y-1/2">
