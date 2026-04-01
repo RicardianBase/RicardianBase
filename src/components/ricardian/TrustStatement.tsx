@@ -194,43 +194,27 @@ const TrustStatement = () => {
           </div>
 
           {/* Illustration area */}
-          <div className="relative flex items-center justify-center py-8 md:py-12">
-            {/* Left labels */}
-            <div className="hidden md:flex flex-col gap-3 absolute left-0 top-1/2 -translate-y-1/2">
-              {labels.map((l, i) => (
-                <div
-                  key={i}
-                  className="flex items-center gap-3 transition-all duration-500 ease-out"
-                  style={{
-                    opacity: inView ? 1 : 0,
-                    transform: inView ? "translateX(0)" : "translateX(-20px)",
-                    transitionDelay: `${0.4 + i * 0.1}s`,
-                  }}
-                >
-                  <span className="text-[10px] font-medium text-muted-foreground tracking-wider">{l}</span>
-                  <div className="w-8 h-px bg-gradient-to-r from-[hsl(140,35%,55%)] to-transparent" />
-                </div>
-              ))}
-            </div>
-
-            <PlatformIllustration visible={inView} />
-
-            {/* Right labels */}
-            <div className="hidden md:flex flex-col gap-4 absolute right-0 top-1/2 -translate-y-1/2">
-              {rightLabels.map((l, i) => (
-                <div
-                  key={i}
-                  className="flex items-center gap-3 transition-all duration-500 ease-out"
-                  style={{
-                    opacity: inView ? 1 : 0,
-                    transform: inView ? "translateX(0)" : "translateX(20px)",
-                    transitionDelay: `${0.6 + i * 0.1}s`,
-                  }}
-                >
-                  <div className="w-8 h-px bg-gradient-to-l from-[hsl(150,40%,50%)] to-transparent" />
-                  <span className="text-[10px] font-medium text-muted-foreground tracking-wider">{l}</span>
-                </div>
-              ))}
+          {/* Video area */}
+          <div
+            className="relative flex items-center justify-center py-8 md:py-12 transition-all duration-700 ease-out"
+            style={{
+              opacity: inView ? 1 : 0,
+              transform: inView ? "translateY(0)" : "translateY(20px)",
+              transitionDelay: "0.4s",
+            }}
+          >
+            <div className="relative w-full max-w-2xl mx-auto rounded-2xl overflow-hidden" style={{
+              maskImage: "radial-gradient(ellipse 80% 80% at 50% 50%, black 40%, transparent 100%)",
+              WebkitMaskImage: "radial-gradient(ellipse 80% 80% at 50% 50%, black 40%, transparent 100%)",
+            }}>
+              <video
+                autoPlay
+                loop
+                muted
+                playsInline
+                className="w-full h-auto"
+                src="/videos/about-section.mp4"
+              />
             </div>
           </div>
         </div>
