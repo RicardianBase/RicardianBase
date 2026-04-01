@@ -21,8 +21,8 @@ const Wallet = () => {
       {/* Balance cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {[
-          { token: "USDC", balance: "$42,500.00", icon: "💲", gradient: "from-[hsl(220,55%,55%)] to-[hsl(250,45%,60%)]" },
-          { token: "PYUSD", balance: "$12,800.00", icon: "🅿️", gradient: "from-[hsl(260,40%,55%)] to-[hsl(290,40%,60%)]" },
+          { token: "USDC", balance: "$42,500.00", icon: "💲", gradient: "from-emerald-500 to-emerald-700" },
+          { token: "PYUSD", balance: "$12,800.00", icon: "🅿️", gradient: "from-emerald-600 to-emerald-800" },
         ].map((b, i) => (
           <div
             key={b.token}
@@ -77,7 +77,7 @@ const Wallet = () => {
                 <p className={`text-sm font-medium ${t.type === "in" ? "text-[hsl(160,50%,40%)]" : "text-[hsl(340,60%,50%)]"}`}>
                   {t.amount}
                 </p>
-                <a href="#" className="text-[10px] text-muted-foreground/60 font-mono hover:text-[hsl(250,50%,55%)] inline-flex items-center gap-0.5">
+                <a href="#" className="text-[10px] text-muted-foreground/60 font-mono hover:text-emerald-600 inline-flex items-center gap-0.5">
                   {t.hash} <ArrowUpRight size={10} />
                 </a>
               </div>
