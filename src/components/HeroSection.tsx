@@ -112,7 +112,7 @@ const HeroSection = () => {
           }}
         >
           Scale contracts,{" "}
-          <em style={{ color: "#22c55e" }}>guarantee</em>{" "}
+          <em style={{ color: "hsl(140, 38%, 38%)" }}>guarantee</em>{" "}
           every payment.
         </h1>
 
