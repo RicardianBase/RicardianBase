@@ -111,7 +111,7 @@ const DashboardLayout = () => {
               <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-[hsl(340,80%,55%)] rounded-full" />
             </button>
             {/* Avatar */}
-            <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[hsl(250,40%,75%)] to-[hsl(220,50%,65%)] flex items-center justify-center text-sm font-medium text-white">
+            <div className="w-9 h-9 rounded-full bg-emerald-500 flex items-center justify-center text-sm font-medium text-white">
               JD
             </div>
           </div>
