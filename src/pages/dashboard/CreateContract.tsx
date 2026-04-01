@@ -41,7 +41,7 @@ const CreateContract = () => {
             <div key={s} className="flex items-center">
               <div className="flex flex-col items-center">
                 <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium transition-colors ${
-                  i < step ? "bg-[hsl(160,50%,45%)] text-white" : i === step ? "bg-gradient-to-r from-[hsl(250,40%,55%)] to-[hsl(220,50%,55%)] text-white" : "bg-[hsl(230,25%,94%)] text-muted-foreground"
+                  i < step ? "bg-emerald-500 text-white" : i === step ? "bg-emerald-500 text-white" : "bg-[hsl(230,25%,94%)] text-muted-foreground"
                 }`}>
                   {i < step ? <Check size={14} /> : i + 1}
                 </div>
@@ -61,7 +61,7 @@ const CreateContract = () => {
                 onClick={() => setSelectedTemplate(t.id)}
                 className={`w-full text-left p-4 rounded-xl border-2 transition-all duration-200 ${
                   selectedTemplate === t.id
-                    ? "border-[hsl(250,40%,55%)] bg-[hsl(250,35%,97%)]"
+                    ? "border-emerald-500 bg-emerald-50"
                     : "border-[hsl(230,20%,92%)] hover:border-[hsl(230,20%,85%)]"
                 }`}
               >
@@ -79,7 +79,7 @@ const CreateContract = () => {
               <input
                 type="text"
                 placeholder="e.g. Brand Redesign Project"
-                className="w-full border border-[hsl(230,20%,90%)] rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[hsl(250,40%,70%)]/30 transition-shadow"
+                className="w-full border border-[hsl(230,20%,90%)] rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-emerald-500/30 transition-shadow"
               />
             </div>
             <div>
@@ -87,7 +87,7 @@ const CreateContract = () => {
               <input
                 type="text"
                 placeholder="0x..."
-                className="w-full border border-[hsl(230,20%,90%)] rounded-xl px-4 py-2.5 text-sm font-mono outline-none focus:ring-2 focus:ring-[hsl(250,40%,70%)]/30 transition-shadow"
+                className="w-full border border-[hsl(230,20%,90%)] rounded-xl px-4 py-2.5 text-sm font-mono outline-none focus:ring-2 focus:ring-emerald-500/30 transition-shadow"
               />
             </div>
             <div>
@@ -95,7 +95,7 @@ const CreateContract = () => {
               <textarea
                 rows={3}
                 placeholder="Describe the scope of work..."
-                className="w-full border border-[hsl(230,20%,90%)] rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[hsl(250,40%,70%)]/30 transition-shadow resize-none"
+                className="w-full border border-[hsl(230,20%,90%)] rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-emerald-500/30 transition-shadow resize-none"
               />
             </div>
           </div>
@@ -178,7 +178,7 @@ const CreateContract = () => {
           </button>
           <button
             onClick={() => setStep(Math.min(steps.length - 1, step + 1))}
-            className="inline-flex items-center gap-1.5 text-sm font-medium bg-gradient-to-r from-[hsl(250,40%,55%)] to-[hsl(220,50%,55%)] text-white px-5 py-2.5 rounded-full hover:shadow-lg hover:shadow-[hsl(240,40%,60%)]/20 transition-all shadow-sm"
+            className="inline-flex items-center gap-1.5 text-sm font-medium bg-emerald-500 text-white px-5 py-2.5 rounded-full hover:bg-emerald-600 hover:shadow-lg hover:shadow-emerald-500/20 transition-all shadow-sm"
           >
             {step === steps.length - 1 ? "Create Contract" : "Next"} <ArrowRight size={14} />
           </button>

@@ -44,7 +44,7 @@ const Disputes = () => {
                 </div>
                 <h3 className="text-base font-medium text-foreground">{d.title}</h3>
                 <div className="flex items-center gap-2 mt-2">
-                  <div className="w-6 h-6 rounded-full bg-gradient-to-br from-[hsl(250,35%,85%)] to-[hsl(220,40%,80%)] flex items-center justify-center text-[10px] font-medium text-[hsl(250,50%,40%)]">{d.avatar}</div>
+                  <div className="w-6 h-6 rounded-full bg-emerald-50 flex items-center justify-center text-[10px] font-medium text-emerald-700">{d.avatar}</div>
                   <span className="text-xs text-muted-foreground">{d.contractor}</span>
                 </div>
                 <p className="text-sm text-muted-foreground mt-3">{d.desc}</p>
@@ -59,7 +59,7 @@ const Disputes = () => {
               <button className="inline-flex items-center gap-1.5 text-xs font-medium border border-[hsl(230,20%,90%)] text-muted-foreground px-4 py-2 rounded-full hover:bg-[hsl(230,25%,96%)] transition-colors">
                 View Details <ArrowUpRight size={12} />
               </button>
-              <button className="inline-flex items-center gap-1.5 text-xs font-medium bg-gradient-to-r from-[hsl(250,40%,55%)] to-[hsl(220,50%,55%)] text-white px-4 py-2 rounded-full hover:shadow-lg transition-all">
+              <button className="inline-flex items-center gap-1.5 text-xs font-medium bg-emerald-500 text-white px-4 py-2 rounded-full hover:bg-emerald-600 hover:shadow-lg transition-all">
                 Submit Evidence
               </button>
             </div>
