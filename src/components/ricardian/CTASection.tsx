@@ -30,17 +30,17 @@ const CTASection = () => {
           {/* Decorative elements */}
           <div className="absolute inset-0 pointer-events-none overflow-hidden">
             {/* Corner plus icons */}
-            <PlusIcon className="absolute top-6 left-6 w-4 h-4 text-muted-foreground/20" />
-            <PlusIcon className="absolute top-6 right-6 w-4 h-4 text-muted-foreground/20" />
-            <PlusIcon className="absolute bottom-6 left-6 w-4 h-4 text-muted-foreground/20" />
-            <PlusIcon className="absolute bottom-6 right-6 w-4 h-4 text-muted-foreground/20" />
+            <PlusIcon className="absolute top-6 left-6 w-4 h-4 text-[hsl(140,38%,38%)]/20" />
+            <PlusIcon className="absolute top-6 right-6 w-4 h-4 text-[hsl(140,38%,38%)]/20" />
+            <PlusIcon className="absolute bottom-6 left-6 w-4 h-4 text-[hsl(140,38%,38%)]/20" />
+            <PlusIcon className="absolute bottom-6 right-6 w-4 h-4 text-[hsl(140,38%,38%)]/20" />
 
             {/* Grid lines */}
-            <div className="absolute top-0 left-1/4 w-px h-full bg-border/40" />
-            <div className="absolute top-0 left-2/4 w-px h-full bg-border/40" />
-            <div className="absolute top-0 left-3/4 w-px h-full bg-border/40" />
-            <div className="absolute top-1/3 left-0 w-full h-px bg-border/40" />
-            <div className="absolute top-2/3 left-0 w-full h-px bg-border/40" />
+            <div className="absolute top-0 left-1/4 w-px h-full bg-[hsl(140,38%,38%)]/10" />
+            <div className="absolute top-0 left-2/4 w-px h-full bg-[hsl(140,38%,38%)]/10" />
+            <div className="absolute top-0 left-3/4 w-px h-full bg-[hsl(140,38%,38%)]/10" />
+            <div className="absolute top-1/3 left-0 w-full h-px bg-[hsl(140,38%,38%)]/10" />
+            <div className="absolute top-2/3 left-0 w-full h-px bg-[hsl(140,38%,38%)]/10" />
 
             {/* Subtle radial glow */}
             <div
