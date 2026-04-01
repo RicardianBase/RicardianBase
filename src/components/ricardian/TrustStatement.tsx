@@ -146,7 +146,7 @@ const TrustStatement = () => {
   }, []);
 
   return (
-    <section ref={ref} className="bg-background py-20 md:py-28 px-6">
+    <section ref={ref} className="bg-background py-12 md:py-16 px-6">
       <div className="max-w-7xl mx-auto">
         {/* Main card */}
         <div
