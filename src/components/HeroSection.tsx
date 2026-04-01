@@ -125,8 +125,8 @@ const HeroSection = () => {
           Through Ricardian smart contracts on Base, we make payments instant, automatic, and legally binding.
         </p>
 
-        <Link to="/dashboard" className="animate-fade-rise-delay-2 inline-block">
-          <GlassButton size="lg" className="px-14 py-5">
+        <Link to="/dashboard" className="animate-fade-rise-delay-2 inline-block mt-12">
+          <GlassButton size="lg" contentClassName="px-14 py-5">
             Explore Platform
           </GlassButton>
         </Link>
