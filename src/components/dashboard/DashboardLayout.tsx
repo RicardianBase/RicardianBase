@@ -57,7 +57,7 @@ const DashboardLayout = () => {
               className={({ isActive }) =>
                 `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
                   isActive
-                    ? "bg-gradient-to-r from-[hsl(250,40%,55%)] to-[hsl(220,50%,55%)] text-white shadow-md shadow-[hsl(240,40%,60%)]/20"
+                    ? "bg-emerald-500 text-white shadow-md shadow-emerald-500/20"
                     : "text-muted-foreground hover:bg-[hsl(230,25%,95%)] hover:text-foreground"
                 } ${collapsed ? "justify-center" : ""}`
               }
