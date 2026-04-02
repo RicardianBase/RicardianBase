@@ -1,0 +1,31 @@
+import { Module } from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { Contract } from './entities/contract.entity';
+import { ContractTemplate } from './entities/contract-template.entity';
+import { Milestone } from '../milestones/entities/milestone.entity';
+import { User } from '../users/entities/user.entity';
+import { WalletAddress } from '../wallet/entities/wallet-address.entity';
+import { Transaction } from '../wallet/entities/transaction.entity';
+import { Dispute } from '../disputes/entities/dispute.entity';
+import { ActivityModule } from '../activity/activity.module';
+import { ContractsController } from './contracts.controller';
+import { ContractsService } from './contracts.service';
+
+@Module({
+  imports: [
+    TypeOrmModule.forFeature([
+      Contract,
+      ContractTemplate,
+      Milestone,
+      User,
+      WalletAddress,
+      Transaction,
+      Dispute,
+    ]),
+    ActivityModule,
+  ],
+  controllers: [ContractsController],
+  providers: [ContractsService],
+  exports: [ContractsService],
+})
+export class ContractsModule {}
