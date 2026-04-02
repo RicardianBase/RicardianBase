@@ -5,6 +5,9 @@ import { ThrottlerModule } from '@nestjs/throttler';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { HealthController } from './health.controller';
+import { ActivityModule } from './activity/activity.module';
+import { ContractsModule } from './contracts/contracts.module';
+import { MilestonesModule } from './milestones/milestones.module';
 import configuration from './config/configuration';
 import { validationSchema } from './config/validation.schema';
 
@@ -32,6 +35,9 @@ import { validationSchema } from './config/validation.schema';
     ThrottlerModule.forRoot({
       throttlers: [{ ttl: 60000, limit: 100 }],
     }),
+    ActivityModule,
+    ContractsModule,
+    MilestonesModule,
   ],
   controllers: [AppController, HealthController],
   providers: [AppService],
