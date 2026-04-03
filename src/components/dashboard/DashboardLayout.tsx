@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Outlet, NavLink, useLocation } from "react-router-dom";
+import { useWallet } from "@/contexts/WalletContext";
 import {
   LayoutDashboard, FileText, Wallet, AlertTriangle, Settings, Search,
   Bell, ChevronLeft, ChevronRight, Plus, Menu,
@@ -17,6 +18,11 @@ const DashboardLayout = () => {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const location = useLocation();
+  const { user, disconnect } = useWallet();
+
+  const initials = user?.display_name
+    ? user.display_name.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase()
+    : "??";
 
   return (
     <div className="min-h-screen bg-[hsl(230,25%,96%)] flex" style={{ fontFamily: "'PP Neue Montreal', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" }}>
@@ -111,9 +117,13 @@ const DashboardLayout = () => {
               <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-[hsl(340,80%,55%)] rounded-full" />
             </button>
             {/* Avatar */}
-            <div className="w-9 h-9 rounded-full bg-emerald-500 flex items-center justify-center text-sm font-medium text-white">
-              JD
-            </div>
+            <button
+              onClick={disconnect}
+              title="Disconnect wallet"
+              className="w-9 h-9 rounded-full bg-emerald-500 flex items-center justify-center text-sm font-medium text-white hover:bg-emerald-600 transition-colors"
+            >
+              {initials}
+            </button>
           </div>
         </header>
 

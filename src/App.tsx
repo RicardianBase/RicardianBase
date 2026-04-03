@@ -7,6 +7,7 @@ import { WalletProvider } from "@/contexts/WalletContext";
 import ConnectWalletModal from "@/components/ConnectWalletModal";
 import Index from "./pages/Index.tsx";
 import NotFound from "./pages/NotFound.tsx";
+import AuthGuard from "./components/AuthGuard.tsx";
 import DashboardLayout from "./components/dashboard/DashboardLayout.tsx";
 import DashboardHome from "./pages/dashboard/DashboardHome.tsx";
 import ContractsList from "./pages/dashboard/ContractsList.tsx";
@@ -28,7 +29,7 @@ const App = () => (
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Index />} />
-            <Route path="/dashboard" element={<DashboardLayout />}>
+            <Route path="/dashboard" element={<AuthGuard><DashboardLayout /></AuthGuard>}>
               <Route index element={<DashboardHome />} />
               <Route path="contracts" element={<ContractsList />} />
               <Route path="contracts/:id" element={<ContractDetail />} />

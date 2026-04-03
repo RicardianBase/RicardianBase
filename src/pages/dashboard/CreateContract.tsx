@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { ArrowLeft, ArrowRight, Plus, GripVertical, Check } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useInViewAnimation } from "@/hooks/useInViewAnimation";
+import { useCreateContract } from "@/hooks/api/useContracts";
 
 const steps = ["Template", "Details", "Milestones", "Summary"];
 
@@ -14,13 +15,43 @@ const templates = [
 const CreateContract = () => {
   const [step, setStep] = useState(0);
   const [selectedTemplate, setSelectedTemplate] = useState("milestone");
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [contractorWallet, setContractorWallet] = useState("");
   const [milestones, setMilestones] = useState([
     { title: "Project Kickoff", amount: "2500" },
     { title: "Design Delivery", amount: "5000" },
   ]);
   const { ref, isInView } = useInViewAnimation();
+  const navigate = useNavigate();
+  const createMutation = useCreateContract();
 
   const addMilestone = () => setMilestones([...milestones, { title: "", amount: "" }]);
+
+  const totalAmount = milestones.reduce((sum, m) => sum + (parseFloat(m.amount) || 0), 0);
+
+  const handleCreate = () => {
+    createMutation.mutate(
+      {
+        title,
+        description: description || undefined,
+        template_id: undefined,
+        contractor_wallet: contractorWallet || undefined,
+        total_amount: totalAmount,
+        milestones: milestones
+          .filter((m) => m.title && m.amount)
+          .map((m) => ({
+            title: m.title,
+            amount: parseFloat(m.amount),
+          })),
+      },
+      {
+        onSuccess: (contract) => {
+          navigate(`/dashboard/contracts/${contract.id}`);
+        },
+      }
+    );
+  };
 
   return (
     <div ref={ref} className="space-y-6 max-w-3xl mx-auto">
@@ -79,6 +110,8 @@ const CreateContract = () => {
               <input
                 type="text"
                 placeholder="e.g. Brand Redesign Project"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
                 className="w-full border border-[hsl(230,20%,90%)] rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-emerald-500/30 transition-shadow"
               />
             </div>
@@ -87,6 +120,8 @@ const CreateContract = () => {
               <input
                 type="text"
                 placeholder="0x..."
+                value={contractorWallet}
+                onChange={(e) => setContractorWallet(e.target.value)}
                 className="w-full border border-[hsl(230,20%,90%)] rounded-xl px-4 py-2.5 text-sm font-mono outline-none focus:ring-2 focus:ring-emerald-500/30 transition-shadow"
               />
             </div>
@@ -95,6 +130,8 @@ const CreateContract = () => {
               <textarea
                 rows={3}
                 placeholder="Describe the scope of work..."
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
                 className="w-full border border-[hsl(230,20%,90%)] rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-emerald-500/30 transition-shadow resize-none"
               />
             </div>
@@ -152,19 +189,26 @@ const CreateContract = () => {
             <div className="space-y-3 text-sm">
               <div className="flex justify-between py-2 border-b border-[hsl(230,20%,94%)]">
                 <span className="text-muted-foreground">Template</span>
-                <span className="text-foreground font-medium">Milestone-Based</span>
+                <span className="text-foreground font-medium">
+                  {templates.find((t) => t.id === selectedTemplate)?.title}
+                </span>
+              </div>
+              <div className="flex justify-between py-2 border-b border-[hsl(230,20%,94%)]">
+                <span className="text-muted-foreground">Title</span>
+                <span className="text-foreground font-medium">{title || "—"}</span>
               </div>
               <div className="flex justify-between py-2 border-b border-[hsl(230,20%,94%)]">
                 <span className="text-muted-foreground">Milestones</span>
-                <span className="text-foreground font-medium">{milestones.length}</span>
+                <span className="text-foreground font-medium">{milestones.filter((m) => m.title).length}</span>
               </div>
               <div className="flex justify-between py-2 border-b border-[hsl(230,20%,94%)]">
                 <span className="text-muted-foreground">Total Value</span>
-                <span className="text-foreground font-medium">
-                  ${milestones.reduce((sum, m) => sum + (parseFloat(m.amount) || 0), 0).toLocaleString()}
-                </span>
+                <span className="text-foreground font-medium">${totalAmount.toLocaleString()}</span>
               </div>
             </div>
+            {createMutation.isError && (
+              <p className="text-sm text-red-500">Failed to create contract. Please try again.</p>
+            )}
           </div>
         )}
 
@@ -176,12 +220,22 @@ const CreateContract = () => {
           >
             <ArrowLeft size={14} /> Back
           </button>
-          <button
-            onClick={() => setStep(Math.min(steps.length - 1, step + 1))}
-            className="inline-flex items-center gap-1.5 text-sm font-medium bg-emerald-500 text-white px-5 py-2.5 rounded-full hover:bg-emerald-600 hover:shadow-lg hover:shadow-emerald-500/20 transition-all shadow-sm"
-          >
-            {step === steps.length - 1 ? "Create Contract" : "Next"} <ArrowRight size={14} />
-          </button>
+          {step === steps.length - 1 ? (
+            <button
+              onClick={handleCreate}
+              disabled={createMutation.isPending || !title}
+              className="inline-flex items-center gap-1.5 text-sm font-medium bg-emerald-500 text-white px-5 py-2.5 rounded-full hover:bg-emerald-600 hover:shadow-lg hover:shadow-emerald-500/20 transition-all shadow-sm disabled:opacity-50"
+            >
+              {createMutation.isPending ? "Creating..." : "Create Contract"} <ArrowRight size={14} />
+            </button>
+          ) : (
+            <button
+              onClick={() => setStep(Math.min(steps.length - 1, step + 1))}
+              className="inline-flex items-center gap-1.5 text-sm font-medium bg-emerald-500 text-white px-5 py-2.5 rounded-full hover:bg-emerald-600 hover:shadow-lg hover:shadow-emerald-500/20 transition-all shadow-sm"
+            >
+              Next <ArrowRight size={14} />
+            </button>
+          )}
         </div>
       </div>
     </div>

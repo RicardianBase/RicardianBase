@@ -11,6 +11,8 @@ import { MilestonesModule } from './milestones/milestones.module';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { WalletModule } from './wallet/wallet.module';
+import { DisputesModule } from './disputes/disputes.module';
+import { DashboardModule } from './dashboard/dashboard.module';
 import configuration from './config/configuration';
 import { validationSchema } from './config/validation.schema';
 
@@ -58,6 +60,8 @@ import { validationSchema } from './config/validation.schema';
     ActivityModule,
     ContractsModule,
     MilestonesModule,
+    DisputesModule,
+    DashboardModule,
   ],
   controllers: [AppController, HealthController],
   providers: [AppService],

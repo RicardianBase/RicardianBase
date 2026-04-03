@@ -1,16 +1,31 @@
 import { ArrowUpRight, ArrowDownLeft, Download, CircleDollarSign } from "lucide-react";
 import { useInViewAnimation } from "@/hooks/useInViewAnimation";
+import { useWalletBalances, useTransactions } from "@/hooks/api/useWallet";
 
-const transactions = [
-  { type: "in", desc: "Escrow funded — Brand Redesign", amount: "+$5,000.00", date: "Jan 15, 2026", hash: "0x3a1b...9c2d" },
-  { type: "out", desc: "Milestone 2 released — API Suite", amount: "-$3,000.00", date: "Jan 14, 2026", hash: "0x7e4f...2a1b" },
-  { type: "in", desc: "Escrow funded — Mobile App", amount: "+$10,000.00", date: "Jan 12, 2026", hash: "0x5c8d...4e3f" },
-  { type: "out", desc: "Milestone 1 released — Brand Redesign", amount: "-$2,500.00", date: "Jan 10, 2026", hash: "0x9f2a...7b6c" },
-  { type: "in", desc: "Deposit from external wallet", amount: "+$20,000.00", date: "Jan 8, 2026", hash: "0x1d4e...8a5b" },
-];
+function formatDate(dateStr: string): string {
+  return new Date(dateStr).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+}
 
 const Wallet = () => {
   const { ref, isInView } = useInViewAnimation();
+  const { data: balances, isLoading: balancesLoading } = useWalletBalances();
+  const { data: txResponse, isLoading: txLoading } = useTransactions();
+
+  const transactions = txResponse?.data ?? [];
+
+  const balanceCards = balances?.map((b) => ({
+    token: b.token,
+    balance: `$${parseFloat(b.balance).toLocaleString("en-US", { minimumFractionDigits: 2 })}`,
+    icon: b.token === "USDC" ? "💲" : "🅿️",
+    gradient: b.token === "USDC" ? "from-emerald-500 to-emerald-700" : "from-emerald-600 to-emerald-800",
+  })) ?? [
+    { token: "USDC", balance: "$0.00", icon: "💲", gradient: "from-emerald-500 to-emerald-700" },
+    { token: "PYUSD", balance: "$0.00", icon: "🅿️", gradient: "from-emerald-600 to-emerald-800" },
+  ];
 
   return (
     <div ref={ref} className="space-y-6">
@@ -20,10 +35,7 @@ const Wallet = () => {
 
       {/* Balance cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {[
-          { token: "USDC", balance: "$42,500.00", icon: "💲", gradient: "from-emerald-500 to-emerald-700" },
-          { token: "PYUSD", balance: "$12,800.00", icon: "🅿️", gradient: "from-emerald-600 to-emerald-800" },
-        ].map((b, i) => (
+        {balanceCards.map((b, i) => (
           <div
             key={b.token}
             className={`bg-gradient-to-br ${b.gradient} rounded-2xl p-6 shadow-lg ${isInView ? "animate-fade-in-up" : ""}`}
@@ -35,7 +47,11 @@ const Wallet = () => {
               </div>
               <span className="text-sm font-medium text-white/80">{b.token}</span>
             </div>
-            <p className="text-3xl font-semibold text-white">{b.balance}</p>
+            {balancesLoading ? (
+              <div className="h-9 w-32 bg-white/20 animate-pulse rounded" />
+            ) : (
+              <p className="text-3xl font-semibold text-white">{b.balance}</p>
+            )}
             <p className="text-xs text-white/60 mt-1">Available balance</p>
             <div className="flex gap-2 mt-5">
               <button className="inline-flex items-center gap-1.5 text-xs font-medium bg-white text-foreground px-4 py-2 rounded-full hover:bg-white/90 transition-colors">
@@ -58,32 +74,50 @@ const Wallet = () => {
           </button>
         </div>
 
-        <div className="space-y-0">
-          {transactions.map((t, i) => (
-            <div key={i} className={`flex items-center gap-3 py-3.5 ${i < transactions.length - 1 ? "border-b border-[hsl(230,20%,94%)]" : ""}`}>
-              <div className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 ${
-                t.type === "in" ? "bg-[hsl(160,40%,92%)]" : "bg-[hsl(340,40%,94%)]"
-              }`}>
-                {t.type === "in"
-                  ? <ArrowDownLeft size={16} className="text-[hsl(160,50%,40%)]" />
-                  : <ArrowUpRight size={16} className="text-[hsl(340,60%,50%)]" />
-                }
+        {txLoading ? (
+          <div className="space-y-4">
+            {[...Array(5)].map((_, i) => (
+              <div key={i} className="flex items-center gap-3 py-3.5">
+                <div className="w-9 h-9 rounded-full bg-muted animate-pulse flex-shrink-0" />
+                <div className="flex-1 space-y-2">
+                  <div className="h-4 bg-muted animate-pulse rounded w-2/3" />
+                  <div className="h-3 bg-muted animate-pulse rounded w-1/4" />
+                </div>
               </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm text-muted-foreground truncate">{t.desc}</p>
-                <p className="text-xs text-muted-foreground/60 mt-0.5">{t.date}</p>
+            ))}
+          </div>
+        ) : transactions.length === 0 ? (
+          <p className="text-sm text-muted-foreground text-center py-8">No transactions yet</p>
+        ) : (
+          <div className="space-y-0">
+            {transactions.map((t, i) => (
+              <div key={t.id} className={`flex items-center gap-3 py-3.5 ${i < transactions.length - 1 ? "border-b border-[hsl(230,20%,94%)]" : ""}`}>
+                <div className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 ${
+                  t.direction === "in" ? "bg-[hsl(160,40%,92%)]" : "bg-[hsl(340,40%,94%)]"
+                }`}>
+                  {t.direction === "in"
+                    ? <ArrowDownLeft size={16} className="text-[hsl(160,50%,40%)]" />
+                    : <ArrowUpRight size={16} className="text-[hsl(340,60%,50%)]" />
+                  }
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm text-muted-foreground truncate">{t.description ?? t.type.replace("_", " ")}</p>
+                  <p className="text-xs text-muted-foreground/60 mt-0.5">{formatDate(t.created_at)}</p>
+                </div>
+                <div className="text-right flex-shrink-0">
+                  <p className={`text-sm font-medium ${t.direction === "in" ? "text-[hsl(160,50%,40%)]" : "text-[hsl(340,60%,50%)]"}`}>
+                    {t.direction === "in" ? "+" : "-"}${parseFloat(t.amount).toLocaleString("en-US", { minimumFractionDigits: 2 })}
+                  </p>
+                  {t.tx_hash && (
+                    <span className="text-[10px] text-muted-foreground/60 font-mono inline-flex items-center gap-0.5">
+                      {t.tx_hash.slice(0, 6)}...{t.tx_hash.slice(-4)} <ArrowUpRight size={10} />
+                    </span>
+                  )}
+                </div>
               </div>
-              <div className="text-right flex-shrink-0">
-                <p className={`text-sm font-medium ${t.type === "in" ? "text-[hsl(160,50%,40%)]" : "text-[hsl(340,60%,50%)]"}`}>
-                  {t.amount}
-                </p>
-                <a href="#" className="text-[10px] text-muted-foreground/60 font-mono hover:text-emerald-600 inline-flex items-center gap-0.5">
-                  {t.hash} <ArrowUpRight size={10} />
-                </a>
-              </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

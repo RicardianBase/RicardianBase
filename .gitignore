@@ -22,3 +22,6 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Deployment guide (contains sensitive infra details)
+DEPLOYMENT_GUIDE.md
