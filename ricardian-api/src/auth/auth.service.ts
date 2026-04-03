@@ -4,8 +4,6 @@ import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { randomUUID } from 'crypto';
-import nacl = require('tweetnacl');
-import bs58 from 'bs58';
 import { verifyMessage } from 'ethers';
 import type { StringValue } from 'ms';
 import { User, UserRole } from '../users/entities/user.entity';
@@ -30,8 +28,7 @@ export class AuthService {
   ) {}
 
   async requestNonce(dto: RequestNonceDto) {
-    const chain =
-      dto.provider === 'phantom' ? WalletChain.SOLANA : WalletChain.ETHEREUM;
+    const chain = WalletChain.ETHEREUM; // Both Phantom and MetaMask connect via EVM (Base)
 
     let wallet = await this.walletRepo.findOne({
       where: { address: dto.walletAddress },
@@ -83,11 +80,8 @@ export class AuthService {
 
     let valid: boolean;
     try {
-      if (dto.provider === 'phantom') {
-        valid = this.verifySolana(message, dto.signature, dto.walletAddress);
-      } else {
-        valid = this.verifyEthereum(message, dto.signature, dto.walletAddress);
-      }
+      // Both Phantom and MetaMask use EVM signatures (Base chain)
+      valid = this.verifyEthereum(message, dto.signature, dto.walletAddress);
     } catch {
       valid = false;
     }
@@ -161,21 +155,6 @@ export class AuthService {
     );
 
     return { accessToken, refreshToken };
-  }
-
-  private verifySolana(
-    message: string,
-    signature: string,
-    publicKey: string,
-  ): boolean {
-    const messageBytes = new TextEncoder().encode(message);
-    const signatureBytes = bs58.decode(signature);
-    const publicKeyBytes = bs58.decode(publicKey);
-    return nacl.sign.detached.verify(
-      messageBytes,
-      signatureBytes,
-      publicKeyBytes,
-    );
   }
 
   private verifyEthereum(

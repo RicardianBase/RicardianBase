@@ -17,6 +17,15 @@ import {
 } from "@/lib/auth";
 import type { AuthUser } from "@/types/api";
 
+const BASE_CHAIN_ID = "0x2105"; // Base Mainnet (8453)
+const BASE_CHAIN_CONFIG = {
+  chainId: BASE_CHAIN_ID,
+  chainName: "Base",
+  nativeCurrency: { name: "Ether", symbol: "ETH", decimals: 18 },
+  rpcUrls: ["https://mainnet.base.org"],
+  blockExplorerUrls: ["https://basescan.org"],
+};
+
 interface WalletState {
   address: string | null;
   provider: "phantom" | "metamask" | null;
@@ -38,6 +47,25 @@ export const useWallet = () => {
   if (!ctx) throw new Error("useWallet must be used within WalletProvider");
   return ctx;
 };
+
+async function switchToBase(ethProvider: any) {
+  try {
+    await ethProvider.request({
+      method: "wallet_switchEthereumChain",
+      params: [{ chainId: BASE_CHAIN_ID }],
+    });
+  } catch (err: any) {
+    // 4902 = chain not added yet
+    if (err.code === 4902) {
+      await ethProvider.request({
+        method: "wallet_addEthereumChain",
+        params: [BASE_CHAIN_CONFIG],
+      });
+    } else {
+      throw err;
+    }
+  }
+}
 
 export const WalletProvider = ({ children }: { children: ReactNode }) => {
   const [address, setAddress] = useState<string | null>(null);
@@ -63,73 +91,49 @@ export const WalletProvider = ({ children }: { children: ReactNode }) => {
   const connect = useCallback(async (p: "phantom" | "metamask") => {
     try {
       let walletAddress: string;
+      let ethProvider: any;
 
-      // Step 1: Connect wallet to get address
+      // Step 1: Get the EVM provider and connect
       if (p === "phantom") {
-        const solana = (window as any).solana;
-        if (!solana?.isPhantom) {
+        ethProvider = (window as any).phantom?.ethereum;
+        if (!ethProvider) {
           window.open("https://phantom.app/", "_blank");
           return;
         }
-        const resp = await solana.connect();
-        walletAddress = resp.publicKey.toString();
+        const accounts = await ethProvider.request({
+          method: "eth_requestAccounts",
+        });
+        if (!accounts?.[0]) return;
+        walletAddress = accounts[0];
       } else {
-        const ethereum = (window as any).ethereum;
-        if (!ethereum?.isMetaMask) {
+        ethProvider = (window as any).ethereum;
+        if (!ethProvider?.isMetaMask) {
           window.open("https://metamask.io/download/", "_blank");
           return;
         }
-        const accounts = await ethereum.request({
+        const accounts = await ethProvider.request({
           method: "eth_requestAccounts",
         });
         if (!accounts?.[0]) return;
         walletAddress = accounts[0];
       }
 
-      // Step 2: Request nonce from backend
+      // Step 2: Switch to Base chain
+      await switchToBase(ethProvider);
+
+      // Step 3: Request nonce from backend
       const { message } = await requestNonce(walletAddress, p);
 
-      // Step 3: Sign the message with wallet
-      let signature: string;
-      if (p === "phantom") {
-        const encoded = new TextEncoder().encode(message);
-        const signed = await (window as any).solana.signMessage(
-          encoded,
-          "utf8"
-        );
-        // Convert Uint8Array signature to base58
-        const bs58Chars =
-          "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
-        const bytes = signed.signature as Uint8Array;
-        let num = BigInt(0);
-        for (const byte of bytes) {
-          num = num * BigInt(256) + BigInt(byte);
-        }
-        signature = "";
-        while (num > BigInt(0)) {
-          const remainder = Number(num % BigInt(58));
-          num = num / BigInt(58);
-          signature = bs58Chars[remainder] + signature;
-        }
-        // Handle leading zeros
-        for (const byte of bytes) {
-          if (byte === 0) {
-            signature = "1" + signature;
-          } else {
-            break;
-          }
-        }
-      } else {
-        signature = await (window as any).ethereum.request({
-          method: "personal_sign",
-          params: [message, walletAddress],
-        });
-      }
+      // Step 4: Sign the message (EVM personal_sign for both wallets)
+      const signature: string = await ethProvider.request({
+        method: "personal_sign",
+        params: [message, walletAddress],
+      });
 
-      // Step 4: Verify with backend, get JWT
+      // Step 5: Verify with backend, get JWT
       const authResponse = await verifySignature(walletAddress, signature, p);
 
-      // Step 5: Store tokens and user state
+      // Step 6: Store tokens and user state
       setAccessToken(authResponse.accessToken);
       setRefreshToken(authResponse.refreshToken);
       setStoredUser(authResponse.user);

@@ -11,14 +11,14 @@ const wallets = [
     name: "MetaMask",
     desc: "Connect using MetaMask browser extension",
     logo: metamaskLogo,
-    tag: "Popular",
+    tag: "Base",
   },
   {
     id: "phantom" as const,
     name: "Phantom",
     desc: "Connect using Phantom browser extension",
     logo: phantomLogo,
-    tag: "Solana",
+    tag: "Base",
   },
 ];
 
