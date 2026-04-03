@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Shield, Key, Bell, User, Copy, RefreshCw } from "lucide-react";
 import { useInViewAnimation } from "@/hooks/useInViewAnimation";
+import { useProfile, useUpdateProfile, useUpdateNotifications } from "@/hooks/api/useProfile";
 
 const tabs = [
   { id: "profile", label: "Profile", icon: User },
@@ -9,9 +10,46 @@ const tabs = [
   { id: "api", label: "API Keys", icon: Key },
 ];
 
+const notificationKeys = [
+  { key: "email", label: "Email notifications" },
+  { key: "milestones", label: "Milestone updates" },
+  { key: "payments", label: "Payment alerts" },
+  { key: "disputes", label: "Dispute notifications" },
+  { key: "digest", label: "Weekly digest" },
+];
+
+function getInitials(name: string | null | undefined): string {
+  if (!name) return "??";
+  return name.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase();
+}
+
 const Settings = () => {
   const [activeTab, setActiveTab] = useState("profile");
   const { ref, isInView } = useInViewAnimation();
+  const { data: profile, isLoading } = useProfile();
+  const updateProfileMutation = useUpdateProfile();
+  const updateNotifMutation = useUpdateNotifications();
+
+  const [displayName, setDisplayName] = useState("");
+  const [email, setEmail] = useState("");
+
+  useEffect(() => {
+    if (profile) {
+      setDisplayName(profile.display_name ?? "");
+      setEmail(profile.email ?? "");
+    }
+  }, [profile]);
+
+  const handleSaveProfile = () => {
+    updateProfileMutation.mutate({
+      display_name: displayName || undefined,
+      email: email || undefined,
+    });
+  };
+
+  const handleToggleNotif = (key: string, checked: boolean) => {
+    updateNotifMutation.mutate({ [key]: checked });
+  };
 
   return (
     <div ref={ref} className="space-y-6">
@@ -44,39 +82,66 @@ const Settings = () => {
             <div className="space-y-6">
               <div className="flex items-center gap-4">
                 <div className="w-16 h-16 rounded-full bg-gradient-to-br from-[hsl(250,40%,75%)] to-[hsl(220,50%,65%)] flex items-center justify-center text-xl font-medium text-white">
-                  JD
+                  {isLoading ? "..." : getInitials(profile?.display_name)}
                 </div>
                 <button className="text-xs font-medium border border-[hsl(230,20%,90%)] text-muted-foreground px-4 py-2 rounded-full hover:bg-[hsl(230,25%,96%)] transition-colors">
                   Change Avatar
                 </button>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="text-xs text-muted-foreground mb-1.5 block">First Name</label>
-                  <input type="text" defaultValue="John" className="w-full border border-[hsl(230,20%,90%)] rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[hsl(250,40%,70%)]/30" />
+              {isLoading ? (
+                <div className="space-y-4">
+                  <div className="h-10 bg-muted animate-pulse rounded-xl" />
+                  <div className="h-10 bg-muted animate-pulse rounded-xl" />
                 </div>
-                <div>
-                  <label className="text-xs text-muted-foreground mb-1.5 block">Last Name</label>
-                  <input type="text" defaultValue="Doe" className="w-full border border-[hsl(230,20%,90%)] rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[hsl(250,40%,70%)]/30" />
-                </div>
-                <div className="sm:col-span-2">
-                  <label className="text-xs text-muted-foreground mb-1.5 block">Email</label>
-                  <input type="email" defaultValue="john@example.com" className="w-full border border-[hsl(230,20%,90%)] rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[hsl(250,40%,70%)]/30" />
-                </div>
-              </div>
-              <button className="text-sm font-medium bg-gradient-to-r from-[hsl(250,40%,55%)] to-[hsl(220,50%,55%)] text-white px-6 py-2.5 rounded-full hover:shadow-lg hover:shadow-[hsl(240,40%,60%)]/20 transition-all">
-                Save Changes
-              </button>
+              ) : (
+                <>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="sm:col-span-2">
+                      <label className="text-xs text-muted-foreground mb-1.5 block">Display Name</label>
+                      <input
+                        type="text"
+                        value={displayName}
+                        onChange={(e) => setDisplayName(e.target.value)}
+                        className="w-full border border-[hsl(230,20%,90%)] rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[hsl(250,40%,70%)]/30"
+                      />
+                    </div>
+                    <div className="sm:col-span-2">
+                      <label className="text-xs text-muted-foreground mb-1.5 block">Email</label>
+                      <input
+                        type="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        className="w-full border border-[hsl(230,20%,90%)] rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[hsl(250,40%,70%)]/30"
+                      />
+                    </div>
+                  </div>
+                  <button
+                    onClick={handleSaveProfile}
+                    disabled={updateProfileMutation.isPending}
+                    className="text-sm font-medium bg-gradient-to-r from-[hsl(250,40%,55%)] to-[hsl(220,50%,55%)] text-white px-6 py-2.5 rounded-full hover:shadow-lg hover:shadow-[hsl(240,40%,60%)]/20 transition-all disabled:opacity-50"
+                  >
+                    {updateProfileMutation.isPending ? "Saving..." : "Save Changes"}
+                  </button>
+                  {updateProfileMutation.isSuccess && (
+                    <p className="text-xs text-emerald-600">Profile updated successfully!</p>
+                  )}
+                </>
+              )}
             </div>
           )}
 
           {activeTab === "notifications" && (
             <div className="space-y-4">
-              {["Email notifications", "Milestone updates", "Payment alerts", "Dispute notifications", "Weekly digest"].map((label) => (
-                <div key={label} className="flex items-center justify-between py-3 border-b border-[hsl(230,20%,94%)] last:border-0">
+              {notificationKeys.map(({ key, label }) => (
+                <div key={key} className="flex items-center justify-between py-3 border-b border-[hsl(230,20%,94%)] last:border-0">
                   <span className="text-sm text-foreground">{label}</span>
                   <label className="relative inline-flex cursor-pointer">
-                    <input type="checkbox" defaultChecked className="sr-only peer" />
+                    <input
+                      type="checkbox"
+                      checked={profile?.notification_prefs?.[key] ?? true}
+                      onChange={(e) => handleToggleNotif(key, e.target.checked)}
+                      className="sr-only peer"
+                    />
                     <div className="w-10 h-5 bg-[hsl(230,20%,85%)] rounded-full peer peer-checked:bg-[hsl(250,40%,55%)] transition-colors after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-transform peer-checked:after:translate-x-5" />
                   </label>
                 </div>
@@ -102,12 +167,14 @@ const Settings = () => {
                 <div className="flex items-center gap-3">
                   <Key size={20} className="text-muted-foreground" />
                   <div>
-                    <p className="text-sm font-medium text-foreground">Change Password</p>
-                    <p className="text-xs text-muted-foreground">Last changed 30 days ago</p>
+                    <p className="text-sm font-medium text-foreground">Connected Wallets</p>
+                    <p className="text-xs text-muted-foreground">
+                      {profile?.wallets?.length ?? 0} wallet{(profile?.wallets?.length ?? 0) !== 1 ? "s" : ""} connected
+                    </p>
                   </div>
                 </div>
                 <button className="text-xs font-medium border border-[hsl(230,20%,90%)] text-muted-foreground px-4 py-2 rounded-full hover:bg-[hsl(230,25%,93%)] transition-colors">
-                  Update
+                  Manage
                 </button>
               </div>
             </div>
