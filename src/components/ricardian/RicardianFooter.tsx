@@ -26,9 +26,9 @@ const columns = [
     title: "Socials",
     isSocial: true,
     links: [
-      { label: "X / Twitter", href: "#" },
+      { label: "X / Twitter", href: "https://x.com/RicardianBase" },
       { label: "Telegram", href: "#" },
-      { label: "GitHub", href: "#" },
+      { label: "GitHub", href: "https://github.com/RicardianBase" },
     ],
   },
 ];
@@ -40,8 +40,23 @@ const ComingSoonPopup = ({ name }: { name: string }) => (
   </span>
 );
 
-const SocialLink = ({ label }: { label: string }) => {
+const SocialLink = ({ label, href }: { label: string; href: string }) => {
   const [show, setShow] = useState(false);
+
+  if (href !== "#") {
+    return (
+      <li>
+        <a
+          href={href}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+        >
+          {label}
+        </a>
+      </li>
+    );
+  }
 
   return (
     <li className="relative">
@@ -64,13 +79,26 @@ const handleScrollClick = (e: React.MouseEvent, href: string) => {
 };
 
 const socials = [
-  { label: "𝕏", name: "X / Twitter" },
-  { label: "TG", name: "Telegram" },
-  { label: "GH", name: "GitHub" },
+  { label: "𝕏", name: "X / Twitter", href: "https://x.com/RicardianBase" },
+  { label: "TG", name: "Telegram", href: "#" },
+  { label: "GH", name: "GitHub", href: "https://github.com/RicardianBase" },
 ];
 
-const SocialButton = ({ social }: { social: { label: string; name: string } }) => {
+const SocialButton = ({ social }: { social: { label: string; name: string; href: string } }) => {
   const [show, setShow] = useState(false);
+
+  if (social.href !== "#") {
+    return (
+      <a
+        href={social.href}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="w-8 h-8 rounded-full border border-border flex items-center justify-center text-[10px] text-muted-foreground hover:bg-secondary transition-colors"
+      >
+        {social.label}
+      </a>
+    );
+  }
 
   return (
     <div className="relative">
@@ -116,7 +144,7 @@ const RicardianFooter = () => {
               <ul className="space-y-2.5">
                 {col.isSocial
                   ? col.links.map((link) => (
-                      <SocialLink key={link.label} label={link.label} />
+                      <SocialLink key={link.label} label={link.label} href={link.href} />
                     ))
                   : col.links.map((link) => (
                       <li key={link.label}>
