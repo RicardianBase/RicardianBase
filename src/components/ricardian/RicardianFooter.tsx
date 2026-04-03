@@ -16,10 +16,10 @@ const columns = [
   {
     title: "Product",
     links: [
-      { label: "Smart Contracts", href: "#" },
-      { label: "Escrow", href: "#" },
-      { label: "Milestones", href: "#" },
-      { label: "Auto-Payments", href: "#" },
+      { label: "Smart Contracts", href: "#services" },
+      { label: "Escrow", href: "#services" },
+      { label: "Milestones", href: "#services" },
+      { label: "Auto-Payments", href: "#services" },
     ],
   },
   {
@@ -29,13 +29,6 @@ const columns = [
       { label: "X / Twitter", href: "#" },
       { label: "Telegram", href: "#" },
       { label: "GitHub", href: "#" },
-    ],
-  },
-  {
-    title: "Legal",
-    links: [
-      { label: "Terms & Conditions", href: "#" },
-      { label: "Privacy Policy", href: "#" },
     ],
   },
 ];
@@ -96,7 +89,7 @@ const RicardianFooter = () => {
   return (
     <footer className="bg-secondary/30 border-t border-border">
       <div className="max-w-7xl mx-auto px-6 py-16 md:py-20">
-        <div className="grid grid-cols-2 md:grid-cols-7 gap-10">
+        <div className="grid grid-cols-2 md:grid-cols-6 gap-10">
           {/* Brand */}
           <div className="col-span-2">
             <h3 className="text-xl font-semibold text-foreground">⬡ Ricardian</h3>
@@ -147,9 +140,7 @@ const RicardianFooter = () => {
         <div className="max-w-7xl mx-auto px-6 py-5 flex flex-col sm:flex-row items-center justify-between gap-4">
           <p className="text-xs text-muted-foreground">© {new Date().getFullYear()} Ricardian. All rights reserved.</p>
           <div className="flex items-center gap-4">
-            <a href="#" className="text-xs text-muted-foreground hover:text-foreground transition-colors">Terms & Conditions</a>
-            <a href="#" className="text-xs text-muted-foreground hover:text-foreground transition-colors">Privacy Policy</a>
-            <div className="flex gap-2 ml-2">
+            <div className="flex gap-2">
               {socials.map((s) => (
                 <SocialButton key={s.label} social={s} />
               ))}
