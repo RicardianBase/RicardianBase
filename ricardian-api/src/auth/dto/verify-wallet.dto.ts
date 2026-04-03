@@ -8,7 +8,7 @@ export class VerifyWalletDto {
   walletAddress!: string;
 
   @ApiProperty({
-    description: 'Signature produced by the wallet (base58 for Solana, hex for Ethereum)',
+    description: 'Signature produced by the wallet (hex format)',
   })
   @IsString()
   @IsNotEmpty()
