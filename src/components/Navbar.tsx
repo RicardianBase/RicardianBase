@@ -1,6 +1,13 @@
-import { ArrowUpRight, Menu, X, Wallet } from "lucide-react";
+import { ArrowUpRight, Menu, X, Wallet, ChevronDown, Copy, Check, LogOut } from "lucide-react";
 import { useState } from "react";
 import { useWallet } from "@/contexts/WalletContext";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
 
 const navLinks = [
   { label: "About", href: "#about" },
@@ -33,9 +40,19 @@ const Navbar = () => {
     }
   };
 
+  const [copied, setCopied] = useState(false);
+
   const truncatedAddress = address
-    ? `${address.slice(0, 4)}...${address.slice(-4)}`
+    ? `${address.slice(0, 6)}...${address.slice(-4)}`
     : "";
+
+  const handleCopy = () => {
+    if (address) {
+      navigator.clipboard.writeText(address);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
 
   return (
     <nav className="fixed top-6 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2rem)] max-w-6xl">
@@ -64,13 +81,35 @@ const Navbar = () => {
         <div className="flex items-center gap-2">
           {/* Connect Wallet button */}
           {isConnected ? (
-            <button
-              onClick={disconnect}
-              className="hidden sm:flex items-center gap-2 border border-[hsl(140,38%,38%)]/30 bg-[hsl(140,38%,38%)]/5 text-[hsl(140,38%,38%)] font-barlow font-medium text-[13px] px-4 py-2.5 rounded-full hover:bg-[hsl(140,38%,38%)]/10 transition-colors"
-            >
-              <Wallet size={14} />
-              {truncatedAddress}
-            </button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="hidden sm:flex items-center gap-2 border border-[hsl(140,38%,38%)]/30 bg-[hsl(140,38%,38%)]/5 text-[hsl(140,38%,38%)] font-barlow font-medium text-[13px] px-4 py-2.5 rounded-full hover:bg-[hsl(140,38%,38%)]/10 transition-colors outline-none">
+                  <Wallet size={14} />
+                  {truncatedAddress}
+                  <ChevronDown size={12} />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56 rounded-xl shadow-xl">
+                <div className="p-3">
+                  <p className="text-[10px] font-mono text-muted-foreground uppercase tracking-wide">Connected on Base</p>
+                  <p className="text-xs font-mono text-foreground mt-1 break-all">{address}</p>
+                </div>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleCopy} className="flex items-center gap-2 text-xs px-3 py-2 cursor-pointer">
+                  {copied ? <Check size={12} className="text-[hsl(140,38%,38%)]" /> : <Copy size={12} />}
+                  {copied ? "Copied!" : "Copy Address"}
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => { window.location.href = "/dashboard"; }} className="flex items-center gap-2 text-xs px-3 py-2 cursor-pointer">
+                  <Wallet size={12} />
+                  Dashboard
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={disconnect} className="flex items-center gap-2 text-xs px-3 py-2 cursor-pointer text-destructive focus:text-destructive">
+                  <LogOut size={12} />
+                  Disconnect
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           ) : (
             <button
               onClick={openModal}
