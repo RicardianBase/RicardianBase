@@ -3,6 +3,7 @@ import { X, ExternalLink } from "lucide-react";
 import { useWallet } from "@/contexts/WalletContext";
 import phantomLogo from "@/assets/phantom-logo.jpg";
 import metamaskLogo from "@/assets/metamask-logo.png";
+import coinbaseLogo from "@/assets/coinbase-wallet-logo.webp";
 import gsap from "gsap";
 
 const wallets = [
@@ -18,6 +19,13 @@ const wallets = [
     name: "Phantom",
     desc: "Connect using Phantom browser extension",
     logo: phantomLogo,
+    tag: "Base",
+  },
+  {
+    id: "coinbase" as const,
+    name: "Coinbase Wallet",
+    desc: "Self-custody wallet by Coinbase",
+    logo: coinbaseLogo,
     tag: "Base",
   },
 ];
