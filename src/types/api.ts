@@ -15,7 +15,7 @@ export interface User {
 export interface WalletAddress {
   id: string;
   address: string;
-  provider: 'phantom' | 'metamask';
+  provider: 'phantom' | 'metamask' | 'coinbase';
   chain: 'solana' | 'ethereum';
   is_primary: boolean;
   created_at: string;

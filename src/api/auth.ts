@@ -3,7 +3,7 @@ import type { AuthResponse } from '@/types/api';
 
 export const requestNonce = (
   walletAddress: string,
-  provider: 'phantom' | 'metamask',
+  provider: 'phantom' | 'metamask' | 'coinbase',
 ) =>
   client
     .post<{ data: { nonce: string; message: string } }>('/auth/nonce', {
@@ -15,7 +15,7 @@ export const requestNonce = (
 export const verifySignature = (
   walletAddress: string,
   signature: string,
-  provider: 'phantom' | 'metamask',
+  provider: 'phantom' | 'metamask' | 'coinbase',
 ) =>
   client
     .post<{ data: AuthResponse }>('/auth/verify', {

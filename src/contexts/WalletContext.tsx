@@ -26,9 +26,11 @@ const BASE_CHAIN_CONFIG = {
   blockExplorerUrls: ["https://basescan.org"],
 };
 
+type WalletProviderType = "phantom" | "metamask" | "coinbase";
+
 interface WalletState {
   address: string | null;
-  provider: "phantom" | "metamask" | null;
+  provider: WalletProviderType | null;
   isConnected: boolean;
   isAuthenticated: boolean;
   isLoading: boolean;
@@ -36,7 +38,7 @@ interface WalletState {
   isModalOpen: boolean;
   openModal: () => void;
   closeModal: () => void;
-  connect: (provider: "phantom" | "metamask") => Promise<void>;
+  connect: (provider: WalletProviderType) => Promise<void>;
   disconnect: () => void;
 }
 
@@ -88,7 +90,7 @@ export const WalletProvider = ({ children }: { children: ReactNode }) => {
   const openModal = useCallback(() => setIsModalOpen(true), []);
   const closeModal = useCallback(() => setIsModalOpen(false), []);
 
-  const connect = useCallback(async (p: "phantom" | "metamask") => {
+  const connect = useCallback(async (p: WalletProviderType) => {
     try {
       let walletAddress: string;
       let ethProvider: any;
@@ -98,6 +100,21 @@ export const WalletProvider = ({ children }: { children: ReactNode }) => {
         ethProvider = (window as any).phantom?.ethereum;
         if (!ethProvider) {
           window.open("https://phantom.app/", "_blank");
+          return;
+        }
+        const accounts = await ethProvider.request({
+          method: "eth_requestAccounts",
+        });
+        if (!accounts?.[0]) return;
+        walletAddress = accounts[0];
+      } else if (p === "coinbase") {
+        ethProvider =
+          (window as any).coinbaseWalletExtension ||
+          ((window as any).ethereum?.isCoinbaseWallet
+            ? (window as any).ethereum
+            : null);
+        if (!ethProvider) {
+          window.open("https://www.coinbase.com/wallet/downloads", "_blank");
           return;
         }
         const accounts = await ethProvider.request({
