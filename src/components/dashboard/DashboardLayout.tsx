@@ -3,8 +3,15 @@ import { Outlet, NavLink, useLocation } from "react-router-dom";
 import { useWallet } from "@/contexts/WalletContext";
 import {
   LayoutDashboard, FileText, Wallet, AlertTriangle, Settings, Search,
-  Bell, ChevronLeft, ChevronRight, Plus, Menu,
+  Bell, ChevronLeft, ChevronRight, Plus, Menu, Copy, Check, LogOut, ExternalLink,
 } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
 
 const navItems = [
   { to: "/dashboard", icon: LayoutDashboard, label: "Dashboard", end: true },
@@ -18,11 +25,26 @@ const DashboardLayout = () => {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const location = useLocation();
-  const { user, disconnect } = useWallet();
+  const { user, disconnect, address } = useWallet();
+  const [copied, setCopied] = useState(false);
 
   const initials = user?.display_name
     ? user.display_name.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase()
+    : address
+    ? `${address.slice(2, 3)}${address.slice(-1)}`.toUpperCase()
     : "??";
+
+  const truncatedAddress = address
+    ? `${address.slice(0, 6)}...${address.slice(-4)}`
+    : "";
+
+  const handleCopy = () => {
+    if (address) {
+      navigator.clipboard.writeText(address);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-[hsl(230,25%,96%)] flex" style={{ fontFamily: "'PP Neue Montreal', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" }}>
@@ -112,18 +134,65 @@ const DashboardLayout = () => {
 
           <div className="flex items-center gap-3 ml-auto">
             {/* Notification */}
-            <button className="relative w-9 h-9 rounded-full hover:bg-[hsl(230,25%,95%)] flex items-center justify-center transition-colors">
-              <Bell size={18} className="text-muted-foreground" />
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-[hsl(340,80%,55%)] rounded-full" />
-            </button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="relative w-9 h-9 rounded-full hover:bg-[hsl(230,25%,95%)] flex items-center justify-center transition-colors outline-none">
+                  <Bell size={18} className="text-muted-foreground" />
+                  <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-[hsl(340,80%,55%)] rounded-full" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-80 rounded-xl shadow-xl p-0">
+                <div className="px-4 py-3 border-b border-[hsl(230,20%,94%)]">
+                  <p className="text-sm font-semibold text-foreground">Notifications</p>
+                </div>
+                <div className="py-8 text-center">
+                  <Bell size={24} className="text-muted-foreground/40 mx-auto mb-2" />
+                  <p className="text-xs text-muted-foreground">No new notifications</p>
+                </div>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
             {/* Avatar */}
-            <button
-              onClick={disconnect}
-              title="Disconnect wallet"
-              className="w-9 h-9 rounded-full bg-emerald-500 flex items-center justify-center text-sm font-medium text-white hover:bg-emerald-600 transition-colors"
-            >
-              {initials}
-            </button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button
+                  title="Wallet menu"
+                  className="w-9 h-9 rounded-full bg-emerald-500 flex items-center justify-center text-sm font-medium text-white hover:bg-emerald-600 transition-colors outline-none"
+                >
+                  {initials}
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-64 rounded-xl shadow-xl">
+                <div className="p-3">
+                  <p className="text-[10px] font-mono text-muted-foreground uppercase tracking-wide">Connected on Base</p>
+                  <p className="text-xs font-mono text-foreground mt-1 break-all">{address || truncatedAddress}</p>
+                </div>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleCopy} className="flex items-center gap-2 text-xs px-3 py-2 cursor-pointer">
+                  {copied ? <Check size={12} className="text-emerald-500" /> : <Copy size={12} />}
+                  {copied ? "Copied!" : "Copy Address"}
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => window.open(`https://basescan.org/address/${address}`, "_blank", "noopener,noreferrer")}
+                  className="flex items-center gap-2 text-xs px-3 py-2 cursor-pointer"
+                >
+                  <ExternalLink size={12} />
+                  View on Basescan
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => { window.location.href = "/dashboard/settings"; }}
+                  className="flex items-center gap-2 text-xs px-3 py-2 cursor-pointer"
+                >
+                  <Settings size={12} />
+                  Settings
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={disconnect} className="flex items-center gap-2 text-xs px-3 py-2 cursor-pointer text-destructive focus:text-destructive">
+                  <LogOut size={12} />
+                  Disconnect
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </header>
 
