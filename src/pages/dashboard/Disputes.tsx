@@ -2,6 +2,8 @@ import { AlertTriangle, X, ArrowUpRight } from "lucide-react";
 import { useState } from "react";
 import { useInViewAnimation } from "@/hooks/useInViewAnimation";
 import { useDisputes } from "@/hooks/api/useDisputes";
+import DisputeDetailModal from "@/components/dashboard/DisputeDetailModal";
+import type { Dispute } from "@/types/api";
 
 const statusLabels: Record<string, string> = {
   under_review: "Under Review",
@@ -12,6 +14,7 @@ const statusLabels: Record<string, string> = {
 
 const Disputes = () => {
   const [bannerVisible, setBannerVisible] = useState(true);
+  const [selected, setSelected] = useState<Dispute | null>(null);
   const { ref, isInView } = useInViewAnimation();
   const { data: response, isLoading } = useDisputes();
 
@@ -83,11 +86,17 @@ const Disputes = () => {
               </div>
 
               <div className="flex gap-2 mt-5">
-                <button className="inline-flex items-center gap-1.5 text-xs font-medium border border-[hsl(230,20%,90%)] text-muted-foreground px-4 py-2 rounded-full hover:bg-[hsl(230,25%,96%)] transition-colors">
+                <button
+                  onClick={() => setSelected(d)}
+                  className="inline-flex items-center gap-1.5 text-xs font-medium border border-[hsl(230,20%,90%)] text-muted-foreground px-4 py-2 rounded-full hover:bg-[hsl(230,25%,96%)] transition-colors"
+                >
                   View Details <ArrowUpRight size={12} />
                 </button>
                 {d.status !== "resolved" && (
-                  <button className="inline-flex items-center gap-1.5 text-xs font-medium bg-emerald-500 text-white px-4 py-2 rounded-full hover:bg-emerald-600 hover:shadow-lg transition-all">
+                  <button
+                    onClick={() => setSelected(d)}
+                    className="inline-flex items-center gap-1.5 text-xs font-medium bg-emerald-500 text-white px-4 py-2 rounded-full hover:bg-emerald-600 hover:shadow-lg transition-all"
+                  >
                     Submit Evidence
                   </button>
                 )}
@@ -96,6 +105,8 @@ const Disputes = () => {
           ))}
         </div>
       )}
+
+      <DisputeDetailModal dispute={selected} onClose={() => setSelected(null)} />
     </div>
   );
 };

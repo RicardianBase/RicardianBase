@@ -1,5 +1,5 @@
 import client from './client';
-import type { Dispute, ApiResponse } from '@/types/api';
+import type { Dispute, DisputeEvidence, ApiResponse } from '@/types/api';
 
 export interface CreateDisputePayload {
   contract_id: string;
@@ -26,4 +26,17 @@ export const createDispute = (data: CreateDisputePayload) =>
 export const updateDisputeStatus = (id: string, status: string) =>
   client
     .patch<ApiResponse<Dispute>>(`/disputes/${id}/status`, { status })
+    .then((r) => r.data.data);
+
+export const listEvidence = (disputeId: string) =>
+  client
+    .get<ApiResponse<DisputeEvidence[]>>(`/disputes/${disputeId}/evidence`)
+    .then((r) => r.data.data);
+
+export const addEvidence = (
+  disputeId: string,
+  data: { content: string; attachment_url?: string },
+) =>
+  client
+    .post<ApiResponse<DisputeEvidence>>(`/disputes/${disputeId}/evidence`, data)
     .then((r) => r.data.data);

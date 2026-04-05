@@ -1,6 +1,11 @@
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { ArrowUpRight, ArrowDownLeft, Download, CircleDollarSign } from "lucide-react";
 import { useInViewAnimation } from "@/hooks/useInViewAnimation";
-import { useWalletBalances, useTransactions } from "@/hooks/api/useWallet";
+import { useTransactions } from "@/hooks/api/useWallet";
+import { useWallet } from "@/contexts/WalletContext";
+import { getAllBalances } from "@/lib/onchain";
+import SendTokenModal from "@/components/dashboard/SendTokenModal";
 
 function formatDate(dateStr: string): string {
   return new Date(dateStr).toLocaleDateString("en-US", {
@@ -12,20 +17,57 @@ function formatDate(dateStr: string): string {
 
 const Wallet = () => {
   const { ref, isInView } = useInViewAnimation();
-  const { data: balances, isLoading: balancesLoading } = useWalletBalances();
+  const { address } = useWallet();
   const { data: txResponse, isLoading: txLoading } = useTransactions();
+  const [sendModal, setSendModal] = useState<{ open: boolean; token: string }>({ open: false, token: "USDC" });
+
+  const { data: onchainBalances, isLoading: balancesLoading } = useQuery({
+    queryKey: ["wallet", "onchain-balances", address],
+    queryFn: () => getAllBalances(address ?? ""),
+    enabled: !!address,
+    staleTime: 30_000,
+    refetchInterval: 60_000,
+  });
 
   const transactions = txResponse?.data ?? [];
 
-  const balanceCards = balances?.map((b) => ({
+  const balanceCards = (onchainBalances ?? [
+    { token: "USDC", balance: 0 },
+    { token: "PYUSD", balance: 0 },
+  ]).map((b) => ({
     token: b.token,
-    balance: `$${parseFloat(b.balance).toLocaleString("en-US", { minimumFractionDigits: 2 })}`,
+    balance: `$${b.balance.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
     icon: b.token === "USDC" ? "💲" : "🅿️",
     gradient: b.token === "USDC" ? "from-emerald-500 to-emerald-700" : "from-emerald-600 to-emerald-800",
-  })) ?? [
-    { token: "USDC", balance: "$0.00", icon: "💲", gradient: "from-emerald-500 to-emerald-700" },
-    { token: "PYUSD", balance: "$0.00", icon: "🅿️", gradient: "from-emerald-600 to-emerald-800" },
-  ];
+  }));
+
+  const handleExport = () => {
+    if (!transactions.length) {
+      alert("No transactions to export");
+      return;
+    }
+    const header = ["Date", "Type", "Direction", "Amount", "Currency", "Description", "Tx Hash", "Status"];
+    const rows = transactions.map((t) => [
+      new Date(t.created_at).toISOString(),
+      t.type,
+      t.direction,
+      t.amount,
+      t.currency,
+      t.description ?? "",
+      t.tx_hash ?? "",
+      t.status,
+    ]);
+    const csv = [header, ...rows]
+      .map((row) => row.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(","))
+      .join("\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `transactions-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
 
   return (
     <div ref={ref} className="space-y-6">
@@ -52,14 +94,22 @@ const Wallet = () => {
             ) : (
               <p className="text-3xl font-semibold text-white">{b.balance}</p>
             )}
-            <p className="text-xs text-white/60 mt-1">Available balance</p>
+            <p className="text-xs text-white/60 mt-1">Available on Base</p>
             <div className="flex gap-2 mt-5">
-              <button className="inline-flex items-center gap-1.5 text-xs font-medium bg-white text-foreground px-4 py-2 rounded-full hover:bg-white/90 transition-colors">
-                <CircleDollarSign size={14} /> Fund
+              <button
+                onClick={() => setSendModal({ open: true, token: b.token })}
+                className="inline-flex items-center gap-1.5 text-xs font-medium bg-white text-foreground px-4 py-2 rounded-full hover:bg-white/90 transition-colors"
+              >
+                <CircleDollarSign size={14} /> Send
               </button>
-              <button className="inline-flex items-center gap-1.5 text-xs font-medium border border-white/30 text-white px-4 py-2 rounded-full hover:bg-white/10 transition-colors">
-                Withdraw
-              </button>
+              <a
+                href={`https://basescan.org/address/${address}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 text-xs font-medium border border-white/30 text-white px-4 py-2 rounded-full hover:bg-white/10 transition-colors"
+              >
+                View
+              </a>
             </div>
           </div>
         ))}
@@ -69,7 +119,10 @@ const Wallet = () => {
       <div className={`bg-white rounded-2xl p-6 shadow-sm ${isInView ? "animate-fade-in-up" : ""}`} style={{ animationDelay: "0.25s" }}>
         <div className="flex items-center justify-between mb-5">
           <h2 className="text-base font-medium text-foreground">Transactions</h2>
-          <button className="inline-flex items-center gap-1.5 text-xs font-medium border border-[hsl(230,20%,90%)] text-muted-foreground px-4 py-2 rounded-full hover:bg-[hsl(230,25%,96%)] transition-colors">
+          <button
+            onClick={handleExport}
+            className="inline-flex items-center gap-1.5 text-xs font-medium border border-[hsl(230,20%,90%)] text-muted-foreground px-4 py-2 rounded-full hover:bg-[hsl(230,25%,96%)] transition-colors"
+          >
             <Download size={14} /> Export
           </button>
         </div>
@@ -109,9 +162,14 @@ const Wallet = () => {
                     {t.direction === "in" ? "+" : "-"}${parseFloat(t.amount).toLocaleString("en-US", { minimumFractionDigits: 2 })}
                   </p>
                   {t.tx_hash && (
-                    <span className="text-[10px] text-muted-foreground/60 font-mono inline-flex items-center gap-0.5">
+                    <a
+                      href={`https://basescan.org/tx/${t.tx_hash}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-[10px] text-muted-foreground/60 font-mono inline-flex items-center gap-0.5 hover:text-foreground"
+                    >
                       {t.tx_hash.slice(0, 6)}...{t.tx_hash.slice(-4)} <ArrowUpRight size={10} />
-                    </span>
+                    </a>
                   )}
                 </div>
               </div>
@@ -119,6 +177,13 @@ const Wallet = () => {
           </div>
         )}
       </div>
+
+      <SendTokenModal
+        open={sendModal.open}
+        onClose={() => setSendModal({ open: false, token: "USDC" })}
+        defaultToken={sendModal.token}
+        title="Send"
+      />
     </div>
   );
 };

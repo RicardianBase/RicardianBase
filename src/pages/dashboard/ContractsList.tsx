@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Link, useSearchParams } from "react-router-dom";
 import { Search, LayoutGrid, List, MoreHorizontal, ArrowUpRight, ChevronDown } from "lucide-react";
 import { useInViewAnimation } from "@/hooks/useInViewAnimation";
 import { useContracts } from "@/hooks/api/useContracts";
@@ -40,9 +40,24 @@ function formatAmount(amount: string): string {
 
 const ContractsList = () => {
   const [view, setView] = useState<"grid" | "list">("grid");
-  const [search, setSearch] = useState("");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [search, setSearch] = useState(searchParams.get("search") ?? "");
   const [statusFilter, setStatusFilter] = useState<string | undefined>();
   const { ref, isInView } = useInViewAnimation();
+
+  useEffect(() => {
+    const urlSearch = searchParams.get("search") ?? "";
+    setSearch(urlSearch);
+  }, [searchParams]);
+
+  useEffect(() => {
+    if (search) {
+      setSearchParams({ search }, { replace: true });
+    } else if (searchParams.get("search")) {
+      setSearchParams({}, { replace: true });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [search]);
 
   const { data: response, isLoading } = useContracts({
     search: search || undefined,

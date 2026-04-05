@@ -145,6 +145,31 @@ export interface Transaction {
   created_at: string;
 }
 
+// ── Dispute Evidence ──
+
+export interface DisputeEvidence {
+  id: string;
+  dispute_id: string;
+  user_id: string;
+  content: string;
+  attachment_url: string | null;
+  created_at: string;
+}
+
+// ── API Keys ──
+
+export interface ApiKeyRecord {
+  id: string;
+  name: string;
+  key_prefix: string;
+  last_used_at: string | null;
+  created_at: string;
+}
+
+export interface NewApiKey extends ApiKeyRecord {
+  key: string; // Raw key, shown once
+}
+
 // ── Activity ──
 
 export interface ActivityLog {

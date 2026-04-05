@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Outlet, NavLink, useLocation } from "react-router-dom";
+import { Outlet, NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useWallet } from "@/contexts/WalletContext";
 import {
   LayoutDashboard, FileText, Wallet, AlertTriangle, Settings, Search,
@@ -27,7 +27,15 @@ const DashboardLayout = () => {
   const location = useLocation();
   const { user, disconnect, address } = useWallet();
   const [copied, setCopied] = useState(false);
+  const [searchValue, setSearchValue] = useState("");
+  const navigate = useNavigate();
   const notificationCount = 0;
+
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const q = searchValue.trim();
+    navigate(`/dashboard/contracts${q ? `?search=${encodeURIComponent(q)}` : ""}`);
+  };
 
   const initials = user?.display_name
     ? user.display_name.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase()
@@ -122,16 +130,18 @@ const DashboardLayout = () => {
           </button>
 
           {/* Search */}
-          <div className="flex-1 max-w-md">
+          <form onSubmit={handleSearchSubmit} className="flex-1 max-w-md">
             <div className="relative">
               <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" />
               <input
                 type="text"
+                value={searchValue}
+                onChange={(e) => setSearchValue(e.target.value)}
                 placeholder="Search contracts, milestones..."
                 className="w-full bg-[hsl(230,25%,96%)] border-0 rounded-full pl-10 pr-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:ring-2 focus:ring-emerald-500/30 transition-shadow"
               />
             </div>
-          </div>
+          </form>
 
           <div className="flex items-center gap-3 ml-auto">
             {/* Notification */}
