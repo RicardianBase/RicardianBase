@@ -27,6 +27,7 @@ const DashboardLayout = () => {
   const location = useLocation();
   const { user, disconnect, address } = useWallet();
   const [copied, setCopied] = useState(false);
+  const notificationCount = 0;
 
   const initials = user?.display_name
     ? user.display_name.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase()
@@ -138,7 +139,9 @@ const DashboardLayout = () => {
               <DropdownMenuTrigger asChild>
                 <button className="relative w-9 h-9 rounded-full hover:bg-[hsl(230,25%,95%)] flex items-center justify-center transition-colors outline-none">
                   <Bell size={18} className="text-muted-foreground" />
-                  <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-[hsl(340,80%,55%)] rounded-full" />
+                  {notificationCount > 0 && (
+                    <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-[hsl(340,80%,55%)] rounded-full" />
+                  )}
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-80 rounded-xl shadow-xl p-0">
