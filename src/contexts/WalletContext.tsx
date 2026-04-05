@@ -40,6 +40,7 @@ interface WalletState {
   closeModal: () => void;
   connect: (provider: WalletProviderType) => Promise<void>;
   disconnect: () => void;
+  getEthProvider: () => any | null;
 }
 
 const WalletContext = createContext<WalletState | null>(null);
@@ -173,6 +174,23 @@ export const WalletProvider = ({ children }: { children: ReactNode }) => {
 
   const isAuthenticated = !!user && !!getAccessToken();
 
+  const getEthProvider = useCallback(() => {
+    if (provider === "phantom") return (window as any).phantom?.ethereum ?? null;
+    if (provider === "coinbase")
+      return (
+        (window as any).coinbaseWalletExtension ||
+        ((window as any).ethereum?.isCoinbaseWallet ? (window as any).ethereum : null)
+      );
+    if (provider === "metamask") return (window as any).ethereum ?? null;
+    // Fallback when provider not yet hydrated (from localStorage): prefer MetaMask > Coinbase > Phantom
+    return (
+      (window as any).ethereum ??
+      (window as any).coinbaseWalletExtension ??
+      (window as any).phantom?.ethereum ??
+      null
+    );
+  }, [provider]);
+
   return (
     <WalletContext.Provider
       value={{
@@ -187,6 +205,7 @@ export const WalletProvider = ({ children }: { children: ReactNode }) => {
         closeModal,
         connect,
         disconnect,
+        getEthProvider,
       }}
     >
       {children}
