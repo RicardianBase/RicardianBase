@@ -1,4 +1,4 @@
-import { ArrowUpRight, Menu, X, Wallet, ChevronDown, Copy, Check, LogOut } from "lucide-react";
+import { ArrowUpRight, Menu, X, Wallet, ChevronDown, Copy, Check, LogOut, ExternalLink } from "lucide-react";
 import { useState } from "react";
 import { useWallet } from "@/contexts/WalletContext";
 import {
@@ -98,6 +98,13 @@ const Navbar = () => {
                 <DropdownMenuItem onClick={handleCopy} className="flex items-center gap-2 text-xs px-3 py-2 cursor-pointer">
                   {copied ? <Check size={12} className="text-[hsl(140,38%,38%)]" /> : <Copy size={12} />}
                   {copied ? "Copied!" : "Copy Address"}
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => window.open(`https://basescan.org/address/${address}`, "_blank", "noopener,noreferrer")}
+                  className="flex items-center gap-2 text-xs px-3 py-2 cursor-pointer"
+                >
+                  <ExternalLink size={12} />
+                  View on Basescan
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => { window.location.href = "/dashboard"; }} className="flex items-center gap-2 text-xs px-3 py-2 cursor-pointer">
                   <Wallet size={12} />

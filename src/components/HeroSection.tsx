@@ -1,15 +1,32 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { ChevronDown, Copy, Check, LogOut, ExternalLink } from "lucide-react";
 import { GlassButton } from "@/components/ui/glass-button";
 import { useWallet } from "@/contexts/WalletContext";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
 
 const HeroSection = () => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const { isConnected, address, openModal, disconnect } = useWallet();
+  const [copied, setCopied] = useState(false);
 
   const truncatedAddress = address
     ? `${address.slice(0, 4)}...${address.slice(-4)}`
     : "";
+
+  const handleCopy = () => {
+    if (address) {
+      navigator.clipboard.writeText(address);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
 
   const handleGetStarted = () => {
     if (!isConnected) {
@@ -113,13 +130,38 @@ const HeroSection = () => {
         <div className="flex items-center gap-3">
           {/* Connect Wallet */}
           {isConnected ? (
-            <button
-              onClick={disconnect}
-              className="hidden md:flex items-center gap-2 border border-[hsl(140,38%,38%)]/30 bg-[hsl(140,38%,38%)]/5 text-[hsl(140,38%,38%)] text-sm px-4 py-2.5 rounded-full hover:bg-[hsl(140,38%,38%)]/10 transition-colors"
-            >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2.5"/><path d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4"/></svg>
-              {truncatedAddress}
-            </button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="hidden md:flex items-center gap-2 border border-[hsl(140,38%,38%)]/30 bg-[hsl(140,38%,38%)]/5 text-[hsl(140,38%,38%)] text-sm px-4 py-2.5 rounded-full hover:bg-[hsl(140,38%,38%)]/10 transition-colors outline-none">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2.5"/><path d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4"/></svg>
+                  {truncatedAddress}
+                  <ChevronDown size={12} />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-64 rounded-xl shadow-xl">
+                <div className="p-3">
+                  <p className="text-[10px] font-mono text-muted-foreground uppercase tracking-wide">Connected on Base</p>
+                  <p className="text-xs font-mono text-foreground mt-1 break-all">{address}</p>
+                </div>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleCopy} className="flex items-center gap-2 text-xs px-3 py-2 cursor-pointer">
+                  {copied ? <Check size={12} className="text-[hsl(140,38%,38%)]" /> : <Copy size={12} />}
+                  {copied ? "Copied!" : "Copy Address"}
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => window.open(`https://basescan.org/address/${address}`, "_blank", "noopener,noreferrer")}
+                  className="flex items-center gap-2 text-xs px-3 py-2 cursor-pointer"
+                >
+                  <ExternalLink size={12} />
+                  View on Basescan
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={disconnect} className="flex items-center gap-2 text-xs px-3 py-2 cursor-pointer text-destructive focus:text-destructive">
+                  <LogOut size={12} />
+                  Disconnect
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           ) : (
             <button
               onClick={openModal}
