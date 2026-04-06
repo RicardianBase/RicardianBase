@@ -24,6 +24,7 @@ export interface WalletAddress {
 
 export interface AuthUser {
   id: string;
+  username: string | null;
   display_name: string | null;
   role: string;
   walletAddress: string;

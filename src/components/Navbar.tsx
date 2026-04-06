@@ -20,7 +20,7 @@ const navLinks = [
 
 const Navbar = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
-  const { isConnected, address, openModal, disconnect } = useWallet();
+  const { isConnected, address, openModal, disconnect, user } = useWallet();
 
   const handleClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
     e.preventDefault();
@@ -42,7 +42,9 @@ const Navbar = () => {
 
   const [copied, setCopied] = useState(false);
 
-  const truncatedAddress = address
+  const walletLabel = user?.username
+    ? `@${user.username}`
+    : address
     ? `${address.slice(0, 6)}...${address.slice(-4)}`
     : "";
 
@@ -85,7 +87,7 @@ const Navbar = () => {
               <DropdownMenuTrigger asChild>
                 <button className="hidden sm:flex items-center gap-2 border border-[hsl(140,38%,38%)]/30 bg-[hsl(140,38%,38%)]/5 text-[hsl(140,38%,38%)] font-barlow font-medium text-[13px] px-4 py-2.5 rounded-full hover:bg-[hsl(140,38%,38%)]/10 transition-colors outline-none">
                   <Wallet size={14} />
-                  {truncatedAddress}
+                  {walletLabel}
                   <ChevronDown size={12} />
                 </button>
               </DropdownMenuTrigger>

@@ -13,10 +13,12 @@ import {
 
 const HeroSection = () => {
   const videoRef = useRef<HTMLVideoElement>(null);
-  const { isConnected, address, openModal, disconnect } = useWallet();
+  const { isConnected, address, openModal, disconnect, user } = useWallet();
   const [copied, setCopied] = useState(false);
 
-  const truncatedAddress = address
+  const walletLabel = user?.username
+    ? `@${user.username}`
+    : address
     ? `${address.slice(0, 4)}...${address.slice(-4)}`
     : "";
 
@@ -134,7 +136,7 @@ const HeroSection = () => {
               <DropdownMenuTrigger asChild>
                 <button className="hidden md:flex items-center gap-2 border border-[hsl(140,38%,38%)]/30 bg-[hsl(140,38%,38%)]/5 text-[hsl(140,38%,38%)] text-sm px-4 py-2.5 rounded-full hover:bg-[hsl(140,38%,38%)]/10 transition-colors outline-none">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2.5"/><path d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4"/></svg>
-                  {truncatedAddress}
+                  {walletLabel}
                   <ChevronDown size={12} />
                 </button>
               </DropdownMenuTrigger>

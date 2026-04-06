@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Loader2, User } from "lucide-react";
 import { useUpdateProfile } from "@/hooks/api/useProfile";
 import { checkProfanity } from "@/lib/profanity";
+import { getStoredUser, setStoredUser } from "@/lib/auth";
 
 interface Props {
   onComplete: () => void;
@@ -37,6 +38,11 @@ const UsernameOnboarding = ({ onComplete }: Props) => {
     setError(null);
     try {
       await updateProfile.mutateAsync({ username: trimmed });
+      // Persist username in localStorage so landing page can read it
+      const storedUser = getStoredUser();
+      if (storedUser) {
+        setStoredUser({ ...storedUser, username: trimmed });
+      }
       onComplete();
     } catch (err: any) {
       const msg = err?.response?.data?.message;

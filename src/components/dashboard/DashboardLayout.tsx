@@ -175,17 +175,10 @@ const DashboardLayout = () => {
               </DropdownMenuContent>
             </DropdownMenu>
 
-            {/* Wallet address + Avatar */}
-            {truncatedAddress && (
-              <button
-                onClick={handleCopy}
-                title="Click to copy address"
-                className="hidden sm:flex items-center gap-1.5 text-xs font-mono text-muted-foreground hover:text-foreground transition-colors"
-              >
-                {copied ? <Check size={12} className="text-emerald-500" /> : null}
-                {copied ? "Copied!" : truncatedAddress}
-              </button>
-            )}
+            {/* Username + Avatar */}
+            <span className="hidden sm:block text-xs font-medium text-foreground">
+              {profile?.username ? `@${profile.username}` : truncatedAddress}
+            </span>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button
