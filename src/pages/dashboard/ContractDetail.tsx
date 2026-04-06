@@ -1,9 +1,12 @@
 import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { ArrowLeft, Copy, CheckCircle, Shield, Clock, FileText } from "lucide-react";
+import { ArrowLeft, Copy, CheckCircle, Shield, Clock, FileText, Loader2, ExternalLink, DollarSign, Lock } from "lucide-react";
 import { useInViewAnimation } from "@/hooks/useInViewAnimation";
 import { useContract } from "@/hooks/api/useContracts";
 import { useMilestoneAction } from "@/hooks/api/useMilestones";
+import { useContractEscrows, useCreateEscrow, useConfirmFunding, useReleasePayment } from "@/hooks/api/useEscrow";
+import { useWallet } from "@/contexts/WalletContext";
+import { USDC_BASE, USDC_DECIMALS, encodeTransfer, toRawAmount } from "@/lib/onchain";
 import type { MilestoneStatus } from "@/types/api";
 
 const statusColorMap: Record<MilestoneStatus, string> = {
@@ -16,12 +19,8 @@ const statusColorMap: Record<MilestoneStatus, string> = {
 };
 
 const statusLabels: Record<MilestoneStatus, string> = {
-  pending: "Pending",
-  in_progress: "In Progress",
-  submitted: "Submitted",
-  approved: "Approved",
-  rejected: "Rejected",
-  paid: "Paid",
+  pending: "Pending", in_progress: "In Progress", submitted: "Submitted",
+  approved: "Approved", rejected: "Rejected", paid: "Paid",
 };
 
 const contractStatusColors: Record<string, string> = {
@@ -46,18 +45,25 @@ const ContractDetail = () => {
   const { id } = useParams<{ id: string }>();
   const [tab, setTab] = useState<"legal" | "smart">("legal");
   const { ref, isInView } = useInViewAnimation();
+  const { address, getEthProvider } = useWallet();
 
   const { data: contract, isLoading } = useContract(id!);
+  const { data: escrows } = useContractEscrows(id!);
   const milestoneAction = useMilestoneAction(id!);
+  const createEscrowMutation = useCreateEscrow();
+  const confirmFundingMutation = useConfirmFunding(id!);
+  const releasePaymentMutation = useReleasePayment(id!);
+
+  const [fundingState, setFundingState] = useState<"idle" | "creating" | "signing" | "confirming" | "done" | "error">("idle");
+  const [fundError, setFundError] = useState<string | null>(null);
+  const [fundTxHash, setFundTxHash] = useState<string | null>(null);
+  const [releasingId, setReleasingId] = useState<string | null>(null);
 
   if (isLoading) {
     return (
       <div className="space-y-6 max-w-5xl animate-pulse">
         <div className="h-8 w-32 bg-muted rounded-full" />
-        <div className="bg-white rounded-2xl p-6 shadow-sm">
-          <div className="h-6 bg-muted rounded w-1/2 mb-2" />
-          <div className="h-4 bg-muted rounded w-1/4" />
-        </div>
+        <div className="bg-white rounded-2xl p-6 shadow-sm"><div className="h-6 bg-muted rounded w-1/2 mb-2" /><div className="h-4 bg-muted rounded w-1/4" /></div>
         <div className="bg-white rounded-2xl p-6 shadow-sm h-48" />
       </div>
     );
@@ -67,9 +73,7 @@ const ContractDetail = () => {
     return (
       <div className="text-center py-16">
         <p className="text-muted-foreground">Contract not found</p>
-        <Link to="/dashboard/contracts" className="text-emerald-600 text-sm mt-2 inline-block">
-          Back to contracts
-        </Link>
+        <Link to="/dashboard/contracts" className="text-emerald-600 text-sm mt-2 inline-block">Back to contracts</Link>
       </div>
     );
   }
@@ -81,9 +85,70 @@ const ContractDetail = () => {
     ? `${contract.contractor_wallet.slice(0, 6)}...${contract.contractor_wallet.slice(-4)}`
     : "N/A";
 
-  const escrowBalance = milestones
-    .filter((m) => m.status !== "paid" && m.status !== "approved")
-    .reduce((sum, m) => sum + parseFloat(m.amount), 0);
+  const fundedEscrow = escrows?.find((e) => e.status === "funded");
+  const totalFunded = escrows?.filter((e) => e.status === "funded" || e.status === "released")
+    .reduce((sum, e) => sum + parseFloat(e.total_locked), 0) ?? 0;
+  const isFunded = !!fundedEscrow;
+  const isDraft = contract.status === "draft";
+  const isClient = contract.client_id === (contract as any).client?.id; // simplified check
+
+  const handleFundContract = async () => {
+    if (!address || !getEthProvider()) {
+      setFundError("Wallet not connected");
+      return;
+    }
+
+    setFundingState("creating");
+    setFundError(null);
+    setFundTxHash(null);
+
+    try {
+      // Step 1: Create escrow record, get platform wallet + amount
+      const escrow = await createEscrowMutation.mutateAsync({ contractId: id! });
+
+      setFundingState("signing");
+
+      // Step 2: Send USDC to platform wallet via user's wallet
+      const provider = getEthProvider();
+      const raw = toRawAmount(escrow.total_locked, USDC_DECIMALS);
+      const data = encodeTransfer(escrow.escrow_account, raw);
+
+      const txHash = (await provider.request({
+        method: "eth_sendTransaction",
+        params: [{
+          from: address,
+          to: USDC_BASE,
+          data,
+        }],
+      })) as string;
+
+      setFundTxHash(txHash);
+      setFundingState("confirming");
+
+      // Step 3: Confirm with backend (verifies on-chain)
+      await confirmFundingMutation.mutateAsync({ escrowId: escrow.id, txHash });
+
+      setFundingState("done");
+    } catch (err: any) {
+      setFundError(err?.message ?? "Funding failed");
+      setFundingState("error");
+    }
+  };
+
+  const handleReleaseMilestone = async (milestoneId: string) => {
+    if (!fundedEscrow) return;
+    setReleasingId(milestoneId);
+    try {
+      await releasePaymentMutation.mutateAsync({
+        escrowId: fundedEscrow.id,
+        milestoneId,
+      });
+    } catch (err: any) {
+      alert(err?.message ?? "Release failed");
+    } finally {
+      setReleasingId(null);
+    }
+  };
 
   return (
     <div ref={ref} className="space-y-6 max-w-5xl">
@@ -95,7 +160,7 @@ const ContractDetail = () => {
         <ArrowLeft size={14} /> Back to contracts
       </Link>
 
-      {/* Header card */}
+      {/* Header */}
       <div className={`bg-white rounded-2xl p-6 shadow-sm ${isInView ? "animate-fade-in-up" : ""}`} style={{ animationDelay: "0.1s" }}>
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
@@ -111,16 +176,10 @@ const ContractDetail = () => {
         </div>
 
         <div className="flex bg-[hsl(230,25%,94%)] rounded-full p-0.5 mt-6 w-fit">
-          <button
-            onClick={() => setTab("legal")}
-            className={`px-5 py-2 rounded-full text-sm font-medium transition-colors ${tab === "legal" ? "bg-white text-foreground shadow-sm" : "text-muted-foreground"}`}
-          >
+          <button onClick={() => setTab("legal")} className={`px-5 py-2 rounded-full text-sm font-medium transition-colors ${tab === "legal" ? "bg-white text-foreground shadow-sm" : "text-muted-foreground"}`}>
             Legal Document
           </button>
-          <button
-            onClick={() => setTab("smart")}
-            className={`px-5 py-2 rounded-full text-sm font-medium transition-colors ${tab === "smart" ? "bg-white text-foreground shadow-sm" : "text-muted-foreground"}`}
-          >
+          <button onClick={() => setTab("smart")} className={`px-5 py-2 rounded-full text-sm font-medium transition-colors ${tab === "smart" ? "bg-white text-foreground shadow-sm" : "text-muted-foreground"}`}>
             Smart Contract
           </button>
         </div>
@@ -132,15 +191,9 @@ const ContractDetail = () => {
           {tab === "legal" ? (
             <>
               <h3 className="font-medium text-foreground mb-3">SERVICE AGREEMENT</h3>
-              <p className="mb-3">
-                This Service Agreement ("Agreement") is entered into between the Client and Contractor
-                for the purpose of completing the {contract.title} as outlined in the attached scope of work.
-              </p>
+              <p className="mb-3">This Service Agreement is entered into between the Client and Contractor for the purpose of completing the {contract.title} as outlined in the attached scope of work.</p>
               {contract.description && <p className="mb-3">{contract.description}</p>}
-              <p className="mb-3">
-                <strong>Payment Terms.</strong> Total project value of {formatAmount(contract.total_amount)} {contract.currency} shall
-                be distributed across {milestones.length} milestones as outlined in the Milestone Schedule.
-              </p>
+              <p className="mb-3"><strong>Payment Terms.</strong> Total project value of {formatAmount(contract.total_amount)} {contract.currency} shall be distributed across {milestones.length} milestones as outlined in the Milestone Schedule.</p>
             </>
           ) : (
             <pre className="font-mono text-xs text-muted-foreground whitespace-pre-wrap">
@@ -171,12 +224,72 @@ contract ${contract.title.replace(/\s+/g, "")} {
         </div>
       </div>
 
+      {/* Escrow funding card — shown for draft/unfunded contracts */}
+      {isDraft && !isFunded && (
+        <div className={`bg-gradient-to-br from-emerald-500 via-emerald-600 to-emerald-800 rounded-2xl p-6 shadow-sm text-white ${isInView ? "animate-fade-in-up" : ""}`} style={{ animationDelay: "0.18s" }}>
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-10 h-10 rounded-xl bg-white/15 flex items-center justify-center">
+              <Lock size={20} className="text-white" />
+            </div>
+            <div>
+              <h2 className="text-sm font-semibold">Fund This Contract</h2>
+              <p className="text-xs text-white/60">USDC will be held in escrow until milestones are approved</p>
+            </div>
+          </div>
+
+          <div className="bg-white/10 rounded-xl p-4 mb-4">
+            <div className="flex justify-between text-sm mb-2">
+              <span className="text-white/70">Contract Amount</span>
+              <span className="font-semibold">{formatAmount(contract.total_amount)} USDC</span>
+            </div>
+            <div className="flex justify-between text-sm mb-2">
+              <span className="text-white/70">Platform Fee (1%)</span>
+              <span className="font-semibold">${(parseFloat(contract.total_amount) * 0.01).toFixed(2)} USDC</span>
+            </div>
+            <div className="border-t border-white/20 my-2" />
+            <div className="flex justify-between text-sm">
+              <span className="text-white/70 font-medium">Total</span>
+              <span className="font-bold text-lg">${(parseFloat(contract.total_amount) * 1.01).toFixed(2)} USDC</span>
+            </div>
+          </div>
+
+          {fundingState === "done" ? (
+            <div className="bg-white/10 rounded-xl p-4">
+              <p className="text-sm font-medium text-white flex items-center gap-2"><CheckCircle size={16} /> Contract funded!</p>
+              {fundTxHash && (
+                <a href={`https://basescan.org/tx/${fundTxHash}`} target="_blank" rel="noopener noreferrer" className="text-xs text-white/70 mt-1 inline-flex items-center gap-1 hover:text-white">
+                  View on Basescan <ExternalLink size={10} />
+                </a>
+              )}
+            </div>
+          ) : fundingState === "error" ? (
+            <div>
+              <p className="text-xs text-red-200 mb-3">{fundError}</p>
+              <button onClick={handleFundContract} className="inline-flex items-center gap-2 text-sm font-medium bg-white text-emerald-700 px-6 py-3 rounded-full hover:bg-white/90 transition-colors">
+                <DollarSign size={16} /> Try Again
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={handleFundContract}
+              disabled={fundingState !== "idle"}
+              className="inline-flex items-center gap-2 text-sm font-medium bg-white text-emerald-700 px-6 py-3 rounded-full hover:bg-white/90 transition-colors disabled:opacity-70"
+            >
+              {fundingState === "idle" && <><DollarSign size={16} /> Fund Contract</>}
+              {fundingState === "creating" && <><Loader2 size={16} className="animate-spin" /> Creating escrow...</>}
+              {fundingState === "signing" && <><Loader2 size={16} className="animate-spin" /> Approve in wallet...</>}
+              {fundingState === "confirming" && <><Loader2 size={16} className="animate-spin" /> Verifying on-chain...</>}
+            </button>
+          )}
+        </div>
+      )}
+
       {/* Info grid */}
       <div className={`grid grid-cols-1 md:grid-cols-2 gap-4 ${isInView ? "animate-fade-in-up" : ""}`} style={{ animationDelay: "0.2s" }}>
         <div className="bg-white rounded-xl p-5 shadow-sm">
           <p className="text-xs text-muted-foreground mb-1">Escrow Balance</p>
-          <p className="text-3xl font-semibold text-foreground">${escrowBalance.toLocaleString("en-US", { minimumFractionDigits: 0 })}</p>
-          <p className="text-xs text-muted-foreground/60 mt-1">Available for release</p>
+          <p className="text-3xl font-semibold text-foreground">${totalFunded.toLocaleString("en-US", { minimumFractionDigits: 2 })}</p>
+          <p className="text-xs text-muted-foreground/60 mt-1">{isFunded ? "Locked in escrow" : "Not yet funded"}</p>
         </div>
         <div className="bg-white rounded-xl p-5 shadow-sm">
           <div className="flex items-center gap-3">
@@ -187,7 +300,9 @@ contract ${contract.title.replace(/\s+/g, "")} {
               <p className="text-sm font-medium text-foreground">{contractorName}</p>
               <div className="flex items-center gap-1 mt-0.5">
                 <span className="text-xs text-muted-foreground font-mono">{contractorWallet}</span>
-                <button className="text-muted-foreground hover:text-foreground"><Copy size={12} /></button>
+                {contract.contractor_wallet && (
+                  <button onClick={() => navigator.clipboard.writeText(contract.contractor_wallet!)} className="text-muted-foreground hover:text-foreground"><Copy size={12} /></button>
+                )}
               </div>
             </div>
           </div>
@@ -211,7 +326,7 @@ contract ${contract.title.replace(/\s+/g, "")} {
         </div>
       </div>
 
-      {/* Milestone tracker */}
+      {/* Milestones */}
       <div className={`bg-white rounded-2xl p-6 shadow-sm ${isInView ? "animate-fade-in-up" : ""}`} style={{ animationDelay: "0.25s" }}>
         <h2 className="text-base font-medium text-foreground mb-6">Milestones</h2>
         {milestones.length === 0 ? (
@@ -260,6 +375,25 @@ contract ${contract.title.replace(/\s+/g, "")} {
                         Request Changes
                       </button>
                     </div>
+                  )}
+
+                  {/* Release payment button for approved milestones */}
+                  {m.status === "approved" && isFunded && (
+                    <div className="mt-3">
+                      <button
+                        onClick={() => handleReleaseMilestone(m.id)}
+                        disabled={releasingId === m.id || releasePaymentMutation.isPending}
+                        className="inline-flex items-center gap-1.5 text-xs font-medium bg-emerald-500 text-white px-4 py-2 rounded-full hover:bg-emerald-600 transition-colors disabled:opacity-50"
+                      >
+                        {releasingId === m.id ? <><Loader2 size={12} className="animate-spin" /> Releasing...</> : <><DollarSign size={12} /> Release Payment</>}
+                      </button>
+                    </div>
+                  )}
+
+                  {m.status === "paid" && m.paid_at && (
+                    <p className="text-[10px] text-emerald-600 mt-2 flex items-center gap-1">
+                      <CheckCircle size={10} /> Paid on {new Date(m.paid_at).toLocaleDateString()}
+                    </p>
                   )}
                 </div>
               </div>
