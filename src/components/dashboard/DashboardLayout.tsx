@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Outlet, NavLink, useLocation, useNavigate } from "react-router-dom";
+import { Outlet, NavLink, Link, useLocation, useNavigate } from "react-router-dom";
 import { useWallet } from "@/contexts/WalletContext";
 import {
   LayoutDashboard, FileText, Wallet, AlertTriangle, Settings, Search,
@@ -12,6 +12,8 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
+import { useProfile } from "@/hooks/api/useProfile";
+import UsernameOnboarding from "./UsernameOnboarding";
 
 const navItems = [
   { to: "/dashboard", icon: LayoutDashboard, label: "Dashboard", end: true },
@@ -28,8 +30,11 @@ const DashboardLayout = () => {
   const { user, disconnect, address } = useWallet();
   const [copied, setCopied] = useState(false);
   const [searchValue, setSearchValue] = useState("");
+  const [onboardingDone, setOnboardingDone] = useState(false);
   const navigate = useNavigate();
   const notificationCount = 0;
+  const { data: profile, isLoading: profileLoading } = useProfile();
+  const needsUsername = !profileLoading && profile && !profile.username && !onboardingDone;
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -37,8 +42,9 @@ const DashboardLayout = () => {
     navigate(`/dashboard/contracts${q ? `?search=${encodeURIComponent(q)}` : ""}`);
   };
 
-  const initials = user?.display_name
-    ? user.display_name.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase()
+  const displayLabel = profile?.username || user?.display_name || null;
+  const initials = displayLabel
+    ? displayLabel.slice(0, 2).toUpperCase()
     : address
     ? `${address.slice(2, 3)}${address.slice(-1)}`.toUpperCase()
     : "??";
@@ -54,6 +60,10 @@ const DashboardLayout = () => {
       setTimeout(() => setCopied(false), 2000);
     }
   };
+
+  if (needsUsername) {
+    return <UsernameOnboarding onComplete={() => setOnboardingDone(true)} />;
+  }
 
   return (
     <div className="min-h-screen bg-[hsl(230,25%,96%)] flex" style={{ fontFamily: "'PP Neue Montreal', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" }}>
@@ -71,9 +81,9 @@ const DashboardLayout = () => {
         {/* Logo */}
         <div className="h-16 flex items-center justify-between px-4 border-b border-[hsl(230,20%,94%)]">
           {!collapsed && (
-            <span className="text-base font-semibold text-foreground" style={{ fontFamily: "'Instrument Serif', serif" }}>
+            <Link to="/" className="text-base font-semibold text-foreground hover:opacity-80 transition-opacity" style={{ fontFamily: "'Instrument Serif', serif" }}>
               Ricardian
-            </span>
+            </Link>
           )}
           <button
             onClick={() => { setCollapsed(!collapsed); setMobileOpen(false); }}
@@ -165,7 +175,17 @@ const DashboardLayout = () => {
               </DropdownMenuContent>
             </DropdownMenu>
 
-            {/* Avatar */}
+            {/* Wallet address + Avatar */}
+            {truncatedAddress && (
+              <button
+                onClick={handleCopy}
+                title="Click to copy address"
+                className="hidden sm:flex items-center gap-1.5 text-xs font-mono text-muted-foreground hover:text-foreground transition-colors"
+              >
+                {copied ? <Check size={12} className="text-emerald-500" /> : null}
+                {copied ? "Copied!" : truncatedAddress}
+              </button>
+            )}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button
