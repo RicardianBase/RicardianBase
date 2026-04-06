@@ -20,9 +20,10 @@ const notificationKeys = [
   { key: "digest", label: "Weekly digest" },
 ];
 
-function getInitials(name: string | null | undefined): string {
-  if (!name) return "??";
-  return name.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase();
+function getInitials(username: string | null | undefined, displayName: string | null | undefined): string {
+  if (username) return username.slice(0, 2).toUpperCase();
+  if (displayName) return displayName.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase();
+  return "??";
 }
 
 const Settings = () => {
@@ -33,15 +34,12 @@ const Settings = () => {
   const updateNotifMutation = useUpdateNotifications();
 
   const [displayName, setDisplayName] = useState("");
-  const [email, setEmail] = useState("");
   const [avatarUrl, setAvatarUrl] = useState("");
   const [showAvatarModal, setShowAvatarModal] = useState(false);
-  const [newAvatarUrl, setNewAvatarUrl] = useState("");
 
   useEffect(() => {
     if (profile) {
       setDisplayName(profile.display_name ?? "");
-      setEmail(profile.email ?? "");
       setAvatarUrl(profile.avatar_url ?? "");
     }
   }, [profile]);
@@ -53,14 +51,13 @@ const Settings = () => {
     });
   };
 
-  const handleSaveAvatar = () => {
+  const handleSaveAvatar = (dataUrl: string) => {
     updateProfileMutation.mutate(
-      { avatar_url: newAvatarUrl || undefined },
+      { avatar_url: dataUrl || undefined },
       {
         onSuccess: () => {
-          setAvatarUrl(newAvatarUrl);
+          setAvatarUrl(dataUrl);
           setShowAvatarModal(false);
-          setNewAvatarUrl("");
         },
       },
     );
@@ -104,11 +101,11 @@ const Settings = () => {
                   <img src={avatarUrl} alt="Avatar" className="w-16 h-16 rounded-full object-cover border border-border" />
                 ) : (
                   <div className="w-16 h-16 rounded-full bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center text-xl font-medium text-white">
-                    {isLoading ? "..." : getInitials(profile?.display_name)}
+                    {isLoading ? "..." : getInitials(profile?.username, profile?.display_name)}
                   </div>
                 )}
                 <button
-                  onClick={() => { setNewAvatarUrl(avatarUrl); setShowAvatarModal(true); }}
+                  onClick={() => setShowAvatarModal(true)}
                   className="text-xs font-medium border border-[hsl(230,20%,90%)] text-muted-foreground px-4 py-2 rounded-full hover:bg-[hsl(230,25%,96%)] transition-colors"
                 >
                   Change Avatar
@@ -174,10 +171,8 @@ const Settings = () => {
 
       {showAvatarModal && (
         <AvatarModal
-          currentUrl={newAvatarUrl}
-          onChange={setNewAvatarUrl}
           onSave={handleSaveAvatar}
-          onCancel={() => { setShowAvatarModal(false); setNewAvatarUrl(""); }}
+          onCancel={() => setShowAvatarModal(false)}
           saving={updateProfileMutation.isPending}
         />
       )}
@@ -374,14 +369,108 @@ const ApiKeysTab = () => {
   );
 };
 
-// ---- Avatar Modal ----
-const AvatarModal = ({ currentUrl, onChange, onSave, onCancel, saving }: {
-  currentUrl: string;
-  onChange: (v: string) => void;
-  onSave: () => void;
+// ---- Avatar Modal with Crop + NSFW check ----
+const AvatarModal = ({ onSave, onCancel, saving }: {
+  onSave: (dataUrl: string) => void;
   onCancel: () => void;
   saving: boolean;
 }) => {
+  const [imageSrc, setImageSrc] = useState<string | null>(null);
+  const [crop, setCrop] = useState({ x: 0, y: 0 });
+  const [zoom, setZoom] = useState(1);
+  const [croppedAreaPixels, setCroppedAreaPixels] = useState<{ x: number; y: number; width: number; height: number } | null>(null);
+  const [checking, setChecking] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      setError("Please select an image file");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      setError("Image must be under 5MB");
+      return;
+    }
+    setError(null);
+    const reader = new FileReader();
+    reader.onload = () => setImageSrc(reader.result as string);
+    reader.readAsDataURL(file);
+  };
+
+  const onCropComplete = (_: unknown, croppedPixels: { x: number; y: number; width: number; height: number }) => {
+    setCroppedAreaPixels(croppedPixels);
+  };
+
+  const getCroppedImage = async (): Promise<string> => {
+    if (!imageSrc || !croppedAreaPixels) throw new Error("No image");
+    const image = new Image();
+    image.src = imageSrc;
+    await new Promise((resolve) => { image.onload = resolve; });
+    const canvas = document.createElement("canvas");
+    canvas.width = 256;
+    canvas.height = 256;
+    const ctx = canvas.getContext("2d")!;
+    ctx.drawImage(
+      image,
+      croppedAreaPixels.x, croppedAreaPixels.y,
+      croppedAreaPixels.width, croppedAreaPixels.height,
+      0, 0, 256, 256,
+    );
+    return canvas.toDataURL("image/jpeg", 0.85);
+  };
+
+  const checkNSFW = async (dataUrl: string): Promise<boolean> => {
+    // Basic skin tone pixel analysis as a lightweight NSFW heuristic
+    const img = new Image();
+    img.src = dataUrl;
+    await new Promise((resolve) => { img.onload = resolve; });
+    const canvas = document.createElement("canvas");
+    canvas.width = 64;
+    canvas.height = 64;
+    const ctx = canvas.getContext("2d")!;
+    ctx.drawImage(img, 0, 0, 64, 64);
+    const data = ctx.getImageData(0, 0, 64, 64).data;
+    let skinPixels = 0;
+    const total = 64 * 64;
+    for (let i = 0; i < data.length; i += 4) {
+      const r = data[i], g = data[i + 1], b = data[i + 2];
+      // Skin tone detection in RGB
+      if (r > 95 && g > 40 && b > 20 && r > g && r > b && Math.abs(r - g) > 15 && r - b > 15) {
+        skinPixels++;
+      }
+    }
+    // If >60% skin-colored pixels, flag as potentially NSFW
+    return (skinPixels / total) > 0.60;
+  };
+
+  const handleSave = async () => {
+    if (!imageSrc || !croppedAreaPixels) return;
+    setChecking(true);
+    setError(null);
+    try {
+      const cropped = await getCroppedImage();
+      const isNSFW = await checkNSFW(cropped);
+      if (isNSFW) {
+        setError("This image was flagged as potentially inappropriate. Please choose a different photo.");
+        setChecking(false);
+        return;
+      }
+      onSave(cropped);
+    } catch {
+      setError("Failed to process image");
+    } finally {
+      setChecking(false);
+    }
+  };
+
+  // Dynamic import for Cropper to avoid SSR issues
+  const [CropperComponent, setCropperComponent] = useState<React.ComponentType<any> | null>(null);
+  useState(() => {
+    import("react-easy-crop").then((mod) => setCropperComponent(() => mod.default));
+  });
+
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center px-4">
       <div className="absolute inset-0 bg-foreground/40 backdrop-blur-sm" onClick={onCancel} />
@@ -393,28 +482,54 @@ const AvatarModal = ({ currentUrl, onChange, onSave, onCancel, saving }: {
           </button>
         </div>
         <div className="p-6 pt-4 space-y-4">
-          {currentUrl && (
-            <div className="flex justify-center">
-              <img src={currentUrl} alt="Preview" className="w-24 h-24 rounded-full object-cover border border-border" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
-            </div>
+          {!imageSrc ? (
+            <label className="block cursor-pointer">
+              <div className="border-2 border-dashed border-border rounded-xl p-8 text-center hover:border-emerald-400 transition-colors">
+                <p className="text-sm text-muted-foreground">Click to upload an image</p>
+                <p className="text-[10px] text-muted-foreground/60 mt-1">JPG, PNG, WebP — max 5MB</p>
+              </div>
+              <input type="file" accept="image/*" onChange={handleFileSelect} className="hidden" />
+            </label>
+          ) : (
+            <>
+              <div className="relative w-full h-64 bg-black rounded-xl overflow-hidden">
+                {CropperComponent && (
+                  <CropperComponent
+                    image={imageSrc}
+                    crop={crop}
+                    zoom={zoom}
+                    aspect={1}
+                    cropShape="round"
+                    onCropChange={setCrop}
+                    onZoomChange={setZoom}
+                    onCropComplete={onCropComplete}
+                  />
+                )}
+              </div>
+              <input
+                type="range"
+                min={1}
+                max={3}
+                step={0.1}
+                value={zoom}
+                onChange={(e) => setZoom(Number(e.target.value))}
+                className="w-full accent-emerald-500"
+              />
+              <button
+                onClick={() => { setImageSrc(null); setError(null); }}
+                className="text-xs text-muted-foreground hover:text-foreground"
+              >
+                Choose a different image
+              </button>
+            </>
           )}
-          <div>
-            <label className="text-xs text-muted-foreground mb-1.5 block">Avatar URL</label>
-            <input
-              type="text"
-              value={currentUrl}
-              onChange={(e) => onChange(e.target.value)}
-              placeholder="https://..."
-              className="w-full border border-border rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-emerald-500/30"
-            />
-            <p className="text-[10px] text-muted-foreground mt-1">Paste a URL to an image. Leave empty to remove.</p>
-          </div>
+          {error && <p className="text-xs text-destructive">{error}</p>}
           <button
-            onClick={onSave}
-            disabled={saving}
+            onClick={handleSave}
+            disabled={saving || checking || !imageSrc}
             className="w-full text-sm font-medium bg-emerald-500 text-white px-4 py-2.5 rounded-full hover:bg-emerald-600 hover:shadow-lg transition-all disabled:opacity-50"
           >
-            {saving ? "Saving..." : "Save Avatar"}
+            {checking ? "Checking image..." : saving ? "Saving..." : "Save Avatar"}
           </button>
         </div>
       </div>

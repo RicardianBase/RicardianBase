@@ -124,8 +124,9 @@ export const WalletProvider = ({ children }: { children: ReactNode }) => {
         if (!accounts?.[0]) return;
         walletAddress = accounts[0];
       } else {
+        // MetaMask: use window.ethereum but exclude Phantom's injected provider
         ethProvider = (window as any).ethereum;
-        if (!ethProvider?.isMetaMask) {
+        if (!ethProvider?.isMetaMask || ethProvider?.isPhantom) {
           window.open("https://metamask.io/download/", "_blank");
           return;
         }
