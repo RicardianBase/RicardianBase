@@ -66,7 +66,7 @@ const DashboardLayout = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[hsl(230,25%,96%)] flex" style={{ fontFamily: "'PP Neue Montreal', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" }}>
+    <div className="min-h-screen bg-[hsl(230,25%,96%)] flex" style={{ fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" }}>
       {/* Mobile overlay */}
       {mobileOpen && (
         <div className="fixed inset-0 bg-black/20 z-40 md:hidden" onClick={() => setMobileOpen(false)} />
