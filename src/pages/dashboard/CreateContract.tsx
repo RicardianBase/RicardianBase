@@ -55,7 +55,8 @@ const CreateContract = () => {
         setContractorWallet("");
       } else {
         setResolvedUser(user);
-        setContractorWallet(user.walletAddress);
+        // For username lookups, store the original input — backend will resolve internally
+        setContractorWallet(isEthAddress ? input : `@${user.username || input}`);
       }
     } catch {
       if (isEthAddress) {
