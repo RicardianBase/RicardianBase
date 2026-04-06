@@ -1,8 +1,9 @@
-import { useState } from "react";
-import { ArrowLeft, ArrowRight, Plus, GripVertical, Check } from "lucide-react";
+import { useState, useCallback } from "react";
+import { ArrowLeft, ArrowRight, Plus, GripVertical, Check, Loader2, CheckCircle, XCircle } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useInViewAnimation } from "@/hooks/useInViewAnimation";
 import { useCreateContract } from "@/hooks/api/useContracts";
+import { resolveUser, type ResolvedUser } from "@/api/users";
 
 const steps = ["Template", "Details", "Milestones", "Summary"];
 
@@ -17,7 +18,60 @@ const CreateContract = () => {
   const [selectedTemplate, setSelectedTemplate] = useState("milestone");
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
+  const [contractorInput, setContractorInput] = useState("");
   const [contractorWallet, setContractorWallet] = useState("");
+  const [resolvedUser, setResolvedUser] = useState<ResolvedUser | null>(null);
+  const [resolving, setResolving] = useState(false);
+  const [resolveError, setResolveError] = useState<string | null>(null);
+
+  const handleContractorBlur = useCallback(async () => {
+    const input = contractorInput.trim();
+    if (!input) {
+      setContractorWallet("");
+      setResolvedUser(null);
+      setResolveError(null);
+      return;
+    }
+
+    // Quick client-side check: valid ETH address?
+    const isEthAddress = /^0x[a-fA-F0-9]{40}$/.test(input);
+    // Or looks like a username?
+    const isUsername = /^[a-zA-Z0-9_-]{3,30}$/.test(input);
+
+    if (!isEthAddress && !isUsername) {
+      setResolveError("Enter a valid wallet address (0x...) or username");
+      setResolvedUser(null);
+      setContractorWallet("");
+      return;
+    }
+
+    setResolving(true);
+    setResolveError(null);
+    setResolvedUser(null);
+    try {
+      const user = await resolveUser(input);
+      if (!user.walletAddress) {
+        setResolveError("User found but has no wallet connected");
+        setContractorWallet("");
+      } else {
+        setResolvedUser(user);
+        setContractorWallet(user.walletAddress);
+      }
+    } catch {
+      if (isEthAddress) {
+        // Valid ETH address but not registered — still allow it
+        setContractorWallet(input);
+        setResolvedUser(null);
+        setResolveError(null);
+      } else {
+        setResolveError("Username not found on Ricardian");
+        setContractorWallet("");
+      }
+    } finally {
+      setResolving(false);
+    }
+  }, [contractorInput]);
+
   const [milestones, setMilestones] = useState([
     { title: "Project Kickoff", amount: "2500" },
     { title: "Design Delivery", amount: "5000" },
@@ -116,15 +170,35 @@ const CreateContract = () => {
               />
             </div>
             <div>
-              <label className="text-xs text-muted-foreground mb-1.5 block">Contractor Wallet Address</label>
-              <input
-                type="text"
-                placeholder="0x... (the person you're paying)"
-                value={contractorWallet}
-                onChange={(e) => setContractorWallet(e.target.value)}
-                className="w-full border border-[hsl(230,20%,90%)] rounded-xl px-4 py-2.5 text-sm font-mono outline-none focus:ring-2 focus:ring-emerald-500/30 transition-shadow"
-              />
-              <p className="text-[10px] text-muted-foreground/60 mt-1">The wallet address of the contractor who will receive payments. Leave empty to assign later.</p>
+              <label className="text-xs text-muted-foreground mb-1.5 block">Contractor (wallet address or @username)</label>
+              <div className="relative">
+                <input
+                  type="text"
+                  placeholder="0x... or @username"
+                  value={contractorInput}
+                  onChange={(e) => { setContractorInput(e.target.value); setResolvedUser(null); setResolveError(null); }}
+                  onBlur={handleContractorBlur}
+                  className={`w-full border rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 transition-shadow pr-10 ${
+                    resolveError ? "border-red-300 focus:ring-red-500/30" :
+                    resolvedUser ? "border-emerald-300 focus:ring-emerald-500/30" :
+                    "border-[hsl(230,20%,90%)] focus:ring-emerald-500/30"
+                  }`}
+                />
+                <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                  {resolving && <Loader2 size={16} className="text-muted-foreground animate-spin" />}
+                  {!resolving && resolvedUser && <CheckCircle size={16} className="text-emerald-500" />}
+                  {!resolving && resolveError && <XCircle size={16} className="text-red-400" />}
+                </div>
+              </div>
+              {resolvedUser && (
+                <p className="text-[10px] text-emerald-600 mt-1">
+                  Resolved to {resolvedUser.username ? `@${resolvedUser.username}` : "user"} — {resolvedUser.walletAddress?.slice(0, 6)}...{resolvedUser.walletAddress?.slice(-4)}
+                </p>
+              )}
+              {resolveError && <p className="text-[10px] text-red-500 mt-1">{resolveError}</p>}
+              {!resolvedUser && !resolveError && !resolving && (
+                <p className="text-[10px] text-muted-foreground/60 mt-1">Enter a Ricardian username or 0x wallet address. Leave empty to assign later.</p>
+              )}
             </div>
             <div>
               <label className="text-xs text-muted-foreground mb-1.5 block">Description</label>
