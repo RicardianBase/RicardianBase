@@ -7,10 +7,6 @@ const BASE_RPC = "https://mainnet.base.org";
 export const USDC_BASE = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913";
 export const USDC_DECIMALS = 6;
 
-// PYUSD on Base (Paxos USD)
-export const PYUSD_BASE = "0xCfC37A6AB183dd4aED08C204D1c2773c0b1BDf46";
-export const PYUSD_DECIMALS = 6;
-
 export interface TokenInfo {
   address: string;
   symbol: string;
@@ -19,7 +15,6 @@ export interface TokenInfo {
 
 export const BASE_TOKENS: TokenInfo[] = [
   { address: USDC_BASE, symbol: "USDC", decimals: USDC_DECIMALS },
-  { address: PYUSD_BASE, symbol: "PYUSD", decimals: PYUSD_DECIMALS },
 ];
 
 // ABI encoding: balanceOf(address) selector = 0x70a08231

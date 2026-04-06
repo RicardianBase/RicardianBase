@@ -33,12 +33,11 @@ const Wallet = () => {
 
   const balanceCards = (onchainBalances ?? [
     { token: "USDC", balance: 0 },
-    { token: "PYUSD", balance: 0 },
   ]).map((b) => ({
     token: b.token,
     balance: `$${b.balance.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
-    icon: b.token === "USDC" ? "💲" : "🅿️",
-    gradient: b.token === "USDC" ? "from-emerald-500 to-emerald-700" : "from-emerald-600 to-emerald-800",
+    icon: "💲",
+    gradient: "from-emerald-500 to-emerald-700",
   }));
 
   const handleExport = () => {
