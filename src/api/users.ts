@@ -17,3 +17,15 @@ export const updateNotifications = (data: Record<string, boolean>) =>
   client
     .patch<ApiResponse<User>>('/users/notifications', data)
     .then((r) => r.data.data);
+
+export interface ResolvedUser {
+  id: string;
+  username: string | null;
+  display_name: string | null;
+  walletAddress: string | null;
+}
+
+export const resolveUser = (identifier: string) =>
+  client
+    .get<ApiResponse<ResolvedUser>>(`/users/resolve/${encodeURIComponent(identifier)}`)
+    .then((r) => r.data.data);
