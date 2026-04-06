@@ -45,7 +45,7 @@ const ContractDetail = () => {
   const { id } = useParams<{ id: string }>();
   const [tab, setTab] = useState<"legal" | "smart">("legal");
   const { ref, isInView } = useInViewAnimation();
-  const { address, getEthProvider } = useWallet();
+  const { address, getEthProvider, user } = useWallet();
 
   const { data: contract, isLoading } = useContract(id!);
   const { data: escrows } = useContractEscrows(id!);
@@ -97,7 +97,8 @@ const ContractDetail = () => {
     .reduce((sum, e) => sum + parseFloat(e.total_locked), 0) ?? 0;
   const isFunded = !!fundedEscrow;
   const isDraft = contract.status === "draft";
-  const isClient = contract.client_id === (contract as any).client?.id; // simplified check
+  const isClient = user?.id === contract.client_id;
+  const isContractor = user?.id === contract.contractor_id;
 
   const handleFundContract = async () => {
     if (!address || !getEthProvider()) {
@@ -232,7 +233,7 @@ contract ${contract.title.replace(/\s+/g, "")} {
       </div>
 
       {/* Escrow funding card — shown for draft/unfunded contracts */}
-      {isDraft && !isFunded && (
+      {isDraft && !isFunded && isClient && (
         <div className={`bg-gradient-to-br from-emerald-500 via-emerald-600 to-emerald-800 rounded-2xl p-6 shadow-sm text-white ${isInView ? "animate-fade-in-up" : ""}`} style={{ animationDelay: "0.18s" }}>
           <div className="flex items-center gap-3 mb-4">
             <div className="w-10 h-10 rounded-xl bg-white/15 flex items-center justify-center">
@@ -362,7 +363,46 @@ contract ${contract.title.replace(/\s+/g, "")} {
                   {m.description && <p className="text-xs text-muted-foreground mb-1">{m.description}</p>}
                   <p className="text-sm font-semibold text-foreground">{formatAmount(m.amount)}</p>
 
-                  {m.status === "submitted" && (
+                  {/* Contractor actions */}
+                  {isContractor && m.status === "pending" && contract.status === "active" && (
+                    <div className="flex gap-2 mt-3">
+                      <button
+                        onClick={() => milestoneAction.mutate({ milestoneId: m.id, status: "in_progress" })}
+                        disabled={milestoneAction.isPending}
+                        className="text-xs font-medium bg-[hsl(220,60%,92%)] text-[hsl(220,70%,35%)] px-4 py-2 rounded-full hover:bg-[hsl(220,60%,87%)] transition-colors disabled:opacity-50"
+                      >
+                        Start Working
+                      </button>
+                    </div>
+                  )}
+
+                  {isContractor && m.status === "in_progress" && (
+                    <div className="flex gap-2 mt-3">
+                      <button
+                        onClick={() => milestoneAction.mutate({ milestoneId: m.id, status: "submitted" })}
+                        disabled={milestoneAction.isPending}
+                        className="text-xs font-medium bg-emerald-500 text-white px-4 py-2 rounded-full hover:bg-emerald-600 transition-colors disabled:opacity-50"
+                      >
+                        Submit Work
+                      </button>
+                    </div>
+                  )}
+
+                  {isContractor && m.status === "rejected" && (
+                    <div className="mt-3">
+                      <p className="text-[10px] text-[hsl(340,60%,50%)] mb-2">Changes requested by client</p>
+                      <button
+                        onClick={() => milestoneAction.mutate({ milestoneId: m.id, status: "submitted" })}
+                        disabled={milestoneAction.isPending}
+                        className="text-xs font-medium bg-emerald-500 text-white px-4 py-2 rounded-full hover:bg-emerald-600 transition-colors disabled:opacity-50"
+                      >
+                        Resubmit Work
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Client actions */}
+                  {isClient && m.status === "submitted" && (
                     <div className="flex gap-2 mt-3">
                       <button
                         onClick={() => milestoneAction.mutate({ milestoneId: m.id, status: "approved" })}
@@ -381,8 +421,8 @@ contract ${contract.title.replace(/\s+/g, "")} {
                     </div>
                   )}
 
-                  {/* Release payment button for approved milestones */}
-                  {m.status === "approved" && isFunded && (
+                  {/* Release payment button for approved milestones — client only */}
+                  {isClient && m.status === "approved" && isFunded && (
                     <div className="mt-3">
                       <button
                         onClick={() => handleReleaseMilestone(m.id)}
