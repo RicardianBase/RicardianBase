@@ -65,65 +65,69 @@ const Wallet = () => {
   };
 
   return (
-    <div ref={ref} className="space-y-6 max-w-4xl">
-      {/* Hero balance section */}
-      <div className={`bg-white rounded-2xl shadow-sm overflow-hidden ${isInView ? "animate-fade-in-up" : ""}`} style={{ animationDelay: "0.1s" }}>
-        <div className="bg-gradient-to-br from-emerald-500 via-emerald-600 to-emerald-800 px-8 pt-8 pb-10">
-          <div className="flex items-center justify-between mb-6">
+    <div ref={ref} className="space-y-6">
+      {/* Header */}
+      <div className={`flex flex-col sm:flex-row sm:items-center justify-between gap-4 ${isInView ? "animate-fade-in-up" : ""}`} style={{ animationDelay: "0.1s" }}>
+        <h1 className="text-2xl font-medium text-foreground">Wallet</h1>
+        <button
+          onClick={() => setSendModal(true)}
+          className="inline-flex items-center gap-2 bg-emerald-500 text-white text-sm font-medium px-5 py-2.5 rounded-full hover:bg-emerald-600 hover:shadow-lg hover:shadow-emerald-500/20 transition-all shadow-sm"
+        >
+          <Send size={14} /> Send USDC
+        </button>
+      </div>
+
+      {/* Balance + Address cards row */}
+      <div className={`grid grid-cols-1 lg:grid-cols-3 gap-4 ${isInView ? "animate-fade-in-up" : ""}`} style={{ animationDelay: "0.15s" }}>
+        {/* Balance card */}
+        <div className="lg:col-span-2 bg-gradient-to-br from-emerald-500 via-emerald-600 to-emerald-800 rounded-2xl p-6 shadow-sm">
+          <div className="flex items-center justify-between mb-5">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-white/15 backdrop-blur-sm flex items-center justify-center">
-                <WalletIcon size={20} className="text-white" />
+              <div className="w-9 h-9 rounded-xl bg-white/15 backdrop-blur-sm flex items-center justify-center">
+                <WalletIcon size={18} className="text-white" />
               </div>
-              <div>
-                <p className="text-white/60 text-xs font-medium uppercase tracking-wider">Total Balance</p>
-                <p className="text-white/80 text-xs font-mono mt-0.5">Base Network</p>
-              </div>
+              <p className="text-white/60 text-xs font-medium uppercase tracking-wider">USDC Balance</p>
             </div>
             <button
               onClick={() => refetch()}
               className="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors"
-              title="Refresh balance"
+              title="Refresh"
             >
               <RefreshCw size={14} className="text-white/70" />
             </button>
           </div>
-
           {balancesLoading ? (
-            <div className="h-12 w-48 bg-white/15 animate-pulse rounded-lg" />
+            <div className="h-10 w-40 bg-white/15 animate-pulse rounded-lg" />
           ) : (
-            <p className="text-5xl font-semibold text-white tracking-tight">
+            <p className="text-4xl font-semibold text-white tracking-tight">
               ${usdcBalance.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </p>
           )}
-          <p className="text-white/50 text-sm mt-2">USDC</p>
+          <p className="text-white/40 text-xs mt-2">Available on Base</p>
         </div>
 
-        {/* Wallet address + Actions row */}
-        <div className="px-8 py-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-t border-[hsl(230,20%,94%)]">
-          <div className="flex items-center gap-2">
+        {/* Address card */}
+        <div className="bg-white rounded-2xl p-6 shadow-sm flex flex-col justify-between">
+          <div>
+            <p className="text-xs text-muted-foreground uppercase tracking-wider font-medium mb-3">Wallet Address</p>
+            <p className="text-sm font-mono text-foreground break-all leading-relaxed">{address}</p>
+          </div>
+          <div className="flex items-center gap-2 mt-4">
             <button
               onClick={handleCopy}
-              className="inline-flex items-center gap-2 text-xs font-mono text-muted-foreground bg-[hsl(230,25%,96%)] px-3 py-1.5 rounded-lg hover:bg-[hsl(230,25%,93%)] transition-colors"
+              className="inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground bg-[hsl(230,25%,96%)] px-3 py-1.5 rounded-lg hover:bg-[hsl(230,25%,93%)] transition-colors"
             >
               {copied ? <Check size={12} className="text-emerald-500" /> : <Copy size={12} />}
-              {copied ? "Copied!" : truncatedAddr}
+              {copied ? "Copied!" : "Copy"}
             </button>
             <a
               href={`https://basescan.org/address/${address}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+              className="inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground bg-[hsl(230,25%,96%)] px-3 py-1.5 rounded-lg hover:bg-[hsl(230,25%,93%)] transition-colors"
             >
               <ExternalLink size={12} /> Basescan
             </a>
-          </div>
-          <div className="flex gap-2">
-            <button
-              onClick={() => setSendModal(true)}
-              className="inline-flex items-center gap-2 text-sm font-medium bg-emerald-500 text-white px-5 py-2.5 rounded-full hover:bg-emerald-600 hover:shadow-lg hover:shadow-emerald-500/20 transition-all"
-            >
-              <Send size={14} /> Send USDC
-            </button>
           </div>
         </div>
       </div>
