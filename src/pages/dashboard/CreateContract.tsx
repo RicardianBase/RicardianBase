@@ -119,11 +119,12 @@ const CreateContract = () => {
               <label className="text-xs text-muted-foreground mb-1.5 block">Contractor Wallet Address</label>
               <input
                 type="text"
-                placeholder="0x..."
+                placeholder="0x... (the person you're paying)"
                 value={contractorWallet}
                 onChange={(e) => setContractorWallet(e.target.value)}
                 className="w-full border border-[hsl(230,20%,90%)] rounded-xl px-4 py-2.5 text-sm font-mono outline-none focus:ring-2 focus:ring-emerald-500/30 transition-shadow"
               />
+              <p className="text-[10px] text-muted-foreground/60 mt-1">The wallet address of the contractor who will receive payments. Leave empty to assign later.</p>
             </div>
             <div>
               <label className="text-xs text-muted-foreground mb-1.5 block">Description</label>
