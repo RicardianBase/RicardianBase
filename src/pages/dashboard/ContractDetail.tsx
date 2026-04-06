@@ -79,11 +79,18 @@ const ContractDetail = () => {
   }
 
   const milestones = contract.milestones ?? [];
-  const contractorName = contract.contractor?.display_name ?? "Unassigned";
-  const contractorInitials = getInitials(contract.contractor?.display_name);
-  const contractorWallet = contract.contractor_wallet
-    ? `${contract.contractor_wallet.slice(0, 6)}...${contract.contractor_wallet.slice(-4)}`
-    : "N/A";
+  const contractor = contract.contractor;
+  const contractorName = contractor?.username
+    ? `@${contractor.username}`
+    : contractor?.display_name
+    ? contractor.display_name
+    : contract.contractor_wallet
+    ? "Contractor"
+    : "Unassigned";
+  const contractorInitials = contractor?.username
+    ? contractor.username.slice(0, 2).toUpperCase()
+    : getInitials(contractor?.display_name);
+  const hasContractor = !!contractor || !!contract.contractor_wallet;
 
   const fundedEscrow = escrows?.find((e) => e.status === "funded");
   const totalFunded = escrows?.filter((e) => e.status === "funded" || e.status === "released")
@@ -298,12 +305,9 @@ contract ${contract.title.replace(/\s+/g, "")} {
             </div>
             <div>
               <p className="text-sm font-medium text-foreground">{contractorName}</p>
-              <div className="flex items-center gap-1 mt-0.5">
-                <span className="text-xs text-muted-foreground font-mono">{contractorWallet}</span>
-                {contract.contractor_wallet && (
-                  <button onClick={() => navigator.clipboard.writeText(contract.contractor_wallet!)} className="text-muted-foreground hover:text-foreground"><Copy size={12} /></button>
-                )}
-              </div>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                {hasContractor ? "Assigned Contractor" : "No contractor assigned"}
+              </p>
             </div>
           </div>
         </div>
