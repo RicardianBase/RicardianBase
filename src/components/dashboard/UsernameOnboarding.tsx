@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Loader2, User } from "lucide-react";
 import { useUpdateProfile } from "@/hooks/api/useProfile";
+import { checkProfanity } from "@/lib/profanity";
 
 interface Props {
   onComplete: () => void;
@@ -24,6 +25,12 @@ const UsernameOnboarding = ({ onComplete }: Props) => {
     const validationError = validate(trimmed);
     if (validationError) {
       setError(validationError);
+      return;
+    }
+
+    const profanityCheck = checkProfanity(trimmed);
+    if (profanityCheck.isProfane) {
+      setError("Username contains inappropriate language. Please choose another.");
       return;
     }
 
