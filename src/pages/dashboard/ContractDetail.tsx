@@ -185,8 +185,27 @@ const ContractDetail = () => {
 
       setFundingState("signing");
 
-      // Step 2: Send USDC to platform wallet via user's wallet
+      // Step 2: Ensure wallet is on Base chain, then send USDC
       const provider = getEthProvider();
+      try {
+        await provider.request({
+          method: "wallet_switchEthereumChain",
+          params: [{ chainId: "0x2105" }], // Base mainnet = 8453
+        });
+      } catch (switchErr: any) {
+        if (switchErr.code === 4902) {
+          await provider.request({
+            method: "wallet_addEthereumChain",
+            params: [{
+              chainId: "0x2105",
+              chainName: "Base",
+              nativeCurrency: { name: "Ether", symbol: "ETH", decimals: 18 },
+              rpcUrls: ["https://mainnet.base.org"],
+              blockExplorerUrls: ["https://basescan.org"],
+            }],
+          });
+        }
+      }
       const raw = toRawAmount(escrow.total_locked, USDC_DECIMALS);
       const data = encodeTransfer(escrow.escrow_account, raw);
 
