@@ -4,6 +4,7 @@ import { useInViewAnimation } from "@/hooks/useInViewAnimation";
 import { useProfile, useUpdateProfile, useUpdateNotifications } from "@/hooks/api/useProfile";
 import { useApiKeys, useCreateApiKey, useRevokeApiKey } from "@/hooks/api/useApiKeys";
 import type { NewApiKey } from "@/types/api";
+import { getStoredUser, setStoredUser } from "@/lib/auth";
 
 const tabs = [
   { id: "profile", label: "Profile", icon: User },
@@ -33,21 +34,30 @@ const Settings = () => {
   const updateProfileMutation = useUpdateProfile();
   const updateNotifMutation = useUpdateNotifications();
 
-  const [displayName, setDisplayName] = useState("");
+  const [username, setUsername] = useState("");
   const [avatarUrl, setAvatarUrl] = useState("");
   const [showAvatarModal, setShowAvatarModal] = useState(false);
 
   useEffect(() => {
     if (profile) {
-      setDisplayName(profile.display_name ?? "");
+      setUsername(profile.username ?? "");
       setAvatarUrl(profile.avatar_url ?? "");
     }
   }, [profile]);
 
   const handleSaveProfile = () => {
-    updateProfileMutation.mutate({
-      display_name: displayName || undefined,
-    });
+    const trimmed = username.trim();
+    updateProfileMutation.mutate(
+      { username: trimmed || undefined },
+      {
+        onSuccess: () => {
+          const storedUser = getStoredUser();
+          if (storedUser) {
+            setStoredUser({ ...storedUser, username: trimmed });
+          }
+        },
+      },
+    );
   };
 
   const handleSaveAvatar = (dataUrl: string) => {
@@ -118,13 +128,16 @@ const Settings = () => {
               ) : (
                 <>
                   <div>
-                    <label className="text-xs text-muted-foreground mb-1.5 block">Display Name</label>
-                    <input
-                      type="text"
-                      value={displayName}
-                      onChange={(e) => setDisplayName(e.target.value)}
-                      className="w-full border border-[hsl(230,20%,90%)] rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-emerald-500/30"
-                    />
+                    <label className="text-xs text-muted-foreground mb-1.5 block">Username</label>
+                    <div className="relative">
+                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">@</span>
+                      <input
+                        type="text"
+                        value={username}
+                        onChange={(e) => setUsername(e.target.value)}
+                        className="w-full border border-[hsl(230,20%,90%)] rounded-xl pl-9 pr-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-emerald-500/30"
+                      />
+                    </div>
                   </div>
                   <button
                     onClick={handleSaveProfile}
