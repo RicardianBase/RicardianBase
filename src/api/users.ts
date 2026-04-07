@@ -6,6 +6,7 @@ export const getProfile = () =>
 
 export const updateProfile = (data: {
   display_name?: string;
+  username?: string;
   email?: string;
   avatar_url?: string;
 }) =>

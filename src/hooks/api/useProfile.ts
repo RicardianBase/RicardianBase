@@ -12,6 +12,7 @@ export const useUpdateProfile = () => {
   return useMutation({
     mutationFn: (data: {
       display_name?: string;
+      username?: string;
       email?: string;
       avatar_url?: string;
     }) => updateProfile(data),
