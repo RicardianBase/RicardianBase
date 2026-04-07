@@ -74,8 +74,7 @@ const CreateContract = () => {
   }, [contractorInput]);
 
   const [milestones, setMilestones] = useState([
-    { title: "Project Kickoff", amount: "2500" },
-    { title: "Design Delivery", amount: "5000" },
+    { title: "", amount: "" },
   ]);
   const { ref, isInView } = useInViewAnimation();
   const navigate = useNavigate();
