@@ -14,11 +14,9 @@ const tabs = [
 ];
 
 const notificationKeys = [
-  { key: "email", label: "Email notifications" },
   { key: "milestones", label: "Milestone updates" },
   { key: "payments", label: "Payment alerts" },
   { key: "disputes", label: "Dispute notifications" },
-  { key: "digest", label: "Weekly digest" },
 ];
 
 function getInitials(username: string | null | undefined, displayName: string | null | undefined): string {
