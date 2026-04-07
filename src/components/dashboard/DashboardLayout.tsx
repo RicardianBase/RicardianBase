@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { Outlet, NavLink, Link, useLocation, useNavigate } from "react-router-dom";
 import { useWallet } from "@/contexts/WalletContext";
 import {
   LayoutDashboard, FileText, Wallet, AlertTriangle, Settings, Search,
   Bell, ChevronLeft, ChevronRight, Plus, Menu, Copy, Check, LogOut, ExternalLink,
+  DollarSign, Flag, CheckCircle,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -13,9 +14,38 @@ import {
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { useProfile } from "@/hooks/api/useProfile";
+import { useDashboardActivity } from "@/hooks/api/useDashboard";
 import { useTheme } from "@/contexts/ThemeContext";
 import { Sun, Moon } from "lucide-react";
 import UsernameOnboarding from "./UsernameOnboarding";
+import type { ActivityLog } from "@/types/api";
+
+const NOTIF_SEEN_KEY = "ricardian_notif_seen_at";
+
+const NOTIF_ACTIONS: Record<string, { category: string; icon: typeof Bell }> = {
+  milestone_submitted: { category: "milestones", icon: CheckCircle },
+  milestone_approved: { category: "milestones", icon: CheckCircle },
+  milestone_rejected: { category: "milestones", icon: AlertTriangle },
+  milestone_in_progress: { category: "milestones", icon: CheckCircle },
+  milestone_paid: { category: "payments", icon: DollarSign },
+  escrow_funded: { category: "payments", icon: DollarSign },
+  escrow_released: { category: "payments", icon: DollarSign },
+  payment_released: { category: "payments", icon: DollarSign },
+  dispute_raised: { category: "disputes", icon: Flag },
+  dispute_resolved: { category: "disputes", icon: Flag },
+  dispute_escalated: { category: "disputes", icon: Flag },
+};
+
+function formatTimeAgo(dateStr: string) {
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1) return "just now";
+  if (mins < 60) return `${mins}m ago`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `${hrs}h ago`;
+  const days = Math.floor(hrs / 24);
+  return `${days}d ago`;
+}
 
 const navItems = [
   { to: "/dashboard", icon: LayoutDashboard, label: "Dashboard", end: true },
@@ -34,10 +64,39 @@ const DashboardLayout = () => {
   const [searchValue, setSearchValue] = useState("");
   const [onboardingDone, setOnboardingDone] = useState(false);
   const navigate = useNavigate();
-  const notificationCount = 0;
   const { theme, toggleTheme } = useTheme();
   const { data: profile, isLoading: profileLoading } = useProfile();
+  const { data: activity } = useDashboardActivity();
   const needsUsername = !profileLoading && profile && !profile.username && !onboardingDone;
+
+  const notifications = useMemo(() => {
+    if (!activity) return [];
+    const prefs = profile?.notification_prefs ?? {};
+    return activity
+      .filter((log: ActivityLog) => {
+        const config = NOTIF_ACTIONS[log.action];
+        if (!config) return false;
+        return prefs[config.category] !== false;
+      })
+      .slice(0, 20);
+  }, [activity, profile?.notification_prefs]);
+
+  const [lastSeenAt, setLastSeenAt] = useState(() =>
+    localStorage.getItem(NOTIF_SEEN_KEY) || "1970-01-01T00:00:00Z"
+  );
+
+  const unreadCount = useMemo(
+    () => notifications.filter((n) => new Date(n.created_at) > new Date(lastSeenAt)).length,
+    [notifications, lastSeenAt],
+  );
+
+  const handleOpenNotifications = useCallback(() => {
+    if (notifications.length > 0) {
+      const latest = notifications[0].created_at;
+      localStorage.setItem(NOTIF_SEEN_KEY, latest);
+      setLastSeenAt(latest);
+    }
+  }, [notifications]);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -167,12 +226,14 @@ const DashboardLayout = () => {
             </button>
 
             {/* Notification */}
-            <DropdownMenu>
+            <DropdownMenu onOpenChange={(open) => { if (open) handleOpenNotifications(); }}>
               <DropdownMenuTrigger asChild>
                 <button className="relative w-9 h-9 rounded-full hover:bg-[hsl(230,25%,95%)] flex items-center justify-center transition-colors outline-none">
                   <Bell size={18} className="text-muted-foreground" />
-                  {notificationCount > 0 && (
-                    <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-[hsl(340,80%,55%)] rounded-full" />
+                  {unreadCount > 0 && (
+                    <span className="absolute top-1 right-1 min-w-[16px] h-4 bg-[hsl(340,80%,55%)] rounded-full flex items-center justify-center">
+                      <span className="text-[10px] font-medium text-white px-1">{unreadCount > 9 ? "9+" : unreadCount}</span>
+                    </span>
                   )}
                 </button>
               </DropdownMenuTrigger>
@@ -180,10 +241,34 @@ const DashboardLayout = () => {
                 <div className="px-4 py-3 border-b border-[hsl(230,20%,94%)]">
                   <p className="text-sm font-semibold text-foreground">Notifications</p>
                 </div>
-                <div className="py-8 text-center">
-                  <Bell size={24} className="text-muted-foreground/40 mx-auto mb-2" />
-                  <p className="text-xs text-muted-foreground">No new notifications</p>
-                </div>
+                {notifications.length === 0 ? (
+                  <div className="py-8 text-center">
+                    <Bell size={24} className="text-muted-foreground/40 mx-auto mb-2" />
+                    <p className="text-xs text-muted-foreground">No notifications yet</p>
+                  </div>
+                ) : (
+                  <div className="max-h-80 overflow-y-auto">
+                    {notifications.map((n) => {
+                      const config = NOTIF_ACTIONS[n.action];
+                      const Icon = config?.icon ?? Bell;
+                      const isUnread = new Date(n.created_at) > new Date(lastSeenAt);
+                      return (
+                        <div
+                          key={n.id}
+                          className={`flex items-start gap-3 px-4 py-3 border-b border-[hsl(230,20%,96%)] last:border-0 ${isUnread ? "bg-emerald-50/50 dark:bg-emerald-500/5" : ""}`}
+                        >
+                          <div className={`w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 ${isUnread ? "bg-emerald-100 text-emerald-600" : "bg-[hsl(230,25%,94%)] text-muted-foreground"}`}>
+                            <Icon size={14} />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-xs text-foreground leading-relaxed">{n.description}</p>
+                            <p className="text-[10px] text-muted-foreground mt-0.5">{formatTimeAgo(n.created_at)}</p>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
               </DropdownMenuContent>
             </DropdownMenu>
 
