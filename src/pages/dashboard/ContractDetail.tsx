@@ -515,16 +515,19 @@ contract ${contract.title.replace(/\s+/g, "")} {
 
                           <button
                             onClick={() => {
-                              if (!note.trim()) return;
+                              if (!note.trim() || files.length === 0) return;
                               milestoneAction.mutate({ milestoneId: m.id, status: "submitted" });
                             }}
-                            disabled={milestoneAction.isPending || !note.trim()}
+                            disabled={milestoneAction.isPending || !note.trim() || files.length === 0}
                             className="inline-flex items-center gap-1.5 text-xs font-medium bg-emerald-500 text-white px-4 py-2 rounded-full hover:bg-emerald-600 transition-colors disabled:opacity-50"
                           >
                             {milestoneAction.isPending ? <><Loader2 size={12} className="animate-spin" /> Submitting...</> : m.status === "rejected" ? "Resubmit Work" : "Submit Work"}
                           </button>
-                          {!note.trim() && (
-                            <p className="text-[10px] text-muted-foreground/60">Describe your deliverable before submitting</p>
+                          {(!note.trim() || files.length === 0) && (
+                            <p className="text-[10px] text-muted-foreground/60">
+                              {!note.trim() && files.length === 0 ? "Add a description and attach at least one file" :
+                               !note.trim() ? "Add a work description" : "Attach at least one file"}
+                            </p>
                           )}
                         </div>
                       );
