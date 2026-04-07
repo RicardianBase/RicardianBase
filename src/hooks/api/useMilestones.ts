@@ -7,10 +7,14 @@ export const useMilestoneAction = (contractId: string) => {
     mutationFn: ({
       milestoneId,
       status,
+      submissionNote,
+      submissionFiles,
     }: {
       milestoneId: string;
       status: string;
-    }) => updateMilestoneStatus(contractId, milestoneId, status),
+      submissionNote?: string;
+      submissionFiles?: { name: string; type: string; size: number; url: string }[];
+    }) => updateMilestoneStatus(contractId, milestoneId, status, submissionNote, submissionFiles),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["contracts", contractId] });
       qc.invalidateQueries({ queryKey: ["contracts"] });
