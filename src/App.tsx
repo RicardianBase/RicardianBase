@@ -4,6 +4,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { WalletProvider } from "@/contexts/WalletContext";
+import { ThemeProvider } from "@/contexts/ThemeContext";
 import ConnectWalletModal from "@/components/ConnectWalletModal";
 import Index from "./pages/Index.tsx";
 import NotFound from "./pages/NotFound.tsx";
@@ -21,6 +22,7 @@ const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
+    <ThemeProvider>
     <TooltipProvider>
       <WalletProvider>
         <Toaster />
@@ -44,6 +46,7 @@ const App = () => (
         </BrowserRouter>
       </WalletProvider>
     </TooltipProvider>
+    </ThemeProvider>
   </QueryClientProvider>
 );
 
