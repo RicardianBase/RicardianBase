@@ -92,6 +92,8 @@ export interface Milestone {
   submitted_at: string | null;
   approved_at: string | null;
   paid_at: string | null;
+  submission_note: string | null;
+  submission_files: { name: string; type: string; size: number; url: string }[];
   created_at: string;
   updated_at: string;
 }
