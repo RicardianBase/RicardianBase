@@ -10,7 +10,7 @@ const tabs = [
   { id: "profile", label: "Profile", icon: User },
   { id: "notifications", label: "Notifications", icon: Bell },
   { id: "security", label: "Security", icon: Shield },
-  { id: "api", label: "API Keys", icon: Key },
+  { id: "api", label: "API Keys", icon: Key, disabled: true },
 ];
 
 const notificationKeys = [
@@ -86,15 +86,19 @@ const Settings = () => {
             {tabs.map((t) => (
               <button
                 key={t.id}
-                onClick={() => setActiveTab(t.id)}
+                onClick={() => !t.disabled && setActiveTab(t.id)}
+                disabled={t.disabled}
                 className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-colors whitespace-nowrap ${
-                  activeTab === t.id
+                  t.disabled
+                    ? "text-muted-foreground/40 cursor-not-allowed"
+                    : activeTab === t.id
                     ? "bg-emerald-500 text-white shadow-md shadow-emerald-500/20"
                     : "text-muted-foreground hover:bg-[hsl(230,25%,95%)]"
                 }`}
               >
                 <t.icon size={16} />
                 {t.label}
+                {t.disabled && <span className="text-[10px] bg-[hsl(230,20%,90%)] text-muted-foreground/60 px-1.5 py-0.5 rounded-full">Soon</span>}
               </button>
             ))}
           </div>
