@@ -160,16 +160,26 @@ export interface DisputeEvidence {
 
 // ── API Keys ──
 
+export type ApiKeyScope = 'read' | 'write' | 'payments' | 'disputes' | 'admin';
+
 export interface ApiKeyRecord {
   id: string;
   name: string;
   key_prefix: string;
+  scopes: ApiKeyScope[];
   last_used_at: string | null;
+  expires_at: string | null;
   created_at: string;
 }
 
 export interface NewApiKey extends ApiKeyRecord {
   key: string; // Raw key, shown once
+}
+
+export interface CreateApiKeyInput {
+  name?: string;
+  scopes?: ApiKeyScope[];
+  expires_in_days?: number | null;
 }
 
 // ── Activity ──
