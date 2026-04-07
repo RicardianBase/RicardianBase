@@ -8,6 +8,7 @@ import { useContractEscrows, useCreateEscrow, useConfirmFunding, useReleasePayme
 import { useWallet } from "@/contexts/WalletContext";
 import { USDC_BASE, USDC_DECIMALS, encodeTransfer, toRawAmount } from "@/lib/onchain";
 import type { MilestoneStatus } from "@/types/api";
+import { checkProfanity } from "@/lib/profanity";
 
 const statusColorMap: Record<MilestoneStatus, string> = {
   approved: "bg-[hsl(160,40%,92%)] text-[hsl(160,50%,35%)]",
@@ -82,36 +83,41 @@ const ContractDetail = () => {
   const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
   const MAX_FILES = 5;
 
-  const handleFileAdd = (milestoneId: string, fileList: FileList | null) => {
+  const fileToBase64 = (file: File): Promise<string> =>
+    new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+
+  const handleFileAdd = async (milestoneId: string, fileList: FileList | null) => {
     if (!fileList) return;
     setFileError(null);
     const existing = submitFiles[milestoneId] ?? [];
     const newFiles: typeof existing = [];
 
     for (const file of Array.from(fileList)) {
-      // Check count
       if (existing.length + newFiles.length >= MAX_FILES) {
         setFileError(`Maximum ${MAX_FILES} files allowed`);
         break;
       }
-      // Check size
       if (file.size > MAX_FILE_SIZE) {
         setFileError(`${file.name} exceeds 10MB limit`);
         continue;
       }
-      // Check blocked extensions
       const ext = "." + file.name.split(".").pop()?.toLowerCase();
       if (BLOCKED_EXTENSIONS.includes(ext)) {
         setFileError(`${file.name} — file type not allowed (security risk)`);
         continue;
       }
-      // Check MIME type
       if (!ALLOWED_TYPES.includes(file.type) && file.type !== "") {
         setFileError(`${file.name} — unsupported file type`);
         continue;
       }
-      // Read file header bytes to detect executables masquerading as other types
-      newFiles.push({ name: file.name, type: file.type, size: file.size, url: URL.createObjectURL(file) });
+      // Convert to base64 data URI so it persists in the database and is viewable by both parties
+      const dataUrl = await fileToBase64(file);
+      newFiles.push({ name: file.name, type: file.type, size: file.size, url: dataUrl });
     }
 
     setSubmitFiles({ ...submitFiles, [milestoneId]: [...existing, ...newFiles] });
@@ -119,7 +125,6 @@ const ContractDetail = () => {
 
   const removeFile = (milestoneId: string, index: number) => {
     const existing = submitFiles[milestoneId] ?? [];
-    URL.revokeObjectURL(existing[index].url);
     setSubmitFiles({ ...submitFiles, [milestoneId]: existing.filter((_, i) => i !== index) });
   };
 
@@ -511,6 +516,12 @@ contract ${contract.title.replace(/\s+/g, "")} {
                           <button
                             onClick={() => {
                               if (!note.trim() || files.length === 0) return;
+                              const profanityResult = checkProfanity(note.trim());
+                              if (profanityResult.isProfane) {
+                                setFileError("Submission contains inappropriate language. Please revise.");
+                                return;
+                              }
+                              setFileError(null);
                               milestoneAction.mutate({
                                 milestoneId: m.id,
                                 status: "submitted",
