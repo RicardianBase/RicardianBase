@@ -13,6 +13,8 @@ import {
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { useProfile } from "@/hooks/api/useProfile";
+import { useTheme } from "@/contexts/ThemeContext";
+import { Sun, Moon } from "lucide-react";
 import UsernameOnboarding from "./UsernameOnboarding";
 
 const navItems = [
@@ -33,6 +35,7 @@ const DashboardLayout = () => {
   const [onboardingDone, setOnboardingDone] = useState(false);
   const navigate = useNavigate();
   const notificationCount = 0;
+  const { theme, toggleTheme } = useTheme();
   const { data: profile, isLoading: profileLoading } = useProfile();
   const needsUsername = !profileLoading && profile && !profile.username && !onboardingDone;
 
@@ -66,7 +69,7 @@ const DashboardLayout = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[hsl(230,25%,96%)] flex" style={{ fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" }}>
+    <div className="min-h-screen bg-[hsl(230,25%,96%)] dark:bg-[hsl(220,20%,7%)] flex" style={{ fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" }}>
       {/* Mobile overlay */}
       {mobileOpen && (
         <div className="fixed inset-0 bg-black/20 z-40 md:hidden" onClick={() => setMobileOpen(false)} />
@@ -74,7 +77,7 @@ const DashboardLayout = () => {
 
       {/* Sidebar */}
       <aside
-        className={`fixed md:sticky top-0 left-0 h-screen z-50 bg-white border-r border-[hsl(230,20%,92%)] flex flex-col transition-all duration-300 ease-out ${
+        className={`fixed md:sticky top-0 left-0 h-screen z-50 bg-white dark:bg-[hsl(220,18%,10%)] border-r border-[hsl(230,20%,92%)] dark:border-[hsl(220,15%,18%)] flex flex-col transition-all duration-300 ease-out ${
           collapsed ? "w-[72px]" : "w-[240px]"
         } ${mobileOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"}`}
       >
@@ -131,7 +134,7 @@ const DashboardLayout = () => {
       {/* Main */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Header */}
-        <header className="sticky top-0 z-30 bg-white/80 backdrop-blur-md border-b border-[hsl(230,20%,92%)] h-16 flex items-center px-4 md:px-8 gap-4">
+        <header className="sticky top-0 z-30 bg-white/80 dark:bg-[hsl(220,18%,10%)]/80 backdrop-blur-md border-b border-[hsl(230,20%,92%)] dark:border-[hsl(220,15%,18%)] h-16 flex items-center px-4 md:px-8 gap-4">
           <button
             onClick={() => setMobileOpen(true)}
             className="md:hidden w-9 h-9 rounded-full hover:bg-[hsl(230,25%,95%)] flex items-center justify-center"
@@ -154,6 +157,15 @@ const DashboardLayout = () => {
           </form>
 
           <div className="flex items-center gap-3 ml-auto">
+            {/* Theme toggle */}
+            <button
+              onClick={toggleTheme}
+              className="w-9 h-9 rounded-full hover:bg-[hsl(230,25%,95%)] dark:hover:bg-white/10 flex items-center justify-center transition-colors"
+              title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+            >
+              {theme === "dark" ? <Sun size={18} className="text-amber-400" /> : <Moon size={18} className="text-muted-foreground" />}
+            </button>
+
             {/* Notification */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
