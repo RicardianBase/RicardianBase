@@ -427,14 +427,9 @@ contract ${contract.title.replace(/\s+/g, "")} {
                   {m.description && <p className="text-xs text-muted-foreground mb-1">{m.description}</p>}
                   <p className="text-sm font-semibold text-foreground">{formatAmount(m.amount)}</p>
 
-                  {/* Contractor actions — sequential: only the first non-completed milestone is actionable */}
+                  {/* Contractor actions — each milestone independently actionable */}
                   {(() => {
-                    const firstActionable = milestones.find(
-                      (ms) => ms.status !== "approved" && ms.status !== "paid"
-                    );
-                    const isCurrentMilestone = firstActionable?.id === m.id;
-
-                    if (!isContractor || !isCurrentMilestone) return null;
+                    if (!isContractor) return null;
 
                     if (m.status === "pending" && contract.status === "active") {
                       return (
