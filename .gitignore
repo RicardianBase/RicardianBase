@@ -25,3 +25,6 @@ dist-ssr
 
 # Deployment guide (contains sensitive infra details)
 DEPLOYMENT_GUIDE.md
+RICARDIAN_TOKEN_UTILITY.md
+.vercel
+.env*.local
