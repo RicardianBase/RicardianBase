@@ -217,13 +217,10 @@ const DashboardLayout = () => {
 
           <div className="flex items-center gap-3 ml-auto">
             {/* Theme toggle */}
-            <button
-              onClick={toggleTheme}
-              className="w-9 h-9 rounded-full hover:bg-[hsl(230,25%,95%)] dark:hover:bg-white/10 flex items-center justify-center transition-colors"
-              title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
-            >
-              {theme === "dark" ? <Sun size={18} className="text-amber-400" /> : <Moon size={18} className="text-muted-foreground" />}
-            </button>
+            <div className="flex items-center gap-1 opacity-40 cursor-not-allowed" title="Coming soon">
+              <Moon size={18} className="text-muted-foreground" />
+              <span className="text-[10px] text-muted-foreground/60 font-medium">Soon</span>
+            </div>
 
             {/* Notification */}
             <DropdownMenu onOpenChange={(open) => { if (open) handleOpenNotifications(); }}>
