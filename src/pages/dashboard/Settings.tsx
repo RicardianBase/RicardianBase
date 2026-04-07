@@ -47,7 +47,6 @@ const Settings = () => {
   const handleSaveProfile = () => {
     updateProfileMutation.mutate({
       display_name: displayName || undefined,
-      email: email || undefined,
     });
   };
 

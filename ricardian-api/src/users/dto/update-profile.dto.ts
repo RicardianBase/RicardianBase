@@ -13,8 +13,8 @@ export class UpdateProfileDto {
   @IsEmail()
   email?: string;
 
-  @ApiPropertyOptional({ description: 'Avatar URL' })
+  @ApiPropertyOptional({ description: 'Avatar URL or data URI' })
   @IsOptional()
-  @IsUrl()
+  @IsString()
   avatar_url?: string;
 }

@@ -170,7 +170,7 @@ const Navbar = () => {
                 className="w-full text-left px-4 py-2.5 rounded-xl text-sm font-medium text-foreground/70 hover:text-foreground hover:bg-secondary/50 transition-colors flex items-center gap-2"
               >
                 <Wallet size={14} />
-                {isConnected ? truncatedAddress : "Connect Wallet"}
+                {isConnected ? walletLabel : "Connect Wallet"}
               </button>
             </li>
           </ul>
