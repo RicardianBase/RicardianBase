@@ -3,7 +3,7 @@ import { Shield, Key, Bell, User, Copy, RefreshCw, Check, X, Trash2, ExternalLin
 import { useInViewAnimation } from "@/hooks/useInViewAnimation";
 import { useProfile, useUpdateProfile, useUpdateNotifications } from "@/hooks/api/useProfile";
 import { useApiKeys, useCreateApiKey, useRevokeApiKey } from "@/hooks/api/useApiKeys";
-import type { NewApiKey } from "@/types/api";
+import type { NewApiKey, ApiKeyScope } from "@/types/api";
 import { getStoredUser, setStoredUser } from "@/lib/auth";
 
 const tabs = [
@@ -271,6 +271,21 @@ const SecurityTab = ({ wallets }: { wallets: { address: string; provider: string
 };
 
 // ---- API Keys Tab ----
+const SCOPE_OPTIONS: { value: ApiKeyScope; label: string; description: string; color: string }[] = [
+  { value: "read", label: "Read", description: "View contracts, milestones, disputes, dashboard", color: "bg-blue-100 text-blue-700" },
+  { value: "write", label: "Write", description: "Create and update contracts and milestones", color: "bg-amber-100 text-amber-700" },
+  { value: "payments", label: "Payments", description: "Access wallet balances, transactions, escrow reports", color: "bg-emerald-100 text-emerald-700" },
+  { value: "disputes", label: "Disputes", description: "Create and manage disputes", color: "bg-red-100 text-red-700" },
+  { value: "admin", label: "Admin", description: "Full access to all API endpoints", color: "bg-purple-100 text-purple-700" },
+];
+
+const EXPIRY_OPTIONS = [
+  { value: null, label: "Never expires" },
+  { value: 30, label: "30 days" },
+  { value: 90, label: "90 days" },
+  { value: 365, label: "1 year" },
+];
+
 const ApiKeysTab = () => {
   const { data: keys, isLoading } = useApiKeys();
   const createMutation = useCreateApiKey();
@@ -278,11 +293,32 @@ const ApiKeysTab = () => {
   const [newKey, setNewKey] = useState<NewApiKey | null>(null);
   const [copied, setCopied] = useState(false);
   const [keyName, setKeyName] = useState("");
+  const [selectedScopes, setSelectedScopes] = useState<ApiKeyScope[]>(["read"]);
+  const [expiresInDays, setExpiresInDays] = useState<number | null>(null);
+
+  const toggleScope = (scope: ApiKeyScope) => {
+    if (scope === "admin") {
+      setSelectedScopes(selectedScopes.includes("admin") ? ["read"] : ["admin"]);
+      return;
+    }
+    setSelectedScopes((prev) => {
+      const filtered = prev.filter((s) => s !== "admin");
+      return filtered.includes(scope)
+        ? filtered.filter((s) => s !== scope).length === 0 ? ["read"] : filtered.filter((s) => s !== scope)
+        : [...filtered, scope];
+    });
+  };
 
   const handleCreate = async () => {
-    const key = await createMutation.mutateAsync(keyName || undefined);
+    const key = await createMutation.mutateAsync({
+      name: keyName || undefined,
+      scopes: selectedScopes,
+      expires_in_days: expiresInDays,
+    });
     setNewKey(key);
     setKeyName("");
+    setSelectedScopes(["read"]);
+    setExpiresInDays(null);
   };
 
   const handleCopy = () => {
@@ -297,6 +333,9 @@ const ApiKeysTab = () => {
     if (!confirm("Revoke this API key? This cannot be undone.")) return;
     await revokeMutation.mutateAsync(id);
   };
+
+  const getScopeColor = (scope: string) =>
+    SCOPE_OPTIONS.find((s) => s.value === scope)?.color ?? "bg-gray-100 text-gray-700";
 
   return (
     <div className="space-y-4">
@@ -326,25 +365,69 @@ const ApiKeysTab = () => {
         </div>
       )}
 
-      <div className="bg-[hsl(230,25%,96%)] rounded-xl p-4">
-        <p className="text-xs text-muted-foreground mb-3">Create a new API key</p>
-        <div className="flex gap-2">
-          <input
-            type="text"
-            value={keyName}
-            onChange={(e) => setKeyName(e.target.value)}
-            placeholder="Key name (optional)"
-            className="flex-1 border border-[hsl(230,20%,90%)] rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500/30 bg-white"
-          />
-          <button
-            onClick={handleCreate}
-            disabled={createMutation.isPending}
-            className="inline-flex items-center gap-1.5 text-xs font-medium bg-emerald-500 text-white px-4 py-2 rounded-lg hover:bg-emerald-600 hover:shadow-lg transition-all disabled:opacity-50"
-          >
-            {createMutation.isPending ? <Loader2 size={12} className="animate-spin" /> : <RefreshCw size={12} />}
-            Generate
-          </button>
+      <div className="bg-[hsl(230,25%,96%)] rounded-xl p-4 space-y-4">
+        <p className="text-xs font-medium text-foreground">Create a new API key</p>
+
+        <input
+          type="text"
+          value={keyName}
+          onChange={(e) => setKeyName(e.target.value)}
+          placeholder="Key name (optional)"
+          className="w-full border border-[hsl(230,20%,90%)] rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500/30 bg-white"
+        />
+
+        <div>
+          <p className="text-[10px] text-muted-foreground uppercase tracking-wide mb-2">Permissions</p>
+          <div className="space-y-1.5">
+            {SCOPE_OPTIONS.map((scope) => (
+              <label
+                key={scope.value}
+                className={`flex items-center gap-3 px-3 py-2 rounded-lg cursor-pointer transition-colors ${
+                  selectedScopes.includes(scope.value) ? "bg-white shadow-sm" : "hover:bg-white/50"
+                }`}
+              >
+                <input
+                  type="checkbox"
+                  checked={selectedScopes.includes(scope.value)}
+                  onChange={() => toggleScope(scope.value)}
+                  className="accent-emerald-500 w-3.5 h-3.5"
+                />
+                <div className="flex-1">
+                  <span className="text-xs font-medium text-foreground">{scope.label}</span>
+                  <p className="text-[10px] text-muted-foreground">{scope.description}</p>
+                </div>
+              </label>
+            ))}
+          </div>
         </div>
+
+        <div>
+          <p className="text-[10px] text-muted-foreground uppercase tracking-wide mb-2">Expiration</p>
+          <div className="flex gap-2 flex-wrap">
+            {EXPIRY_OPTIONS.map((opt) => (
+              <button
+                key={String(opt.value)}
+                onClick={() => setExpiresInDays(opt.value)}
+                className={`text-xs px-3 py-1.5 rounded-lg transition-colors ${
+                  expiresInDays === opt.value
+                    ? "bg-emerald-500 text-white"
+                    : "bg-white text-muted-foreground hover:text-foreground border border-[hsl(230,20%,90%)]"
+                }`}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <button
+          onClick={handleCreate}
+          disabled={createMutation.isPending}
+          className="inline-flex items-center gap-1.5 text-xs font-medium bg-emerald-500 text-white px-5 py-2.5 rounded-lg hover:bg-emerald-600 hover:shadow-lg transition-all disabled:opacity-50"
+        >
+          {createMutation.isPending ? <Loader2 size={12} className="animate-spin" /> : <RefreshCw size={12} />}
+          Generate Key
+        </button>
       </div>
 
       {isLoading ? (
@@ -353,26 +436,44 @@ const ApiKeysTab = () => {
         <p className="text-sm text-muted-foreground text-center py-4">No API keys yet</p>
       ) : (
         <div className="space-y-2">
-          {keys.map((k) => (
-            <div key={k.id} className="bg-[hsl(230,25%,96%)] rounded-xl p-4 flex items-center justify-between">
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-foreground">{k.name}</p>
-                <p className="text-xs font-mono text-muted-foreground truncate">{k.key_prefix}...</p>
-                <p className="text-[10px] text-muted-foreground/60 mt-0.5">
+          {keys.map((k) => {
+            const isExpired = k.expires_at && new Date(k.expires_at) < new Date();
+            return (
+              <div key={k.id} className={`bg-[hsl(230,25%,96%)] rounded-xl p-4 ${isExpired ? "opacity-50" : ""}`}>
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <p className="text-sm font-medium text-foreground">{k.name}</p>
+                      {isExpired && (
+                        <span className="text-[10px] font-medium bg-red-100 text-red-600 px-2 py-0.5 rounded-full">Expired</span>
+                      )}
+                    </div>
+                    <p className="text-xs font-mono text-muted-foreground truncate">{k.key_prefix}...</p>
+                  </div>
+                  <button
+                    onClick={() => handleRevoke(k.id)}
+                    disabled={revokeMutation.isPending}
+                    className="w-8 h-8 rounded-full hover:bg-[hsl(340,40%,94%)] text-muted-foreground hover:text-[hsl(340,60%,50%)] flex items-center justify-center transition-colors disabled:opacity-50"
+                    title="Revoke key"
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                </div>
+                <div className="flex flex-wrap gap-1 mb-1.5">
+                  {(k.scopes ?? []).map((s) => (
+                    <span key={s} className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${getScopeColor(s)}`}>
+                      {s}
+                    </span>
+                  ))}
+                </div>
+                <p className="text-[10px] text-muted-foreground/60">
                   Created {new Date(k.created_at).toLocaleDateString()}
                   {k.last_used_at ? ` • Last used ${new Date(k.last_used_at).toLocaleDateString()}` : " • Never used"}
+                  {k.expires_at && !isExpired ? ` • Expires ${new Date(k.expires_at).toLocaleDateString()}` : ""}
                 </p>
               </div>
-              <button
-                onClick={() => handleRevoke(k.id)}
-                disabled={revokeMutation.isPending}
-                className="w-8 h-8 rounded-full hover:bg-[hsl(340,40%,94%)] text-muted-foreground hover:text-[hsl(340,60%,50%)] flex items-center justify-center transition-colors disabled:opacity-50"
-                title="Revoke key"
-              >
-                <Trash2 size={14} />
-              </button>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>
