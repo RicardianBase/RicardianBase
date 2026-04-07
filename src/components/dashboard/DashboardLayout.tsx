@@ -23,6 +23,8 @@ import type { ActivityLog } from "@/types/api";
 const NOTIF_SEEN_KEY = "ricardian_notif_seen_at";
 
 const NOTIF_ACTIONS: Record<string, { category: string; icon: typeof Bell }> = {
+  contract_created: { category: "milestones", icon: FileText },
+  contract_assigned: { category: "milestones", icon: FileText },
   milestone_submitted: { category: "milestones", icon: CheckCircle },
   milestone_approved: { category: "milestones", icon: CheckCircle },
   milestone_rejected: { category: "milestones", icon: AlertTriangle },
