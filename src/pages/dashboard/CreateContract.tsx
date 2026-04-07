@@ -121,7 +121,7 @@ const CreateContract = () => {
         Create Contract
       </h1>
 
-      <div className={`bg-white rounded-2xl p-6 shadow-sm ${isInView ? "animate-fade-in-up" : ""}`} style={{ animationDelay: "0.15s" }}>
+      <div className={`bg-white dark:bg-[hsl(220,18%,10%)] rounded-2xl p-6 shadow-sm ${isInView ? "animate-fade-in-up" : ""}`} style={{ animationDelay: "0.15s" }}>
         <div className="flex items-center justify-between mb-8">
           {steps.map((s, i) => (
             <div key={s} className="flex items-center">
@@ -147,8 +147,8 @@ const CreateContract = () => {
                 onClick={() => setSelectedTemplate(t.id)}
                 className={`w-full text-left p-4 rounded-xl border-2 transition-all duration-200 ${
                   selectedTemplate === t.id
-                    ? "border-emerald-500 bg-emerald-50"
-                    : "border-[hsl(230,20%,92%)] hover:border-[hsl(230,20%,85%)]"
+                    ? "border-emerald-500 bg-emerald-50 dark:bg-emerald-500/10"
+                    : "border-[hsl(230,20%,92%)] dark:border-[hsl(220,15%,20%)] hover:border-[hsl(230,20%,85%)]"
                 }`}
               >
                 <p className="text-sm font-medium text-foreground">{t.title}</p>
@@ -167,7 +167,7 @@ const CreateContract = () => {
                 placeholder="e.g. Brand Redesign Project"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                className="w-full border border-[hsl(230,20%,90%)] rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-emerald-500/30 transition-shadow"
+                className="w-full border border-[hsl(230,20%,90%)] dark:border-[hsl(220,15%,25%)] rounded-xl px-4 py-2.5 text-sm text-foreground bg-white dark:bg-[hsl(220,18%,13%)] outline-none focus:ring-2 focus:ring-emerald-500/30 transition-shadow"
               />
             </div>
             <div>
@@ -179,10 +179,10 @@ const CreateContract = () => {
                   value={contractorInput}
                   onChange={(e) => { setContractorInput(e.target.value); setResolvedUser(null); setResolveError(null); }}
                   onBlur={handleContractorBlur}
-                  className={`w-full border rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 transition-shadow pr-10 ${
+                  className={`w-full border rounded-xl px-4 py-2.5 text-sm text-foreground bg-white dark:bg-[hsl(220,18%,13%)] outline-none focus:ring-2 transition-shadow pr-10 ${
                     resolveError ? "border-red-300 focus:ring-red-500/30" :
                     resolvedUser ? "border-emerald-300 focus:ring-emerald-500/30" :
-                    "border-[hsl(230,20%,90%)] focus:ring-emerald-500/30"
+                    "border-[hsl(230,20%,90%)] dark:border-[hsl(220,15%,25%)] focus:ring-emerald-500/30"
                   }`}
                 />
                 <div className="absolute right-3 top-1/2 -translate-y-1/2">
@@ -208,7 +208,7 @@ const CreateContract = () => {
                 placeholder="Describe the scope of work..."
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                className="w-full border border-[hsl(230,20%,90%)] rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-emerald-500/30 transition-shadow resize-none"
+                className="w-full border border-[hsl(230,20%,90%)] dark:border-[hsl(220,15%,25%)] rounded-xl px-4 py-2.5 text-sm text-foreground bg-white dark:bg-[hsl(220,18%,13%)] outline-none focus:ring-2 focus:ring-emerald-500/30 transition-shadow resize-none"
               />
             </div>
           </div>
@@ -218,9 +218,9 @@ const CreateContract = () => {
           <div className="space-y-3">
             <p className="text-sm text-muted-foreground mb-4">Define project milestones</p>
             {milestones.map((m, i) => (
-              <div key={i} className="flex items-center gap-3 bg-[hsl(230,25%,96%)] rounded-xl p-3">
+              <div key={i} className="flex items-center gap-3 bg-[hsl(230,25%,96%)] dark:bg-[hsl(220,18%,13%)] rounded-xl p-3">
                 <GripVertical size={16} className="text-muted-foreground/40 cursor-grab flex-shrink-0" />
-                <span className="w-6 h-6 rounded-full bg-[hsl(230,25%,90%)] flex items-center justify-center text-[10px] font-medium text-muted-foreground flex-shrink-0">
+                <span className="w-6 h-6 rounded-full bg-[hsl(230,25%,90%)] dark:bg-[hsl(220,15%,20%)] flex items-center justify-center text-[10px] font-medium text-muted-foreground flex-shrink-0">
                   {i + 1}
                 </span>
                 <input
@@ -232,7 +232,7 @@ const CreateContract = () => {
                     setMilestones(updated);
                   }}
                   placeholder="Milestone title"
-                  className="flex-1 bg-transparent text-sm outline-none"
+                  className="flex-1 bg-transparent text-sm text-foreground outline-none"
                 />
                 <div className="flex items-center gap-1">
                   <span className="text-xs text-muted-foreground">$</span>
@@ -245,14 +245,14 @@ const CreateContract = () => {
                       setMilestones(updated);
                     }}
                     placeholder="0"
-                    className="w-20 bg-transparent text-sm text-right outline-none"
+                    className="w-20 bg-transparent text-sm text-foreground text-right outline-none"
                   />
                 </div>
               </div>
             ))}
             <button
               onClick={addMilestone}
-              className="w-full flex items-center justify-center gap-1.5 text-xs text-muted-foreground border border-dashed border-[hsl(230,20%,85%)] rounded-xl py-3 hover:bg-[hsl(230,25%,96%)] transition-colors"
+              className="w-full flex items-center justify-center gap-1.5 text-xs text-muted-foreground border border-dashed border-[hsl(230,20%,85%)] dark:border-[hsl(220,15%,25%)] rounded-xl py-3 hover:bg-[hsl(230,25%,96%)] dark:hover:bg-[hsl(220,18%,13%)] transition-colors"
             >
               <Plus size={14} /> Add Milestone
             </button>
@@ -263,21 +263,21 @@ const CreateContract = () => {
           <div className="space-y-4">
             <p className="text-sm text-muted-foreground mb-2">Review your contract</p>
             <div className="space-y-3 text-sm">
-              <div className="flex justify-between py-2 border-b border-[hsl(230,20%,94%)]">
+              <div className="flex justify-between py-2 border-b border-[hsl(230,20%,94%)] dark:border-[hsl(220,15%,20%)]">
                 <span className="text-muted-foreground">Template</span>
                 <span className="text-foreground font-medium">
                   {templates.find((t) => t.id === selectedTemplate)?.title}
                 </span>
               </div>
-              <div className="flex justify-between py-2 border-b border-[hsl(230,20%,94%)]">
+              <div className="flex justify-between py-2 border-b border-[hsl(230,20%,94%)] dark:border-[hsl(220,15%,20%)]">
                 <span className="text-muted-foreground">Title</span>
                 <span className="text-foreground font-medium">{title || "—"}</span>
               </div>
-              <div className="flex justify-between py-2 border-b border-[hsl(230,20%,94%)]">
+              <div className="flex justify-between py-2 border-b border-[hsl(230,20%,94%)] dark:border-[hsl(220,15%,20%)]">
                 <span className="text-muted-foreground">Milestones</span>
                 <span className="text-foreground font-medium">{milestones.filter((m) => m.title).length}</span>
               </div>
-              <div className="flex justify-between py-2 border-b border-[hsl(230,20%,94%)]">
+              <div className="flex justify-between py-2 border-b border-[hsl(230,20%,94%)] dark:border-[hsl(220,15%,20%)]">
                 <span className="text-muted-foreground">Total Value</span>
                 <span className="text-foreground font-medium">${totalAmount.toLocaleString()}</span>
               </div>
@@ -289,7 +289,7 @@ const CreateContract = () => {
         )}
 
         {/* Navigation */}
-        <div className="flex justify-between mt-8 pt-6 border-t border-[hsl(230,20%,94%)]">
+        <div className="flex justify-between mt-8 pt-6 border-t border-[hsl(230,20%,94%)] dark:border-[hsl(220,15%,20%)]">
           <button
             onClick={() => setStep(Math.max(0, step - 1))}
             className={`inline-flex items-center gap-1.5 text-sm font-medium border border-[hsl(230,20%,90%)] text-muted-foreground px-5 py-2.5 rounded-full hover:bg-[hsl(230,25%,96%)] transition-colors ${step === 0 ? "invisible" : ""}`}
