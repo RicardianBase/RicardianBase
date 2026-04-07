@@ -8,7 +8,7 @@ import { useContractEscrows, useCreateEscrow, useConfirmFunding, useReleasePayme
 import { useWallet } from "@/contexts/WalletContext";
 import { USDC_BASE, USDC_DECIMALS, encodeTransfer, toRawAmount } from "@/lib/onchain";
 import type { MilestoneStatus } from "@/types/api";
-import { checkProfanity } from "@/lib/profanity";
+import { checkProfanity, censorText } from "@/lib/profanity";
 
 const statusColorMap: Record<MilestoneStatus, string> = {
   approved: "bg-[hsl(160,40%,92%)] text-[hsl(160,50%,35%)]",
@@ -551,16 +551,33 @@ contract ${contract.title.replace(/\s+/g, "")} {
                   {m.submission_note && (m.status === "submitted" || m.status === "approved" || m.status === "paid") && (
                     <div className="mt-3 bg-[hsl(230,25%,97%)] dark:bg-[hsl(220,18%,12%)] rounded-xl p-4 space-y-2">
                       <p className="text-[10px] text-muted-foreground uppercase tracking-wide font-medium">Submitted Work</p>
-                      <p className="text-xs text-foreground whitespace-pre-wrap">{m.submission_note}</p>
+                      <p className="text-xs text-foreground whitespace-pre-wrap">{censorText(m.submission_note)}</p>
                       {m.submission_files?.length > 0 && (
                         <div className="space-y-1.5 pt-1">
                           <p className="text-[10px] text-muted-foreground uppercase tracking-wide font-medium">Attachments</p>
-                          {m.submission_files.map((f, fi) => (
+                          {m.submission_files.map((f, fi) => {
+                            const isAccessible = f.url?.startsWith("data:") || f.url?.startsWith("http");
+                            const isBroken = f.url?.startsWith("blob:");
+                            return isBroken ? (
+                              <div
+                                key={fi}
+                                className="flex items-center gap-2 bg-white dark:bg-[hsl(220,18%,13%)] rounded-lg px-3 py-2 border border-[hsl(230,20%,92%)] dark:border-[hsl(220,15%,20%)] opacity-50"
+                              >
+                                {f.type?.startsWith("image/") ? (
+                                  <Image size={14} className="text-muted-foreground flex-shrink-0" />
+                                ) : (
+                                  <Paperclip size={14} className="text-muted-foreground flex-shrink-0" />
+                                )}
+                                <span className="text-xs text-muted-foreground truncate flex-1">{f.name}</span>
+                                <span className="text-[10px] text-red-400 flex-shrink-0">File unavailable</span>
+                              </div>
+                            ) : (
                             <a
                               key={fi}
                               href={f.url}
                               target="_blank"
                               rel="noopener noreferrer"
+                              download={f.name}
                               className="flex items-center gap-2 bg-white dark:bg-[hsl(220,18%,13%)] rounded-lg px-3 py-2 border border-[hsl(230,20%,92%)] dark:border-[hsl(220,15%,20%)] hover:border-emerald-300 transition-colors"
                             >
                               {f.type?.startsWith("image/") ? (
@@ -572,7 +589,8 @@ contract ${contract.title.replace(/\s+/g, "")} {
                               <span className="text-[10px] text-muted-foreground/60 flex-shrink-0">{(f.size / 1024).toFixed(0)}KB</span>
                               <ExternalLink size={10} className="text-muted-foreground/40 flex-shrink-0" />
                             </a>
-                          ))}
+                            );
+                          })}
                         </div>
                       )}
                     </div>

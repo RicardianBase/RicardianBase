@@ -30,3 +30,12 @@ export function checkProfanity(username: string): { isProfane: boolean; word?: s
 
   return { isProfane: false };
 }
+
+export function censorText(text: string): string {
+  let result = text;
+  for (const word of BLOCKED_WORDS) {
+    const regex = new RegExp(word, "gi");
+    result = result.replace(regex, "*".repeat(word.length));
+  }
+  return result;
+}
