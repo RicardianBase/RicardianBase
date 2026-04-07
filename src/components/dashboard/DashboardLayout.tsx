@@ -195,9 +195,13 @@ const DashboardLayout = () => {
               <DropdownMenuTrigger asChild>
                 <button
                   title="Wallet menu"
-                  className="w-9 h-9 rounded-full bg-emerald-500 flex items-center justify-center text-sm font-medium text-white hover:bg-emerald-600 transition-colors outline-none"
+                  className="w-9 h-9 rounded-full bg-emerald-500 flex items-center justify-center text-sm font-medium text-white hover:bg-emerald-600 transition-colors outline-none overflow-hidden"
                 >
-                  {initials}
+                  {profile?.avatar_url ? (
+                    <img src={profile.avatar_url} alt="Avatar" className="w-full h-full object-cover" />
+                  ) : (
+                    initials
+                  )}
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-64 rounded-xl shadow-xl">
