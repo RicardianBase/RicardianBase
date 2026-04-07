@@ -23,14 +23,18 @@ const statusLabels: Record<ContractStatus, string> = {
   cancelled: "Cancelled",
 };
 
-function getInitials(name: string | null | undefined): string {
-  if (!name) return "??";
-  return name
-    .split(" ")
-    .map((n) => n[0])
-    .join("")
-    .slice(0, 2)
-    .toUpperCase();
+function getContractorLabel(c: Contract): string {
+  if (c.contractor?.username) return `@${c.contractor.username}`;
+  if (c.contractor?.display_name) return c.contractor.display_name;
+  return "Unassigned";
+}
+
+function getContractorInitials(c: Contract): string {
+  if (c.contractor?.username) return c.contractor.username.slice(0, 2).toUpperCase();
+  if (c.contractor?.display_name) {
+    return c.contractor.display_name.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase();
+  }
+  return "??";
 }
 
 function formatAmount(amount: string): string {
@@ -164,10 +168,10 @@ const ContractsList = () => {
               <h3 className="text-base font-medium text-foreground mb-2">{c.title}</h3>
               <div className="flex items-center gap-2 mb-4">
                 <div className="w-6 h-6 rounded-full bg-emerald-50 flex items-center justify-center text-[10px] font-medium text-emerald-700">
-                  {getInitials(c.contractor?.display_name)}
+                  {getContractorInitials(c)}
                 </div>
                 <span className="text-xs text-muted-foreground">
-                  {c.contractor?.display_name ?? "Unassigned"}
+                  {getContractorLabel(c)}
                 </span>
               </div>
 
@@ -200,7 +204,7 @@ const ContractsList = () => {
               <span className={`w-2 h-2 rounded-full flex-shrink-0 ${statusColors[c.status]}`} />
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-foreground truncate">{c.title}</p>
-                <p className="text-xs text-muted-foreground">{c.contractor?.display_name ?? "Unassigned"}</p>
+                <p className="text-xs text-muted-foreground">{getContractorLabel(c)}</p>
               </div>
               <span className="text-xs text-muted-foreground hidden sm:block">{statusLabels[c.status]}</span>
               <div className="w-24 hidden md:block">

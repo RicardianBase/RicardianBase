@@ -58,6 +58,7 @@ const ContractDetail = () => {
   const [fundError, setFundError] = useState<string | null>(null);
   const [fundTxHash, setFundTxHash] = useState<string | null>(null);
   const [releasingId, setReleasingId] = useState<string | null>(null);
+  const [submitNote, setSubmitNote] = useState<Record<string, string>>({});
 
   if (isLoading) {
     return (
@@ -363,43 +364,62 @@ contract ${contract.title.replace(/\s+/g, "")} {
                   {m.description && <p className="text-xs text-muted-foreground mb-1">{m.description}</p>}
                   <p className="text-sm font-semibold text-foreground">{formatAmount(m.amount)}</p>
 
-                  {/* Contractor actions */}
-                  {isContractor && m.status === "pending" && contract.status === "active" && (
-                    <div className="flex gap-2 mt-3">
-                      <button
-                        onClick={() => milestoneAction.mutate({ milestoneId: m.id, status: "in_progress" })}
-                        disabled={milestoneAction.isPending}
-                        className="text-xs font-medium bg-[hsl(220,60%,92%)] text-[hsl(220,70%,35%)] px-4 py-2 rounded-full hover:bg-[hsl(220,60%,87%)] transition-colors disabled:opacity-50"
-                      >
-                        Start Working
-                      </button>
-                    </div>
-                  )}
+                  {/* Contractor actions — sequential: only the first non-completed milestone is actionable */}
+                  {(() => {
+                    const firstActionable = milestones.find(
+                      (ms) => ms.status !== "approved" && ms.status !== "paid"
+                    );
+                    const isCurrentMilestone = firstActionable?.id === m.id;
 
-                  {isContractor && m.status === "in_progress" && (
-                    <div className="flex gap-2 mt-3">
-                      <button
-                        onClick={() => milestoneAction.mutate({ milestoneId: m.id, status: "submitted" })}
-                        disabled={milestoneAction.isPending}
-                        className="text-xs font-medium bg-emerald-500 text-white px-4 py-2 rounded-full hover:bg-emerald-600 transition-colors disabled:opacity-50"
-                      >
-                        Submit Work
-                      </button>
-                    </div>
-                  )}
+                    if (!isContractor || !isCurrentMilestone) return null;
 
-                  {isContractor && m.status === "rejected" && (
-                    <div className="mt-3">
-                      <p className="text-[10px] text-[hsl(340,60%,50%)] mb-2">Changes requested by client</p>
-                      <button
-                        onClick={() => milestoneAction.mutate({ milestoneId: m.id, status: "submitted" })}
-                        disabled={milestoneAction.isPending}
-                        className="text-xs font-medium bg-emerald-500 text-white px-4 py-2 rounded-full hover:bg-emerald-600 transition-colors disabled:opacity-50"
-                      >
-                        Resubmit Work
-                      </button>
-                    </div>
-                  )}
+                    if (m.status === "pending" && contract.status === "active") {
+                      return (
+                        <div className="flex gap-2 mt-3">
+                          <button
+                            onClick={() => milestoneAction.mutate({ milestoneId: m.id, status: "in_progress" })}
+                            disabled={milestoneAction.isPending}
+                            className="text-xs font-medium bg-[hsl(220,60%,92%)] text-[hsl(220,70%,35%)] px-4 py-2 rounded-full hover:bg-[hsl(220,60%,87%)] transition-colors disabled:opacity-50"
+                          >
+                            Start Working
+                          </button>
+                        </div>
+                      );
+                    }
+
+                    if (m.status === "in_progress" || m.status === "rejected") {
+                      const note = submitNote[m.id] ?? "";
+                      return (
+                        <div className="mt-3 space-y-2">
+                          {m.status === "rejected" && (
+                            <p className="text-[10px] text-[hsl(340,60%,50%)]">Changes requested by client — update and resubmit</p>
+                          )}
+                          <textarea
+                            value={note}
+                            onChange={(e) => setSubmitNote({ ...submitNote, [m.id]: e.target.value })}
+                            placeholder="Describe the work completed, attach links to deliverables..."
+                            rows={3}
+                            className="w-full border border-[hsl(230,20%,90%)] rounded-xl px-3 py-2 text-xs outline-none focus:ring-2 focus:ring-emerald-500/30 resize-none"
+                          />
+                          <button
+                            onClick={() => {
+                              if (!note.trim()) return;
+                              milestoneAction.mutate({ milestoneId: m.id, status: "submitted" });
+                            }}
+                            disabled={milestoneAction.isPending || !note.trim()}
+                            className="text-xs font-medium bg-emerald-500 text-white px-4 py-2 rounded-full hover:bg-emerald-600 transition-colors disabled:opacity-50"
+                          >
+                            {m.status === "rejected" ? "Resubmit Work" : "Submit Work"}
+                          </button>
+                          {!note.trim() && (
+                            <p className="text-[10px] text-muted-foreground/60">Describe your deliverable before submitting</p>
+                          )}
+                        </div>
+                      );
+                    }
+
+                    return null;
+                  })()}
 
                   {/* Client actions */}
                   {isClient && m.status === "submitted" && (
