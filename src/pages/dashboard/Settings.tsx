@@ -137,7 +137,7 @@ const Settings = () => {
                         type="text"
                         value={username}
                         onChange={(e) => setUsername(e.target.value)}
-                        className="w-full border border-[hsl(230,20%,90%)] rounded-xl pl-9 pr-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-emerald-500/30"
+                        className="w-full border border-[hsl(230,20%,90%)] rounded-xl pl-9 pr-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-emerald-500/30 text-foreground bg-white dark:bg-[hsl(220,18%,13%)] dark:border-[hsl(220,15%,25%)]"
                       />
                     </div>
                   </div>
