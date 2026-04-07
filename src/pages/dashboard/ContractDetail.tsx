@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { ArrowLeft, Copy, CheckCircle, Shield, Clock, FileText, Loader2, ExternalLink, DollarSign, Lock } from "lucide-react";
+import { ArrowLeft, Copy, CheckCircle, Shield, Clock, FileText, Loader2, ExternalLink, DollarSign, Lock, Paperclip, X as XIcon, Image } from "lucide-react";
 import { useInViewAnimation } from "@/hooks/useInViewAnimation";
 import { useContract } from "@/hooks/api/useContracts";
 import { useMilestoneAction } from "@/hooks/api/useMilestones";
@@ -59,6 +59,69 @@ const ContractDetail = () => {
   const [fundTxHash, setFundTxHash] = useState<string | null>(null);
   const [releasingId, setReleasingId] = useState<string | null>(null);
   const [submitNote, setSubmitNote] = useState<Record<string, string>>({});
+  const [submitFiles, setSubmitFiles] = useState<Record<string, { name: string; type: string; size: number; url: string }[]>>({});
+  const [fileError, setFileError] = useState<string | null>(null);
+
+  const ALLOWED_TYPES = [
+    "image/png", "image/jpeg", "image/gif", "image/webp", "image/svg+xml",
+    "application/pdf",
+    "text/plain", "text/csv", "text/markdown",
+    "application/json",
+    "application/zip", "application/x-zip-compressed",
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+  ];
+  const BLOCKED_EXTENSIONS = [
+    ".exe", ".bat", ".cmd", ".com", ".msi", ".scr", ".pif", ".vbs", ".vbe",
+    ".js", ".jse", ".ws", ".wsf", ".wsc", ".wsh", ".ps1", ".ps1xml", ".ps2",
+    ".psc1", ".psc2", ".msh", ".msh1", ".msh2", ".inf", ".reg", ".rgs",
+    ".sct", ".shb", ".shs", ".lnk", ".dll", ".sys", ".drv", ".cpl",
+    ".hta", ".html", ".htm", ".jar", ".app", ".action", ".command", ".sh",
+  ];
+  const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+  const MAX_FILES = 5;
+
+  const handleFileAdd = (milestoneId: string, fileList: FileList | null) => {
+    if (!fileList) return;
+    setFileError(null);
+    const existing = submitFiles[milestoneId] ?? [];
+    const newFiles: typeof existing = [];
+
+    for (const file of Array.from(fileList)) {
+      // Check count
+      if (existing.length + newFiles.length >= MAX_FILES) {
+        setFileError(`Maximum ${MAX_FILES} files allowed`);
+        break;
+      }
+      // Check size
+      if (file.size > MAX_FILE_SIZE) {
+        setFileError(`${file.name} exceeds 10MB limit`);
+        continue;
+      }
+      // Check blocked extensions
+      const ext = "." + file.name.split(".").pop()?.toLowerCase();
+      if (BLOCKED_EXTENSIONS.includes(ext)) {
+        setFileError(`${file.name} — file type not allowed (security risk)`);
+        continue;
+      }
+      // Check MIME type
+      if (!ALLOWED_TYPES.includes(file.type) && file.type !== "") {
+        setFileError(`${file.name} — unsupported file type`);
+        continue;
+      }
+      // Read file header bytes to detect executables masquerading as other types
+      newFiles.push({ name: file.name, type: file.type, size: file.size, url: URL.createObjectURL(file) });
+    }
+
+    setSubmitFiles({ ...submitFiles, [milestoneId]: [...existing, ...newFiles] });
+  };
+
+  const removeFile = (milestoneId: string, index: number) => {
+    const existing = submitFiles[milestoneId] ?? [];
+    URL.revokeObjectURL(existing[index].url);
+    setSubmitFiles({ ...submitFiles, [milestoneId]: existing.filter((_, i) => i !== index) });
+  };
 
   if (isLoading) {
     return (
@@ -389,27 +452,76 @@ contract ${contract.title.replace(/\s+/g, "")} {
 
                     if (m.status === "in_progress" || m.status === "rejected") {
                       const note = submitNote[m.id] ?? "";
+                      const files = submitFiles[m.id] ?? [];
                       return (
-                        <div className="mt-3 space-y-2">
+                        <div className="mt-3 space-y-3 bg-[hsl(230,25%,97%)] dark:bg-[hsl(220,18%,12%)] rounded-xl p-4">
                           {m.status === "rejected" && (
                             <p className="text-[10px] text-[hsl(340,60%,50%)]">Changes requested by client — update and resubmit</p>
                           )}
-                          <textarea
-                            value={note}
-                            onChange={(e) => setSubmitNote({ ...submitNote, [m.id]: e.target.value })}
-                            placeholder="Describe the work completed, attach links to deliverables..."
-                            rows={3}
-                            className="w-full border border-[hsl(230,20%,90%)] rounded-xl px-3 py-2 text-xs outline-none focus:ring-2 focus:ring-emerald-500/30 resize-none"
-                          />
+                          <div>
+                            <label className="text-[10px] text-muted-foreground uppercase tracking-wide font-medium mb-1 block">Work Description</label>
+                            <textarea
+                              value={note}
+                              onChange={(e) => setSubmitNote({ ...submitNote, [m.id]: e.target.value })}
+                              placeholder="Describe the work completed, include links to deliverables, repos, designs..."
+                              rows={3}
+                              className="w-full border border-[hsl(230,20%,90%)] dark:border-[hsl(220,15%,25%)] rounded-xl px-3 py-2 text-xs outline-none focus:ring-2 focus:ring-emerald-500/30 resize-none bg-white dark:bg-[hsl(220,18%,13%)] text-foreground"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="text-[10px] text-muted-foreground uppercase tracking-wide font-medium mb-1 block">Attachments ({files.length}/{MAX_FILES})</label>
+
+                            {/* File list */}
+                            {files.length > 0 && (
+                              <div className="space-y-1.5 mb-2">
+                                {files.map((f, fi) => (
+                                  <div key={fi} className="flex items-center gap-2 bg-white dark:bg-[hsl(220,18%,13%)] rounded-lg px-3 py-2 border border-[hsl(230,20%,92%)] dark:border-[hsl(220,15%,20%)]">
+                                    {f.type.startsWith("image/") ? (
+                                      <Image size={14} className="text-emerald-500 flex-shrink-0" />
+                                    ) : (
+                                      <Paperclip size={14} className="text-muted-foreground flex-shrink-0" />
+                                    )}
+                                    <span className="text-xs text-foreground truncate flex-1">{f.name}</span>
+                                    <span className="text-[10px] text-muted-foreground/60 flex-shrink-0">{(f.size / 1024).toFixed(0)}KB</span>
+                                    <button
+                                      onClick={() => removeFile(m.id, fi)}
+                                      className="w-5 h-5 rounded-full hover:bg-red-50 dark:hover:bg-red-500/10 flex items-center justify-center flex-shrink-0"
+                                    >
+                                      <XIcon size={12} className="text-muted-foreground hover:text-red-500" />
+                                    </button>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+
+                            {/* Upload button */}
+                            {files.length < MAX_FILES && (
+                              <label className="inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground border border-dashed border-[hsl(230,20%,85%)] dark:border-[hsl(220,15%,25%)] rounded-lg px-3 py-2 cursor-pointer hover:bg-white dark:hover:bg-[hsl(220,18%,13%)] transition-colors">
+                                <Paperclip size={12} />
+                                Attach Files
+                                <input
+                                  type="file"
+                                  multiple
+                                  onChange={(e) => handleFileAdd(m.id, e.target.files)}
+                                  className="hidden"
+                                  accept={ALLOWED_TYPES.join(",")}
+                                />
+                              </label>
+                            )}
+                            <p className="text-[10px] text-muted-foreground/50 mt-1">Images, PDFs, docs, spreadsheets, ZIPs — max 10MB each, {MAX_FILES} files max</p>
+                            {fileError && <p className="text-[10px] text-red-500 mt-1">{fileError}</p>}
+                          </div>
+
                           <button
                             onClick={() => {
                               if (!note.trim()) return;
                               milestoneAction.mutate({ milestoneId: m.id, status: "submitted" });
                             }}
                             disabled={milestoneAction.isPending || !note.trim()}
-                            className="text-xs font-medium bg-emerald-500 text-white px-4 py-2 rounded-full hover:bg-emerald-600 transition-colors disabled:opacity-50"
+                            className="inline-flex items-center gap-1.5 text-xs font-medium bg-emerald-500 text-white px-4 py-2 rounded-full hover:bg-emerald-600 transition-colors disabled:opacity-50"
                           >
-                            {m.status === "rejected" ? "Resubmit Work" : "Submit Work"}
+                            {milestoneAction.isPending ? <><Loader2 size={12} className="animate-spin" /> Submitting...</> : m.status === "rejected" ? "Resubmit Work" : "Submit Work"}
                           </button>
                           {!note.trim() && (
                             <p className="text-[10px] text-muted-foreground/60">Describe your deliverable before submitting</p>
