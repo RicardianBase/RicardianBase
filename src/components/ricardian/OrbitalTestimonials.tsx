@@ -21,7 +21,7 @@ const techStack = [
   },
   {
     icon: Coins,
-    name: "USDC & PYUSD Rails",
+    name: "USDC Payment Rails",
     category: "Payment Infrastructure",
     description: "Stablecoin payment orchestration — always $1 USD, zero volatility. Integrated with Base Developer Platform APIs for wallet creation, compliance, and transactions.",
     details: ["Fiat on-ramp support", "ERC-20 shielded transfers", "Confidential balances via zk-proofs"],

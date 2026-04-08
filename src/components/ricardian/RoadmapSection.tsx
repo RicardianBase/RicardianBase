@@ -27,7 +27,7 @@ const phases: Phase[] = [
       { week: "7–8", title: "Frontend", tasks: ["React setup", "Wallet connection", "Dashboard shell"] },
       { week: "9–10", title: "Contract Builder", tasks: ["Templates", "Form wizard", "PDF + hash"] },
       { week: "11–12", title: "Milestone Flow", tasks: ["Approve/reject", "Auto-payment", "Notifications"] },
-      { week: "13–14", title: "Integration", tasks: ["USDC/PYUSD", "Arweave/IPFS", "On-chain linking"] },
+      { week: "13–14", title: "Integration", tasks: ["USDC", "Arweave/IPFS", "On-chain linking"] },
       { week: "15–16", title: "Testing", tasks: ["E2E testnet flows", "Bug fixes", "Security prep"] },
     ],
   },
