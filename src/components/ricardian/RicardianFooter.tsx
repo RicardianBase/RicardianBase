@@ -1,5 +1,36 @@
 import { ArrowRight } from "lucide-react";
 import { useState } from "react";
+import { toast } from "sonner";
+
+const SubscribeForm = () => {
+  const [email, setEmail] = useState("");
+  const handleSubscribe = () => {
+    if (!email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+      toast.error("Please enter a valid email address");
+      return;
+    }
+    toast.success("You've been subscribed! We'll keep you updated.");
+    setEmail("");
+  };
+  return (
+    <div className="mt-6 flex">
+      <input
+        type="email"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+        onKeyDown={(e) => e.key === "Enter" && handleSubscribe()}
+        placeholder="Your email"
+        className="flex-1 text-sm bg-background border border-border rounded-l-full px-4 py-2.5 outline-none focus:border-foreground/30 transition-colors"
+      />
+      <button
+        onClick={handleSubscribe}
+        className="bg-foreground text-background text-sm font-medium px-5 py-2.5 rounded-r-full hover:opacity-90 transition-opacity flex items-center gap-1"
+      >
+        Subscribe <ArrowRight size={14} />
+      </button>
+    </div>
+  );
+};
 
 const columns = [
   {
@@ -145,16 +176,7 @@ const RicardianFooter = () => {
               Hybrid Ricardian contracts on Base blockchain. Instant stablecoin payments, automated escrow, and legally binding smart contracts.
             </p>
 
-            <div className="mt-6 flex">
-              <input
-                type="email"
-                placeholder="Your email"
-                className="flex-1 text-sm bg-background border border-border rounded-l-full px-4 py-2.5 outline-none focus:border-foreground/30 transition-colors"
-              />
-              <button className="bg-foreground text-background text-sm font-medium px-5 py-2.5 rounded-r-full hover:opacity-90 transition-opacity flex items-center gap-1">
-                Subscribe <ArrowRight size={14} />
-              </button>
-            </div>
+            <SubscribeForm />
           </div>
 
           {/* Columns */}

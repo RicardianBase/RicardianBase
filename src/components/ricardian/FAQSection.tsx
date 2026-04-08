@@ -18,7 +18,7 @@ const faqs = [
   },
   {
     q: "What stablecoins are supported?",
-    a: "We currently support USDC and PYUSD for all escrow and milestone payments. These are fully-backed, regulated stablecoins that provide price stability for enterprise transactions.",
+    a: "We currently support USDC for all escrow and milestone payments. These are fully-backed, regulated stablecoins that provide price stability for enterprise transactions.",
     category: "Payments",
   },
   {

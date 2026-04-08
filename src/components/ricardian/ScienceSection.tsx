@@ -28,9 +28,9 @@ const tabs = [
   {
     title: "Stablecoin Orchestration",
     icon: Coins,
-    summary: "USDC & PYUSD payment rails — digital dollars, zero volatility",
+    summary: "USDC payment rails — digital dollars, zero volatility",
     details: [
-      "Payments are made in USDC or PYUSD — stablecoins always worth $1 USD — so nobody deals with crypto price swings.",
+      "Payments are made in USDC — stablecoins always worth $1 USD — so nobody deals with crypto price swings.",
       "Integration with Base Developer Platform APIs handles wallet creation, compliance checks, and stablecoin transactions.",
       "Support for fiat on-ramps: companies can fund escrow with traditional bank transfers that auto-convert to stablecoins.",
       "ERC-20 shielded transfers via zk-proofs provide payment privacy — amounts are hidden from the public blockchain while remaining verifiable by auditors."

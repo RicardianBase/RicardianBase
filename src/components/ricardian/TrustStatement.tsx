@@ -2,7 +2,7 @@ import { useRef, useEffect, useState } from "react";
 import { Shield, FileText, Zap, Lock, Layers } from "lucide-react";
 
 const features = [
-  { icon: Shield, title: "Smart Escrow", desc: "Milestone-based escrow with USDC & PYUSD stablecoins." },
+  { icon: Shield, title: "Smart Escrow", desc: "Milestone-based escrow with USDC stablecoins." },
   { icon: FileText, title: "Ricardian Contracts", desc: "Cryptographic hash linking legal prose to smart contracts." },
   { icon: Zap, title: "Auto-Execution", desc: "Approve milestones and trigger instant on-chain settlement." },
   { icon: Layers, title: "Compliance", desc: "Enterprise-grade KYC/AML verification built in." },
@@ -94,7 +94,7 @@ const TrustStatement = () => {
               Every contract on our platform simultaneously generates a human-readable legal document (compliant with ESIGN Act) and a matching Base L2 smart contract. A cryptographic SHA-256 hash permanently links the two, making any tampering instantly detectable.
             </p>
             <p className="text-sm text-muted-foreground leading-relaxed">
-              Payments flow through milestone-based escrow in USDC and PYUSD stablecoins — always worth $1 USD, zero volatility. When a milestone is approved, funds release automatically. No invoices, no AP departments, no 30-day payment terms. Just click approve and the contractor gets paid in seconds.
+              Payments flow through milestone-based escrow in USDC stablecoins — always worth $1 USD, zero volatility. When a milestone is approved, funds release automatically. No invoices, no AP departments, no 30-day payment terms. Just click approve and the contractor gets paid in seconds.
             </p>
           </div>
 
