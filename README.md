@@ -1,5 +1,7 @@
 <div align="center">
 
+<img src="public/favicon.ico" alt="Ricardian Logo" width="48" height="48">
+
 # Ricardian
 
 ### The first platform to merge legal contracts with smart contracts.
