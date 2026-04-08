@@ -1,29 +1,48 @@
+<div align="center">
+
 # Ricardian
 
-**The first platform to merge legal contracts with smart contracts.**
+### The first platform to merge legal contracts with smart contracts.
 
-Ricardian is enterprise-grade infrastructure for hiring managers, procurement teams, and tech contractors. It eliminates payment friction and contract risk by fusing legally-binding prose with on-chain escrow execution on the Base blockchain.
+[![Base](https://img.shields.io/badge/Base-0052FF?style=for-the-badge&logo=coinbase&logoColor=white)](https://base.org)
+[![React](https://img.shields.io/badge/React_18-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev)
+[![NestJS](https://img.shields.io/badge/NestJS_11-E0234E?style=for-the-badge&logo=nestjs&logoColor=white)](https://nestjs.com)
+[![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://typescriptlang.org)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL_16-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)](https://postgresql.org)
+[![USDC](https://img.shields.io/badge/USDC-2775CA?style=for-the-badge&logo=circle&logoColor=white)](https://circle.com/usdc)
+
+---
+
+Enterprise-grade infrastructure for hiring managers, procurement teams, and tech contractors.
+Eliminates payment friction and contract risk by fusing legally-binding prose with on-chain escrow execution on the Base blockchain.
 
 Every contract simultaneously generates a human-readable legal document (ESIGN Act compliant) and a matching Base L2 smart contract. A cryptographic SHA-256 hash permanently links the two — creating a tamper-proof, dual-readable agreement that is both legally enforceable and machine-executable.
+
+</div>
 
 ---
 
 ## Core Features
 
-- **Ricardian Hash Linking** — Cryptographic binding of legal prose to smart contracts. Any post-signing modification is instantly detectable via hash mismatch.
-- **Milestone-Based Escrow** — USDC deposited into smart contract escrow upon contract creation. Funds release instantly when milestones are approved.
-- **Instant Settlement** — From 45 days to 14 seconds. Milestone approved, payment released. No invoices, no AP department.
-- **Dispute Resolution** — On-chain arbitration with automatic escrow freezing and evidence-based resolution.
-- **Contract Templates** — Milestone-Based, Fixed Price, and Monthly Retainer templates with full customization.
-- **KYC/AML Verification** — Enterprise-grade identity verification for all parties before contract execution.
-- **Multi-Wallet Support** — Connect via MetaMask, Coinbase Wallet, or Phantom (EVM).
-- **Full Audit Trail** — Every action logged on-chain for compliance and transparency.
+| | Feature | Description |
+|---|---|---|
+| :link: | **Ricardian Hash Linking** | Cryptographic binding of legal prose to smart contracts. Any post-signing modification is instantly detectable via hash mismatch. |
+| :bank: | **Milestone-Based Escrow** | USDC deposited into smart contract escrow upon contract creation. Funds release instantly when milestones are approved. |
+| :zap: | **Instant Settlement** | From 45 days to 14 seconds. Milestone approved, payment released. No invoices, no AP department. |
+| :balance_scale: | **Dispute Resolution** | On-chain arbitration with automatic escrow freezing and evidence-based resolution. |
+| :page_facing_up: | **Contract Templates** | Milestone-Based, Fixed Price, and Monthly Retainer templates with full customization. |
+| :shield: | **KYC/AML Verification** | Enterprise-grade identity verification for all parties before contract execution. |
+| :key: | **Multi-Wallet Support** | Connect via MetaMask, Coinbase Wallet, or Phantom (EVM). |
+| :mag: | **Full Audit Trail** | Every action logged on-chain for compliance and transparency. |
 
 ---
 
 ## Tech Stack
 
-### Frontend
+<details>
+<summary><strong>Frontend</strong></summary>
+<br>
+
 | Technology | Purpose |
 |---|---|
 | React 18 | UI framework |
@@ -36,7 +55,12 @@ Every contract simultaneously generates a human-readable legal document (ESIGN A
 | Zod | Schema validation |
 | React Hook Form | Form handling |
 
-### Backend
+</details>
+
+<details>
+<summary><strong>Backend</strong></summary>
+<br>
+
 | Technology | Purpose |
 |---|---|
 | NestJS 11 | API framework |
@@ -47,13 +71,20 @@ Every contract simultaneously generates a human-readable legal document (ESIGN A
 | Helmet | Security headers |
 | Throttler | Rate limiting |
 
-### Blockchain
+</details>
+
+<details>
+<summary><strong>Blockchain</strong></summary>
+<br>
+
 | Technology | Purpose |
 |---|---|
 | Base (Ethereum L2) | Settlement layer |
 | USDC | Payment stablecoin |
 | ethers.js | On-chain interaction |
 | Wallet-based auth | Nonce + signature verification |
+
+</details>
 
 ---
 
@@ -135,9 +166,12 @@ npm run seed
 npm run start:dev
 ```
 
-### Available Scripts
+<details>
+<summary><strong>All Available Scripts</strong></summary>
+<br>
 
 **Frontend:**
+
 | Command | Description |
 |---|---|
 | `npm run dev` | Start Vite dev server |
@@ -147,6 +181,7 @@ npm run start:dev
 | `npm run preview` | Preview production build |
 
 **Backend:**
+
 | Command | Description |
 |---|---|
 | `npm run start:dev` | Start with hot reload |
@@ -158,19 +193,28 @@ npm run start:dev
 | `npm run migration:revert` | Rollback last migration |
 | `npm run seed` | Seed contract templates |
 
+</details>
+
 ---
 
 ## How It Works
 
 ```
-1. Company creates a contract with milestones and payment terms
-2. Platform generates a legal PDF + Base smart contract simultaneously
-3. SHA-256 hash cryptographically links the two documents
-4. Both parties sign (electronic signature + wallet signature)
-5. USDC is deposited into the smart contract escrow
-6. Contractor completes work and submits deliverables per milestone
-7. Company approves milestone → smart contract releases payment instantly
-8. Full audit trail stored on Base blockchain
+  1. Company creates a contract with milestones and payment terms
+                              |
+  2. Platform generates a legal PDF + Base smart contract simultaneously
+                              |
+  3. SHA-256 hash cryptographically links the two documents
+                              |
+  4. Both parties sign (electronic signature + wallet signature)
+                              |
+  5. USDC is deposited into the smart contract escrow
+                              |
+  6. Contractor completes work and submits deliverables per milestone
+                              |
+  7. Company approves milestone -> smart contract releases payment instantly
+                              |
+  8. Full audit trail stored on Base blockchain
 ```
 
 ---
@@ -188,33 +232,43 @@ npm run start:dev
 
 ## Security
 
-- Wallet-based authentication (nonce + cryptographic signature verification)
-- JWT access and refresh tokens with rotation
-- Global request validation with whitelisting
-- Rate limiting on all endpoints
-- Security headers via Helmet
-- Parameterized database queries (SQL injection prevention)
-- CORS enforcement with credential support
+| | Measure |
+|---|---|
+| :closed_lock_with_key: | Wallet-based authentication (nonce + cryptographic signature verification) |
+| :repeat: | JWT access and refresh tokens with rotation |
+| :white_check_mark: | Global request validation with whitelisting |
+| :stopwatch: | Rate limiting on all endpoints |
+| :helmet_with_white_cross: | Security headers via Helmet |
+| :syringe: | Parameterized database queries (SQL injection prevention) |
+| :globe_with_meridians: | CORS enforcement with credential support |
 
 ---
 
 ## Blockchain Details
 
-- **Network:** Base (Coinbase Ethereum L2)
-- **Finality:** Sub-second
-- **Gas Fees:** Under $0.01 per transaction
-- **Stablecoin:** USDC (zero crypto volatility)
-- **Contract Linking:** SHA-256 cryptographic hash binding
+<div align="center">
+
+| | |
+|---|---|
+| **Network** | Base (Coinbase Ethereum L2) |
+| **Finality** | Sub-second |
+| **Gas Fees** | Under $0.01 per transaction |
+| **Stablecoin** | USDC (zero crypto volatility) |
+| **Contract Linking** | SHA-256 cryptographic hash binding |
+
+</div>
 
 ---
 
 ## Compliance
 
-- ESIGN Act & UETA compliant electronic signatures
-- KYC/AML identity verification for all users
-- SOC 2 Type II certification-ready architecture
-- GENIUS Act federal stablecoin framework alignment
-- Immutable on-chain audit trail for regulatory reporting
+| Standard | Status |
+|---|---|
+| ESIGN Act & UETA | Compliant electronic signatures |
+| KYC/AML | Identity verification for all users |
+| SOC 2 Type II | Certification-ready architecture |
+| GENIUS Act | Federal stablecoin framework alignment |
+| Audit Trail | Immutable on-chain records for regulatory reporting |
 
 ---
 
@@ -222,13 +276,21 @@ npm run start:dev
 
 | Phase | Timeline | Focus |
 |---|---|---|
-| Phase 1 | Weeks 1-16 | Foundation & MVP |
-| Phase 2 | Weeks 17-32 | Security & Pilot |
-| Phase 3 | Months 9-14 | Enterprise Scale |
-| Phase 4 | Month 15+ | Global Expansion |
+| :one: | Weeks 1-16 | Foundation & MVP |
+| :two: | Weeks 17-32 | Security & Pilot |
+| :three: | Months 9-14 | Enterprise Scale |
+| :four: | Month 15+ | Global Expansion |
 
 ---
+
+<div align="center">
 
 ## License
 
 Proprietary. All rights reserved.
+
+---
+
+Built on Base. Powered by USDC. Secured by cryptography.
+
+</div>
