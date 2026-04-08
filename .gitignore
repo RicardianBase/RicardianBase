@@ -23,8 +23,12 @@ dist-ssr
 *.sln
 *.sw?
 
-# Deployment guide (contains sensitive infra details)
+# Sensitive / internal docs
 DEPLOYMENT_GUIDE.md
 RICARDIAN_TOKEN_UTILITY.md
+TECH_UPDATES.md
+TECH_UPDATES.pdf
+.lovable
+.claude
 .vercel
 .env*.local
