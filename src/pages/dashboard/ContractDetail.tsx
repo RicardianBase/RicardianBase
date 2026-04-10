@@ -1,12 +1,13 @@
-import { useState } from "react";
-import { Link, useParams } from "react-router-dom";
-import { ArrowLeft, Copy, CheckCircle, Shield, Clock, FileText, Loader2, ExternalLink, DollarSign, Lock, Paperclip, X as XIcon, Image } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Link, useLocation, useParams } from "react-router-dom";
+import { ArrowLeft, Copy, CheckCircle, Shield, Clock, FileText, Loader2, ExternalLink, DollarSign, Lock, Paperclip, X as XIcon, Image, Download } from "lucide-react";
 import { useInViewAnimation } from "@/hooks/useInViewAnimation";
 import { useContract } from "@/hooks/api/useContracts";
 import { useMilestoneAction } from "@/hooks/api/useMilestones";
 import { useContractEscrows, useCreateEscrow, useConfirmFunding, useReleasePayment } from "@/hooks/api/useEscrow";
 import { useWallet } from "@/contexts/WalletContext";
 import { USDC_BASE, USDC_DECIMALS, encodeTransfer, toRawAmount } from "@/lib/onchain";
+import { downloadContractPdf } from "@/lib/contractPdf";
 import type { MilestoneStatus } from "@/types/api";
 import { checkProfanity, censorText } from "@/lib/profanity";
 
@@ -42,11 +43,22 @@ function getInitials(name: string | null | undefined): string {
   return name.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase();
 }
 
+function getPartyName(
+  userName: { username?: string | null; display_name?: string | null } | null | undefined,
+  fallback: string,
+): string {
+  if (userName?.display_name) return userName.display_name;
+  if (userName?.username) return `@${userName.username}`;
+  return fallback;
+}
+
 const ContractDetail = () => {
   const { id } = useParams<{ id: string }>();
+  const location = useLocation();
   const [tab, setTab] = useState<"legal" | "smart">("legal");
   const { ref, isInView } = useInViewAnimation();
   const { address, getEthProvider, user } = useWallet();
+  const fundingCardRef = useRef<HTMLDivElement>(null);
 
   const { data: contract, isLoading } = useContract(id!);
   const { data: escrows } = useContractEscrows(id!);
@@ -168,6 +180,33 @@ const ContractDetail = () => {
   const isDraft = contract.status === "draft";
   const isClient = user?.id === contract.client_id;
   const isContractor = user?.id === contract.contractor_id;
+  const hasMonetaryValue = parseFloat(contract.total_amount) > 0;
+  const shouldShowFundingCard = isDraft && !isFunded && isClient && hasMonetaryValue;
+  const clientName = getPartyName(contract.client, "Client");
+  const legalText = contract.description?.trim()
+    ? contract.description
+    : `Contract Title: ${contract.title}
+
+Client: ${clientName}
+Contractor: ${contractorName}
+
+This contract does not yet include generated legal prose.`;
+
+  useEffect(() => {
+    const focusTarget = new URLSearchParams(location.search).get("focus");
+    if (focusTarget !== "fund" || !shouldShowFundingCard) {
+      return;
+    }
+
+    const timer = window.setTimeout(() => {
+      fundingCardRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    }, 200);
+
+    return () => window.clearTimeout(timer);
+  }, [location.search, shouldShowFundingCard]);
 
   const handleFundContract = async () => {
     if (!address || !getEthProvider()) {
@@ -246,6 +285,22 @@ const ContractDetail = () => {
     }
   };
 
+  const handleDownloadPdf = () => {
+    downloadContractPdf({
+      title: contract.title,
+      effectiveDate: contract.start_date ?? contract.created_at,
+      clientLabel: clientName,
+      contractorLabel: contractorName,
+      bodyText: legalText,
+      milestones: milestones.map((milestone) => ({
+        title: milestone.title,
+        amount: parseFloat(milestone.amount),
+      })),
+      totalAmount: parseFloat(contract.total_amount),
+      currency: contract.currency,
+    });
+  };
+
   return (
     <div ref={ref} className="space-y-6 max-w-5xl">
       <Link
@@ -283,14 +338,43 @@ const ContractDetail = () => {
 
       {/* Document viewer */}
       <div className={`bg-white rounded-2xl p-6 shadow-sm ${isInView ? "animate-fade-in-up" : ""}`} style={{ animationDelay: "0.15s" }}>
-        <div className="border border-[hsl(230,20%,92%)] rounded-xl p-6 max-h-[300px] overflow-y-auto text-sm text-muted-foreground leading-relaxed">
+        <div className="flex items-center justify-between gap-4 mb-4">
+          <div>
+            <p className="text-sm font-medium text-foreground">
+              {tab === "legal" ? "Generated Legal Agreement" : "Smart Contract Preview"}
+            </p>
+            <p className="text-xs text-muted-foreground mt-1">
+              {tab === "legal"
+                ? "This view reflects the legal prose persisted on the contract."
+                : "Illustrative smart contract preview for the milestone payout flow."}
+            </p>
+          </div>
+          {tab === "legal" && (
+            <button
+              type="button"
+              onClick={handleDownloadPdf}
+              className="inline-flex items-center gap-1.5 text-xs font-medium border border-[hsl(230,20%,90%)] text-foreground px-4 py-2 rounded-full hover:bg-[hsl(230,25%,96%)] transition-colors"
+            >
+              <Download size={12} /> Download PDF
+            </button>
+          )}
+        </div>
+
+        <div className="border border-[hsl(230,20%,92%)] rounded-xl p-6 max-h-[360px] overflow-y-auto text-sm text-muted-foreground leading-relaxed">
           {tab === "legal" ? (
-            <>
-              <h3 className="font-medium text-foreground mb-3">SERVICE AGREEMENT</h3>
-              <p className="mb-3">This Service Agreement is entered into between the Client and Contractor for the purpose of completing the {contract.title} as outlined in the attached scope of work.</p>
-              {contract.description && <p className="mb-3">{contract.description}</p>}
-              <p className="mb-3"><strong>Payment Terms.</strong> Total project value of {formatAmount(contract.total_amount)} {contract.currency} shall be distributed across {milestones.length} milestones as outlined in the Milestone Schedule.</p>
-            </>
+            <div className="space-y-4">
+              <div>
+                <h3 className="font-medium text-foreground text-base">{contract.title}</h3>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Effective {new Date(contract.start_date ?? contract.created_at).toLocaleDateString("en-US", {
+                    month: "long",
+                    day: "numeric",
+                    year: "numeric",
+                  })}
+                </p>
+              </div>
+              <p className="whitespace-pre-wrap text-foreground leading-7">{legalText}</p>
+            </div>
           ) : (
             <pre className="font-mono text-xs text-muted-foreground whitespace-pre-wrap">
 {`// SPDX-License-Identifier: MIT
@@ -318,11 +402,32 @@ contract ${contract.title.replace(/\s+/g, "")} {
             </pre>
           )}
         </div>
+
+        {tab === "legal" && (
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-3 mt-4">
+            <div className="rounded-xl bg-[hsl(230,25%,97%)] p-4">
+              <p className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground">Client</p>
+              <p className="text-sm font-medium text-foreground mt-2">{clientName}</p>
+            </div>
+            <div className="rounded-xl bg-[hsl(230,25%,97%)] p-4">
+              <p className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground">Contractor</p>
+              <p className="text-sm font-medium text-foreground mt-2">{contractorName}</p>
+            </div>
+            <div className="rounded-xl bg-[hsl(230,25%,97%)] p-4">
+              <p className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground">Milestones</p>
+              <p className="text-sm font-medium text-foreground mt-2">{milestones.length}</p>
+            </div>
+            <div className="rounded-xl bg-[hsl(230,25%,97%)] p-4">
+              <p className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground">Total Value</p>
+              <p className="text-sm font-medium text-foreground mt-2">{formatAmount(contract.total_amount)} {contract.currency}</p>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Escrow funding card — shown for draft/unfunded contracts */}
-      {isDraft && !isFunded && isClient && (
-        <div className={`bg-gradient-to-br from-emerald-500 via-emerald-600 to-emerald-800 rounded-2xl p-6 shadow-sm text-white ${isInView ? "animate-fade-in-up" : ""}`} style={{ animationDelay: "0.18s" }}>
+      {shouldShowFundingCard && (
+        <div ref={fundingCardRef} className={`bg-gradient-to-br from-emerald-500 via-emerald-600 to-emerald-800 rounded-2xl p-6 shadow-sm text-white ${isInView ? "animate-fade-in-up" : ""}`} style={{ animationDelay: "0.18s" }}>
           <div className="flex items-center gap-3 mb-4">
             <div className="w-10 h-10 rounded-xl bg-white/15 flex items-center justify-center">
               <Lock size={20} className="text-white" />
