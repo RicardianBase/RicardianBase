@@ -13,7 +13,6 @@ import { UsersModule } from './users/users.module';
 import { WalletModule } from './wallet/wallet.module';
 import { DisputesModule } from './disputes/disputes.module';
 import { DashboardModule } from './dashboard/dashboard.module';
-import { McpModule } from './mcp/mcp.module';
 import configuration from './config/configuration';
 import { validationSchema } from './config/validation.schema';
 
@@ -63,7 +62,6 @@ import { validationSchema } from './config/validation.schema';
     MilestonesModule,
     DisputesModule,
     DashboardModule,
-    McpModule,
   ],
   controllers: [AppController, HealthController],
   providers: [AppService],
