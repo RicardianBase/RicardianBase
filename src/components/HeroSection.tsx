@@ -17,7 +17,7 @@ const HeroSection = () => {
   const [copied, setCopied] = useState(false);
   const [caCopied, setCaCopied] = useState(false);
 
-  const CA_VALUE = "XXXX";
+  const CA_VALUE = "0x4b2f4cdf9aa1432b915d3979cd60c54d11bd9b07";
 
   const handleCopyCA = () => {
     navigator.clipboard.writeText(CA_VALUE);
