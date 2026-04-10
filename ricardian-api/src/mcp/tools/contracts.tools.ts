@@ -1,6 +1,7 @@
 import { ContractsService } from '../../contracts/contracts.service';
 import { ContractQueryDto } from '../../contracts/dto/contract-query.dto';
 import { CreateContractDto } from '../../contracts/dto/create-contract.dto';
+import { contractToJsonLd } from '../../contracts/jsonld/contract.jsonld';
 import { ToolDefinition } from '../types';
 
 const CONTRACT_STATUSES = [
@@ -74,6 +75,28 @@ export function buildContractTools(
       },
       handler: async (user, args) => {
         return contractsService.findOne(args.id as string, user.id);
+      },
+    },
+    {
+      tool: {
+        name: 'ricardian_get_contract_jsonld',
+        description:
+          'Fetch a Ricardian contract as a JSON-LD document using schema.org + Ricardian vocabulary. Returns a self-describing, machine-readable linked-data representation suitable for semantic parsing, knowledge-graph ingestion, and cross-platform interop. Caller must be a party to the contract.',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            id: { type: 'string', description: 'Contract UUID' },
+          },
+          required: ['id'],
+          additionalProperties: false,
+        },
+      },
+      handler: async (user, args) => {
+        const contract = await contractsService.findOne(
+          args.id as string,
+          user.id,
+        );
+        return contractToJsonLd(contract);
       },
     },
     {

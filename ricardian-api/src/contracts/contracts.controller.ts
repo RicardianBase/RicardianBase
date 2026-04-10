@@ -7,13 +7,16 @@ import {
   Body,
   Param,
   Query,
+  Res,
   UseGuards,
   ParseUUIDPipe,
 } from '@nestjs/common';
+import type { Response } from 'express';
 import {
   ApiTags,
   ApiBearerAuth,
   ApiOperation,
+  ApiProduces,
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
@@ -22,6 +25,7 @@ import { CreateContractDto } from './dto/create-contract.dto';
 import { UpdateContractDto } from './dto/update-contract.dto';
 import { UpdateStatusDto } from './dto/update-status.dto';
 import { ContractQueryDto } from './dto/contract-query.dto';
+import { contractToJsonLd } from './jsonld/contract.jsonld';
 
 @ApiTags('contracts')
 @ApiBearerAuth()
@@ -46,6 +50,26 @@ export class ContractsController {
     @CurrentUser('id') userId: string,
   ) {
     return this.contractsService.findOne(id, userId);
+  }
+
+  @Get(':id/jsonld')
+  @ApiOperation({
+    summary: 'Get a contract as a JSON-LD document',
+    description:
+      'Returns a machine-readable JSON-LD representation of the contract using schema.org + Ricardian vocabulary. Responds with Content-Type: application/ld+json and bypasses the global response wrapper, so the HTTP body IS the JSON-LD document itself.',
+  })
+  @ApiProduces('application/ld+json')
+  async findOneJsonLd(
+    @Param('id', ParseUUIDPipe) id: string,
+    @CurrentUser('id') userId: string,
+    @Res() res: Response,
+  ): Promise<void> {
+    const contract = await this.contractsService.findOne(id, userId);
+    const jsonld = contractToJsonLd(contract);
+    res
+      .status(200)
+      .setHeader('Content-Type', 'application/ld+json; charset=utf-8')
+      .send(JSON.stringify(jsonld));
   }
 
   @Post()
