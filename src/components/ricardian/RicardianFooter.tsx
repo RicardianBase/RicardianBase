@@ -58,7 +58,7 @@ const columns = [
     isSocial: true,
     links: [
       { label: "X / Twitter", href: "https://x.com/RicardianBase" },
-      { label: "Telegram", href: "#" },
+      { label: "Telegram", href: "https://t.me/ricardianportal" },
       { label: "GitHub", href: "https://github.com/RicardianBase" },
     ],
   },
@@ -129,7 +129,7 @@ const GitHubIcon = () => (
 
 const socials = [
   { icon: <XIcon />, name: "X / Twitter", href: "https://x.com/RicardianBase" },
-  { icon: <TelegramIcon />, name: "Telegram", href: "#" },
+  { icon: <TelegramIcon />, name: "Telegram", href: "https://t.me/ricardianportal" },
   { icon: <GitHubIcon />, name: "GitHub", href: "https://github.com/RicardianBase" },
 ];
 
