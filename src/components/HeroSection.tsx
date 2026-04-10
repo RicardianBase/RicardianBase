@@ -15,6 +15,15 @@ const HeroSection = () => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const { isConnected, address, openModal, disconnect, user } = useWallet();
   const [copied, setCopied] = useState(false);
+  const [caCopied, setCaCopied] = useState(false);
+
+  const CA_VALUE = "XXXX";
+
+  const handleCopyCA = () => {
+    navigator.clipboard.writeText(CA_VALUE);
+    setCaCopied(true);
+    setTimeout(() => setCaCopied(false), 2000);
+  };
 
   const walletLabel = user?.username
     ? `@${user.username}`
@@ -212,19 +221,39 @@ const HeroSection = () => {
           Through Ricardian smart contracts on Base, we make payments instant, automatic, and legally binding.
         </p>
 
-        {isConnected ? (
-          <Link to="/dashboard" className="animate-fade-rise-delay-2 inline-block mt-12">
-            <GlassButton contentClassName="px-14 py-5 text-lg">
-              Explore Platform
-            </GlassButton>
-          </Link>
-        ) : (
-          <div className="animate-fade-rise-delay-2 inline-block mt-12">
-            <GlassButton contentClassName="px-14 py-5 text-lg" onClick={openModal}>
-              Explore Platform
-            </GlassButton>
-          </div>
-        )}
+        <div className="flex flex-col items-center gap-4 mt-12">
+          {isConnected ? (
+            <Link to="/dashboard" className="animate-fade-rise-delay-2 inline-block">
+              <GlassButton contentClassName="px-14 py-5 text-lg">
+                Explore Platform
+              </GlassButton>
+            </Link>
+          ) : (
+            <div className="animate-fade-rise-delay-2 inline-block">
+              <GlassButton contentClassName="px-14 py-5 text-lg" onClick={openModal}>
+                Explore Platform
+              </GlassButton>
+            </div>
+          )}
+
+          <button
+            type="button"
+            onClick={handleCopyCA}
+            className="animate-fade-rise-delay-2 flex items-center gap-2 text-xs font-mono px-4 py-2 rounded-full border border-[#00000020] bg-white/40 backdrop-blur hover:bg-white/60 transition-colors"
+            style={{ color: "#6F6F6F" }}
+            aria-label="Copy contract address"
+          >
+            {caCopied ? (
+              <Check size={12} className="text-[hsl(140,38%,38%)]" />
+            ) : (
+              <Copy size={12} />
+            )}
+            <span>CA: {CA_VALUE}</span>
+            {caCopied && (
+              <span className="text-[hsl(140,38%,38%)]">Copied!</span>
+            )}
+          </button>
+        </div>
       </section>
     </div>
   );
