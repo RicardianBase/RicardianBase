@@ -10,7 +10,7 @@ const tabs = [
   { id: "profile", label: "Profile", icon: User },
   { id: "notifications", label: "Notifications", icon: Bell },
   { id: "security", label: "Security", icon: Shield },
-  { id: "api", label: "API Keys", icon: Key, disabled: true },
+  { id: "api", label: "API Keys", icon: Key },
 ];
 
 const notificationKeys = [
