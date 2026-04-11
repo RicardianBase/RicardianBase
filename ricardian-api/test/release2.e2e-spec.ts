@@ -6,6 +6,7 @@ import {
   UnauthorizedException,
   ValidationPipe,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { Test, TestingModule } from '@nestjs/testing';
 import request from 'supertest';
 import { App } from 'supertest/types';
@@ -49,7 +50,10 @@ describe('Release 2 verification (e2e)', () => {
 
     const moduleFixture: TestingModule = await Test.createTestingModule({
       controllers: [HealthController, UsersController],
-      providers: [{ provide: UsersService, useValue: usersService }],
+      providers: [
+        { provide: UsersService, useValue: usersService },
+        { provide: ConfigService, useValue: { get: () => '' } },
+      ],
     })
       .overrideGuard(JwtAuthGuard)
       .useClass(MockJwtAuthGuard)

@@ -20,6 +20,12 @@ vi.mock("@/hooks/api/useContracts", () => ({
     isPending: false,
     isError: false,
   }),
+  useAiContractReview: () => ({
+    mutate: vi.fn(),
+    data: undefined,
+    isPending: false,
+    isError: false,
+  }),
 }));
 
 vi.mock("@/hooks/api/useBackendFeatures", () => ({
@@ -27,6 +33,7 @@ vi.mock("@/hooks/api/useBackendFeatures", () => ({
     supportsUsernames: supportsUserResolution,
     supportsUserResolution,
     supportsMultiPartyContracts,
+    supportsAiContractReview: false,
     isLoading: false,
   }),
 }));

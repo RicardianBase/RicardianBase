@@ -5,12 +5,14 @@ import {
   UnauthorizedException,
   ValidationPipe,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { Test, TestingModule } from '@nestjs/testing';
 import request from 'supertest';
 import { App } from 'supertest/types';
 import { HealthController } from '../src/health.controller';
 import { ContractsController } from '../src/contracts/contracts.controller';
 import { ContractsService } from '../src/contracts/contracts.service';
+import { AiReviewService } from '../src/contracts/ai/ai-review.service';
 import { TransformInterceptor } from '../src/common/interceptors/transform.interceptor';
 import { HttpExceptionFilter } from '../src/common/filters/http-exception.filter';
 import { JwtAuthGuard } from '../src/common/guards/jwt-auth.guard';
@@ -46,7 +48,17 @@ describe('Release 7 verification (e2e)', () => {
 
     const moduleFixture: TestingModule = await Test.createTestingModule({
       controllers: [HealthController, ContractsController],
-      providers: [{ provide: ContractsService, useValue: contractsService }],
+      providers: [
+        { provide: ContractsService, useValue: contractsService },
+        {
+          provide: AiReviewService,
+          useValue: {
+            isEnabled: () => false,
+            review: jest.fn(),
+          },
+        },
+        { provide: ConfigService, useValue: { get: () => '' } },
+      ],
     })
       .overrideGuard(JwtAuthGuard)
       .useClass(MockJwtAuthGuard)

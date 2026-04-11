@@ -11,6 +11,7 @@ import { Dispute } from '../disputes/entities/dispute.entity';
 import { ActivityModule } from '../activity/activity.module';
 import { ContractsController } from './contracts.controller';
 import { ContractsService } from './contracts.service';
+import { AiReviewService } from './ai/ai-review.service';
 
 @Module({
   imports: [
@@ -27,7 +28,7 @@ import { ContractsService } from './contracts.service';
     ActivityModule,
   ],
   controllers: [ContractsController],
-  providers: [ContractsService],
+  providers: [ContractsService, AiReviewService],
   exports: [ContractsService],
 })
 export class ContractsModule {}

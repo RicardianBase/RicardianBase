@@ -1,17 +1,22 @@
 import { useCallback, useEffect, useState } from "react";
 import {
+  AlertTriangle,
   ArrowLeft,
   ArrowRight,
   Check,
   CheckCircle,
   Loader2,
   Plus,
+  Sparkles,
   Trash2,
   XCircle,
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useInViewAnimation } from "@/hooks/useInViewAnimation";
-import { useCreateContract } from "@/hooks/api/useContracts";
+import {
+  useAiContractReview,
+  useCreateContract,
+} from "@/hooks/api/useContracts";
 import { useBackendFeatures } from "@/hooks/api/useBackendFeatures";
 import { resolveUser, type ResolvedUser } from "@/api/users";
 import { useWallet } from "@/contexts/WalletContext";
@@ -215,8 +220,13 @@ const CreateContract = () => {
   const { ref, isInView } = useInViewAnimation();
   const navigate = useNavigate();
   const createMutation = useCreateContract();
+  const aiReviewMutation = useAiContractReview();
   const { user } = useWallet();
-  const { supportsMultiPartyContracts, supportsUserResolution } = useBackendFeatures();
+  const {
+    supportsMultiPartyContracts,
+    supportsUserResolution,
+    supportsAiContractReview,
+  } = useBackendFeatures();
 
   useEffect(() => {
     setTemplateValues(getInitialTemplateValues(currentTemplate.fields));
@@ -1186,12 +1196,122 @@ const CreateContract = () => {
             </div>
 
             <div className="space-y-4">
-              <div>
-                <p className="text-sm font-medium text-foreground">Legal Document Preview</p>
-                <p className="text-xs text-muted-foreground mt-1">
-                  This exact text will be saved to the contract and used for the generated PDF.
-                </p>
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <p className="text-sm font-medium text-foreground">Legal Document Preview</p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    This exact text will be saved to the contract and used for the generated PDF.
+                  </p>
+                </div>
+                {supportsAiContractReview && (
+                  <button
+                    type="button"
+                    onClick={() =>
+                      aiReviewMutation.mutate({
+                        text: renderedLegalText,
+                        title: title.trim() || undefined,
+                      })
+                    }
+                    disabled={aiReviewMutation.isPending || !renderedLegalText.trim()}
+                    className="inline-flex items-center gap-1.5 text-xs font-medium bg-[hsl(265,80%,55%)] text-white px-4 py-2 rounded-full hover:bg-[hsl(265,80%,48%)] hover:shadow-lg hover:shadow-[hsl(265,80%,55%)]/20 transition-all shadow-sm disabled:opacity-50 flex-shrink-0"
+                  >
+                    {aiReviewMutation.isPending ? (
+                      <>
+                        <Loader2 size={12} className="animate-spin" /> Reviewing...
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles size={12} /> Review with AI
+                      </>
+                    )}
+                  </button>
+                )}
               </div>
+
+              {aiReviewMutation.isError && (
+                <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-xs text-red-700">
+                  AI review failed. Please try again in a moment.
+                </div>
+              )}
+
+              {aiReviewMutation.data && (
+                <div className="rounded-2xl border border-[hsl(265,60%,90%)] bg-[hsl(265,80%,98%)] dark:bg-[hsl(265,30%,12%)] p-5 space-y-4">
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-2">
+                      <Sparkles size={14} className="text-[hsl(265,80%,55%)]" />
+                      <p className="text-xs font-semibold uppercase tracking-[0.12em] text-[hsl(265,70%,40%)]">
+                        AI Contract Review
+                      </p>
+                    </div>
+                    <span
+                      className={`text-[10px] font-semibold uppercase tracking-wide px-2.5 py-1 rounded-full ${
+                        aiReviewMutation.data.overall_risk === "high"
+                          ? "bg-red-100 text-red-700"
+                          : aiReviewMutation.data.overall_risk === "medium"
+                          ? "bg-amber-100 text-amber-700"
+                          : "bg-emerald-100 text-emerald-700"
+                      }`}
+                    >
+                      {aiReviewMutation.data.overall_risk} risk
+                    </span>
+                  </div>
+
+                  <p className="text-sm text-foreground leading-relaxed">
+                    {aiReviewMutation.data.summary}
+                  </p>
+
+                  {aiReviewMutation.data.flags.length === 0 ? (
+                    <div className="flex items-center gap-2 text-xs text-emerald-700">
+                      <CheckCircle size={14} /> No issues flagged. This contract looks solid.
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {aiReviewMutation.data.flags.map((flag, idx) => (
+                        <div
+                          key={idx}
+                          className={`rounded-xl border px-4 py-3 ${
+                            flag.severity === "critical"
+                              ? "border-red-200 bg-red-50"
+                              : flag.severity === "warning"
+                              ? "border-amber-200 bg-amber-50"
+                              : "border-[hsl(230,20%,90%)] bg-white"
+                          }`}
+                        >
+                          <div className="flex items-start gap-2">
+                            <AlertTriangle
+                              size={14}
+                              className={`mt-0.5 flex-shrink-0 ${
+                                flag.severity === "critical"
+                                  ? "text-red-600"
+                                  : flag.severity === "warning"
+                                  ? "text-amber-600"
+                                  : "text-muted-foreground"
+                              }`}
+                            />
+                            <div className="space-y-1 min-w-0">
+                              <p className="text-xs font-semibold text-foreground">
+                                {flag.clause}
+                              </p>
+                              <p className="text-xs text-muted-foreground leading-relaxed">
+                                {flag.issue}
+                              </p>
+                              <p className="text-xs text-foreground leading-relaxed">
+                                <span className="font-medium">Suggestion: </span>
+                                {flag.suggestion}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  <p className="text-[10px] text-muted-foreground">
+                    Generated by {aiReviewMutation.data.model}. AI review is advisory — always have legal counsel review high-value contracts.
+                  </p>
+                </div>
+              )}
+
               <div className="border border-[hsl(230,20%,92%)] rounded-2xl p-6 max-h-[560px] overflow-y-auto bg-[hsl(230,25%,98%)] dark:bg-[hsl(220,18%,12%)]">
                 <pre className="whitespace-pre-wrap text-sm text-foreground leading-7 font-sans">
                   {renderedLegalText}

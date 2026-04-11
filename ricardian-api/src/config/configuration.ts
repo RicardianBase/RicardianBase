@@ -30,4 +30,8 @@ export default () => ({
   cors: {
     origin: parseCorsOrigins(process.env.CORS_ORIGIN),
   },
+  ai: {
+    anthropicApiKey: process.env.ANTHROPIC_API_KEY || '',
+    anthropicModel: process.env.ANTHROPIC_MODEL || 'claude-opus-4-6',
+  },
 });

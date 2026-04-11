@@ -6,6 +6,7 @@ export interface BackendFeatures {
   multi_party_contracts?: boolean;
   contract_jsonld?: boolean;
   contract_mcp_manual_fallback?: boolean;
+  ai_contract_review?: boolean;
 }
 
 export interface HealthStatus {

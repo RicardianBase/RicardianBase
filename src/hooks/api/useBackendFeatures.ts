@@ -19,5 +19,7 @@ export const useBackendFeatures = () => {
       query.data?.features?.contract_jsonld === true,
     supportsContractMcpFallback:
       query.data?.features?.contract_mcp_manual_fallback === true,
+    supportsAiContractReview:
+      query.data?.features?.ai_contract_review === true,
   };
 };

@@ -31,4 +31,6 @@ export const validationSchema = Joi.object({
   JWT_ACCESS_EXPIRY: Joi.string().default('24h'),
   JWT_REFRESH_EXPIRY: Joi.string().default('7d'),
   CORS_ORIGIN: Joi.string().default('http://localhost:8080'),
+  ANTHROPIC_API_KEY: Joi.string().allow('').optional(),
+  ANTHROPIC_MODEL: Joi.string().default('claude-opus-4-6'),
 });

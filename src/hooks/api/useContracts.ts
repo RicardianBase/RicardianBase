@@ -5,8 +5,15 @@ import {
   createContract,
   updateContractStatus,
   deleteContract,
+  aiReviewContract,
   type CreateContractPayload,
 } from "@/api/contracts";
+
+export const useAiContractReview = () =>
+  useMutation({
+    mutationFn: (payload: { text: string; title?: string }) =>
+      aiReviewContract(payload),
+  });
 
 export const useContracts = (params?: {
   status?: string;

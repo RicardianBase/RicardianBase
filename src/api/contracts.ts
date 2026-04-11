@@ -68,3 +68,24 @@ export const updateContractStatus = (id: string, status: string) =>
 
 export const deleteContract = (id: string) =>
   client.delete(`/contracts/${id}`);
+
+export type AiReviewFlagSeverity = 'info' | 'warning' | 'critical';
+
+export interface AiReviewFlag {
+  severity: AiReviewFlagSeverity;
+  clause: string;
+  issue: string;
+  suggestion: string;
+}
+
+export interface AiReviewResult {
+  summary: string;
+  overall_risk: 'low' | 'medium' | 'high';
+  flags: AiReviewFlag[];
+  model: string;
+}
+
+export const aiReviewContract = (payload: { text: string; title?: string }) =>
+  client
+    .post<ApiResponse<AiReviewResult>>('/contracts/ai/review', payload)
+    .then((r) => r.data.data);
