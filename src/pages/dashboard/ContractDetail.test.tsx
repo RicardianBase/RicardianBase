@@ -65,6 +65,18 @@ describe("ContractDetail", () => {
       updated_at: "2026-04-10T12:00:00.000Z",
       client: { display_name: "Acme Inc.", username: null },
       contractor: null,
+      participants: [
+        {
+          id: "participant-client",
+          user_id: "client-1",
+          role: "client",
+          wallet_address: null,
+          username: null,
+          payout_split: null,
+          position: 0,
+          user: { display_name: "Acme Inc.", username: null },
+        },
+      ],
       milestones: [
         {
           id: "ms-1",
@@ -143,5 +155,50 @@ describe("ContractDetail", () => {
     await waitFor(() => {
       expect(scrollIntoViewMock).toHaveBeenCalled();
     });
+  });
+
+  it("renders participant roles, splits, and the manual split fallback note", () => {
+    contractMock = {
+      ...contractMock,
+      total_amount: "5000.00",
+      participants: [
+        contractMock.participants[0],
+        {
+          id: "participant-contractor",
+          user_id: "contractor-1",
+          role: "contractor",
+          wallet_address: "0x9999999999999999999999999999999999999999",
+          username: "builder",
+          payout_split: "60.00",
+          position: 1,
+          user: { display_name: "Builder", username: "builder" },
+        },
+        {
+          id: "participant-collaborator",
+          user_id: "contractor-2",
+          role: "collaborator",
+          wallet_address: "0x8888888888888888888888888888888888888888",
+          username: "designer",
+          payout_split: "40.00",
+          position: 2,
+          user: { display_name: "Designer", username: "designer" },
+        },
+      ],
+    };
+
+    render(
+      <MemoryRouter initialEntries={["/dashboard/contracts/contract-123"]}>
+        <Routes>
+          <Route path="/dashboard/contracts/:id" element={<ContractDetail />} />
+        </Routes>
+      </MemoryRouter>,
+    );
+
+    expect(screen.getByText(/stored participant roles and payout splits for this contract/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/builder/i).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/designer/i).length).toBeGreaterThan(0);
+    expect(screen.getByText("60.00%")).toBeInTheDocument();
+    expect(screen.getByText("40.00%")).toBeInTheDocument();
+    expect(screen.getByText(/escrow release still follows the primary contractor compatibility path/i)).toBeInTheDocument();
   });
 });

@@ -3,9 +3,10 @@ name: ricardian-api
 services:
   - name: api
     github:
-      repo: your-org/ricardian-api
+      repo: RicardianBase/RicardianBase
       branch: main
       deploy_on_push: true
+    source_dir: ricardian-api
     build_command: npm ci && npm run build
     run_command: node dist/src/main.js
     http_port: 3000
@@ -24,7 +25,7 @@ services:
         type: SECRET
       - key: CORS_ORIGIN
         scope: RUN_TIME
-        value: https://ricardian.app
+        value: https://www.ricardianbase.com,https://ricardianbase.com
       - key: NODE_ENV
         scope: RUN_TIME
         value: production
@@ -41,8 +42,9 @@ databases:
 jobs:
   - name: migrate
     github:
-      repo: your-org/ricardian-api
+      repo: RicardianBase/RicardianBase
       branch: main
+    source_dir: ricardian-api
     build_command: npm ci && npm run build
     run_command: npm run migration:run:prod
     kind: PRE_DEPLOY

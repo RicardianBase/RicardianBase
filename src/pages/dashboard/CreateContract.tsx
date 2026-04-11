@@ -12,6 +12,7 @@ import {
 import { Link, useNavigate } from "react-router-dom";
 import { useInViewAnimation } from "@/hooks/useInViewAnimation";
 import { useCreateContract } from "@/hooks/api/useContracts";
+import { useBackendFeatures } from "@/hooks/api/useBackendFeatures";
 import { resolveUser, type ResolvedUser } from "@/api/users";
 import { useWallet } from "@/contexts/WalletContext";
 import { downloadContractPdf } from "@/lib/contractPdf";
@@ -23,6 +24,8 @@ import {
   type TemplateFieldDefinition,
   type TemplateFormValues,
 } from "@/lib/contractTemplates";
+import { isResolvableUsername, normalizeUsername } from "@/lib/username";
+import type { ContractParticipantRole } from "@/types/api";
 
 const steps = ["Template", "Details", "Milestones", "Review"];
 
@@ -31,6 +34,25 @@ interface EditableMilestone {
   title: string;
   amount: string;
 }
+
+interface EditableParticipant {
+  id: string;
+  role: ContractParticipantRole;
+  identifier: string;
+  walletAddress: string;
+  payoutSplit: string;
+  resolvedUser: ResolvedUser | null;
+  resolving: boolean;
+  resolveError: string | null;
+}
+
+const splitEligibleRoles: ContractParticipantRole[] = ["contractor", "collaborator"];
+const participantRoleOptions: Array<{ value: ContractParticipantRole; label: string }> = [
+  { value: "contractor", label: "Contractor" },
+  { value: "collaborator", label: "Collaborator" },
+  { value: "reviewer", label: "Reviewer" },
+  { value: "observer", label: "Observer" },
+];
 
 function todayIsoDate(): string {
   return new Date().toISOString().slice(0, 10);
@@ -42,6 +64,30 @@ function createMilestoneId(): string {
   }
 
   return `milestone-${Math.random().toString(36).slice(2, 10)}`;
+}
+
+function createParticipantId(): string {
+  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+    return crypto.randomUUID();
+  }
+
+  return `participant-${Math.random().toString(36).slice(2, 10)}`;
+}
+
+function createEditableParticipant(
+  role: ContractParticipantRole = "contractor",
+  payoutSplit = role === "contractor" ? "100" : "0",
+): EditableParticipant {
+  return {
+    id: createParticipantId(),
+    role,
+    identifier: "",
+    walletAddress: "",
+    payoutSplit,
+    resolvedUser: null,
+    resolving: false,
+    resolveError: null,
+  };
 }
 
 function getTemplateMilestones(template: ContractTemplateDefinition): EditableMilestone[] {
@@ -62,19 +108,72 @@ function getCurrentUserLabel(user: ReturnType<typeof useWallet>["user"]): string
 }
 
 function getContractorLabel(args: {
-  resolvedUser: ResolvedUser | null;
-  contractorInput: string;
-  contractorWallet: string;
+  resolvedUser?: ResolvedUser | null;
+  contractorInput?: string;
+  contractorWallet?: string;
 }): string {
   if (args.resolvedUser?.display_name) return args.resolvedUser.display_name;
   if (args.resolvedUser?.username) return `@${args.resolvedUser.username}`;
 
-  const raw = args.contractorInput.trim() || args.contractorWallet.trim();
+  const raw = args.contractorInput?.trim() || args.contractorWallet?.trim() || "";
   if (!raw) return "Unassigned Contractor";
   if (raw.startsWith("0x") && raw.length > 10) {
     return `${raw.slice(0, 6)}...${raw.slice(-4)}`;
   }
   return raw.startsWith("@") ? raw : raw;
+}
+
+function isSplitEligible(role: ContractParticipantRole): boolean {
+  return splitEligibleRoles.includes(role);
+}
+
+function getParticipantRoleLabel(role: ContractParticipantRole): string {
+  return participantRoleOptions.find((option) => option.value === role)?.label ?? role;
+}
+
+function getParticipantLabel(participant: EditableParticipant): string {
+  return getContractorLabel({
+    resolvedUser: participant.resolvedUser,
+    contractorInput: participant.identifier,
+    contractorWallet: participant.walletAddress,
+  });
+}
+
+function buildParticipantsAppendix(args: {
+  clientLabel: string;
+  participants: EditableParticipant[];
+  totalAmount: number;
+}): string {
+  const activeParticipants = args.participants.filter(
+    (participant) =>
+      participant.identifier.trim() ||
+      participant.walletAddress.trim() ||
+      participant.resolvedUser,
+  );
+
+  if (activeParticipants.length === 0) {
+    return "";
+  }
+
+  const lines = [
+    "",
+    "Additional Participants & Split Schedule",
+    `- Client: ${args.clientLabel}`,
+    ...activeParticipants.map((participant) => {
+      const splitLabel = isSplitEligible(participant.role)
+        ? `${parseFloat(participant.payoutSplit || "0").toFixed(2)}%`
+        : "Non-payout role";
+      return `- ${getParticipantRoleLabel(participant.role)}: ${getParticipantLabel(participant)} (${splitLabel})`;
+    }),
+  ];
+
+  if (args.totalAmount > 0 && activeParticipants.filter((participant) => isSplitEligible(participant.role)).length > 1) {
+    lines.push(
+      "- Split execution note: milestone escrow still settles through the legacy primary contractor path in this release; additional participant splits are tracked for manual settlement.",
+    );
+  }
+
+  return lines.join("\n");
 }
 
 function formatCurrency(amount: number): string {
@@ -105,6 +204,9 @@ const CreateContract = () => {
   const [resolvedUser, setResolvedUser] = useState<ResolvedUser | null>(null);
   const [resolving, setResolving] = useState(false);
   const [resolveError, setResolveError] = useState<string | null>(null);
+  const [participants, setParticipants] = useState<EditableParticipant[]>([
+    createEditableParticipant(),
+  ]);
   const [milestones, setMilestones] = useState<EditableMilestone[]>(
     getTemplateMilestones(templateLibrary[0]),
   );
@@ -114,6 +216,7 @@ const CreateContract = () => {
   const navigate = useNavigate();
   const createMutation = useCreateContract();
   const { user } = useWallet();
+  const { supportsMultiPartyContracts, supportsUserResolution } = useBackendFeatures();
 
   useEffect(() => {
     setTemplateValues(getInitialTemplateValues(currentTemplate.fields));
@@ -136,12 +239,16 @@ const CreateContract = () => {
       return;
     }
 
-    const normalized = input.startsWith("@") ? input.slice(1) : input;
+    const normalized = input.startsWith("@") ? normalizeUsername(input) : input;
     const isEthAddress = /^0x[a-fA-F0-9]{40}$/.test(normalized);
-    const isUsername = /^[a-zA-Z0-9_-]{3,30}$/.test(normalized);
+    const isUsername = supportsUserResolution && isResolvableUsername(normalized);
 
     if (!isEthAddress && !isUsername) {
-      setResolveError("Enter a valid wallet address (0x...) or username");
+      setResolveError(
+        supportsUserResolution
+          ? "Enter a valid wallet address (0x...) or username"
+          : "Enter a valid wallet address (0x...)",
+      );
       setResolvedUser(null);
       setContractorWallet("");
       return;
@@ -158,28 +265,114 @@ const CreateContract = () => {
         setContractorWallet("");
       } else {
         setResolvedUser(userResult);
-        setContractorWallet(
-          isEthAddress
-            ? normalized
-            : `@${userResult.username || normalized}`,
-        );
+        setContractorWallet(userResult.walletAddress);
       }
     } catch {
       if (isEthAddress) {
         setContractorWallet(normalized);
         setResolvedUser(null);
         setResolveError(null);
-      } else {
+      } else if (supportsUserResolution) {
         setResolveError("Username not found on Ricardian");
         setContractorWallet("");
       }
     } finally {
       setResolving(false);
     }
-  }, [contractorInput]);
+  }, [contractorInput, supportsUserResolution]);
+
+  const updateParticipant = useCallback(
+    (participantId: string, updater: (current: EditableParticipant) => EditableParticipant) => {
+      setParticipants((current) =>
+        current.map((participant) =>
+          participant.id === participantId ? updater(participant) : participant,
+        ),
+      );
+    },
+    [],
+  );
+
+  const handleParticipantBlur = useCallback(
+    async (participantId: string) => {
+      const participant = participants.find((current) => current.id === participantId);
+      if (!participant) return;
+
+      const input = participant.identifier.trim();
+      if (!input) {
+        updateParticipant(participantId, (current) => ({
+          ...current,
+          walletAddress: "",
+          resolvedUser: null,
+          resolveError: null,
+          resolving: false,
+        }));
+        return;
+      }
+
+      const normalized = input.startsWith("@") ? normalizeUsername(input) : input;
+      const isEthAddress = /^0x[a-fA-F0-9]{40}$/.test(normalized);
+      const isUsername = supportsUserResolution && isResolvableUsername(normalized);
+
+      if (!isEthAddress && !isUsername) {
+        updateParticipant(participantId, (current) => ({
+          ...current,
+          resolvedUser: null,
+          walletAddress: "",
+          resolveError: supportsUserResolution
+            ? "Enter a valid wallet address (0x...) or username"
+            : "Enter a valid wallet address (0x...)",
+          resolving: false,
+        }));
+        return;
+      }
+
+      updateParticipant(participantId, (current) => ({
+        ...current,
+        resolving: true,
+        resolveError: null,
+        resolvedUser: null,
+      }));
+
+      try {
+        const userResult = await resolveUser(normalized);
+        updateParticipant(participantId, (current) => ({
+          ...current,
+          resolvedUser: userResult,
+          walletAddress: userResult.walletAddress ?? "",
+          resolveError: null,
+          resolving: false,
+        }));
+      } catch {
+        if (isEthAddress) {
+          updateParticipant(participantId, (current) => ({
+            ...current,
+            walletAddress: normalized,
+            resolvedUser: null,
+            resolveError: null,
+            resolving: false,
+          }));
+        } else {
+          updateParticipant(participantId, (current) => ({
+            ...current,
+            walletAddress: "",
+            resolveError: "Username not found on Ricardian",
+            resolving: false,
+          }));
+        }
+      }
+    },
+    [participants, supportsUserResolution, updateParticipant],
+  );
 
   const updateTemplateValue = (name: string, value: string) => {
     setTemplateValues((current) => ({ ...current, [name]: value }));
+  };
+
+  const addParticipant = () =>
+    setParticipants((current) => [...current, createEditableParticipant("collaborator", "0")]);
+
+  const removeParticipant = (participantId: string) => {
+    setParticipants((current) => current.filter((participant) => participant.id !== participantId));
   };
 
   const addMilestone = () =>
@@ -217,13 +410,50 @@ const CreateContract = () => {
   );
 
   const clientLabel = getCurrentUserLabel(user);
+  const activeParticipants = participants.filter(
+    (participant) =>
+      participant.identifier.trim() ||
+      participant.walletAddress.trim() ||
+      participant.resolvedUser,
+  );
+  const payoutParticipants = activeParticipants.filter((participant) =>
+    isSplitEligible(participant.role),
+  );
+  const payoutSplitTotal = payoutParticipants.reduce(
+    (sum, participant) => sum + (parseFloat(participant.payoutSplit) || 0),
+    0,
+  );
+  const hasValidParticipantEntries = activeParticipants.every(
+    (participant) =>
+      !participant.resolving &&
+      !participant.resolveError &&
+      (!!participant.walletAddress || !!participant.resolvedUser),
+  );
+  const hasValidSplitConfiguration =
+    totalAmount <= 0 ||
+    payoutParticipants.length === 0 ||
+    (payoutParticipants.every(
+      (participant) =>
+        participant.payoutSplit.trim() !== "" &&
+        !Number.isNaN(parseFloat(participant.payoutSplit)),
+    ) &&
+      Math.abs(payoutSplitTotal - 100) < 0.001);
+  const primaryParticipant = activeParticipants.find((participant) =>
+    isSplitEligible(participant.role),
+  );
   const contractorLabel = getContractorLabel({
-    resolvedUser,
-    contractorInput,
-    contractorWallet,
+    resolvedUser: supportsMultiPartyContracts
+      ? primaryParticipant?.resolvedUser ?? null
+      : resolvedUser,
+    contractorInput: supportsMultiPartyContracts
+      ? primaryParticipant?.identifier ?? ""
+      : contractorInput,
+    contractorWallet: supportsMultiPartyContracts
+      ? primaryParticipant?.walletAddress ?? ""
+      : contractorWallet,
   });
 
-  const renderedLegalText = currentTemplate.renderLegalText(
+  const renderedLegalTextBase = currentTemplate.renderLegalText(
     templateValues,
     {
       contractTitle: title.trim() || currentTemplate.title,
@@ -237,6 +467,11 @@ const CreateContract = () => {
     },
     validMilestones,
   );
+  const renderedLegalText = `${renderedLegalTextBase}${supportsMultiPartyContracts ? buildParticipantsAppendix({
+    clientLabel,
+    participants,
+    totalAmount,
+  }) : ""}`;
 
   const missingRequiredFields = currentTemplate.fields.some(
     (field) => field.required && !templateValues[field.name]?.trim(),
@@ -250,17 +485,46 @@ const CreateContract = () => {
         !Number.isNaN(parseFloat(milestone.amount)),
     );
   const canContinueFromDetails =
-    title.trim() && effectiveDate && !missingRequiredFields;
-  const canSubmit = !!title.trim() && !!effectiveDate && !missingRequiredFields && hasValidMilestones;
+    title.trim() &&
+    effectiveDate &&
+    !missingRequiredFields &&
+    (supportsMultiPartyContracts
+      ? hasValidParticipantEntries && hasValidSplitConfiguration
+      : (!contractorInput.trim() || (!!contractorWallet && !resolveError && !resolving)));
+  const canSubmit =
+    !!title.trim() &&
+    !!effectiveDate &&
+    !missingRequiredFields &&
+    hasValidMilestones &&
+    (supportsMultiPartyContracts
+      ? hasValidParticipantEntries && hasValidSplitConfiguration
+      : (!contractorInput.trim() || (!!contractorWallet && !resolveError && !resolving)));
 
   const handleCreate = async () => {
     if (!canSubmit) return;
 
     try {
+      const participantPayload = supportsMultiPartyContracts
+        ? activeParticipants.map((participant) => ({
+            role: participant.role,
+            wallet_address: participant.walletAddress || undefined,
+            username: participant.resolvedUser?.username
+              ?? (participant.identifier.trim().startsWith("@")
+                ? normalizeUsername(participant.identifier)
+                : undefined),
+            payout_split: isSplitEligible(participant.role)
+              ? parseFloat(participant.payoutSplit) || 0
+              : undefined,
+          }))
+        : undefined;
+
       const contract = await createMutation.mutateAsync({
         title: title.trim(),
         description: renderedLegalText,
-        contractor_wallet: contractorWallet || undefined,
+        contractor_wallet: supportsMultiPartyContracts
+          ? primaryParticipant?.walletAddress || undefined
+          : contractorWallet || undefined,
+        participants: participantPayload,
         total_amount: totalAmount,
         currency: "USDC",
         start_date: effectiveDate || undefined,
@@ -430,49 +694,246 @@ const CreateContract = () => {
                 </div>
               </div>
 
-              <div>
-                <label htmlFor="contractor-input" className="text-xs text-muted-foreground mb-1.5 block">
-                  Contractor (wallet address or @username)
-                </label>
-                <div className="relative">
-                  <input
-                    id="contractor-input"
-                    type="text"
-                    placeholder="0x... or @username"
-                    value={contractorInput}
-                    onChange={(event) => {
-                      setContractorInput(event.target.value);
-                      setResolvedUser(null);
-                      setResolveError(null);
-                    }}
-                    onBlur={handleContractorBlur}
-                    className={`w-full border rounded-xl px-4 py-2.5 text-sm text-foreground bg-white dark:bg-[hsl(220,18%,13%)] outline-none focus:ring-2 transition-shadow pr-10 ${
-                      resolveError
-                        ? "border-red-300 focus:ring-red-500/30"
-                        : resolvedUser
-                        ? "border-emerald-300 focus:ring-emerald-500/30"
-                        : "border-[hsl(230,20%,90%)] dark:border-[hsl(220,15%,25%)] focus:ring-emerald-500/30"
-                    }`}
-                  />
-                  <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                    {resolving && <Loader2 size={16} className="text-muted-foreground animate-spin" />}
-                    {!resolving && resolvedUser && <CheckCircle size={16} className="text-emerald-500" />}
-                    {!resolving && resolveError && <XCircle size={16} className="text-red-400" />}
+              {supportsMultiPartyContracts ? (
+                <div className="space-y-4">
+                  <div>
+                    <p className="text-sm font-medium text-foreground">Participants</p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Keep yourself locked as the client, then add payout participants, reviewers, or observers. Splits are stored now and anything beyond the primary contractor settles manually for this release.
+                    </p>
                   </div>
+
+                  <div className="rounded-2xl border border-[hsl(230,20%,92%)] bg-[hsl(230,25%,97%)] px-4 py-4">
+                    <div className="grid grid-cols-1 md:grid-cols-[140px_minmax(0,1fr)_140px] gap-3">
+                      <div>
+                        <p className="text-[10px] text-muted-foreground uppercase tracking-[0.12em]">Role</p>
+                        <p className="text-sm font-medium text-foreground mt-2">Client</p>
+                      </div>
+                      <div>
+                        <p className="text-[10px] text-muted-foreground uppercase tracking-[0.12em]">Participant</p>
+                        <p className="text-sm font-medium text-foreground mt-2">{clientLabel}</p>
+                      </div>
+                      <div>
+                        <p className="text-[10px] text-muted-foreground uppercase tracking-[0.12em]">Payout Split</p>
+                        <p className="text-sm font-medium text-muted-foreground mt-2">Not applicable</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-3">
+                    {participants.map((participant, index) => (
+                      <div
+                        key={participant.id}
+                        className="rounded-2xl border border-[hsl(230,20%,92%)] bg-[hsl(230,25%,97%)] px-4 py-4"
+                      >
+                        <div className="grid grid-cols-1 lg:grid-cols-[140px_minmax(0,1fr)_140px_auto] gap-3">
+                          <div>
+                            <label
+                              htmlFor={`participant-role-${participant.id}`}
+                              className="text-[10px] text-muted-foreground uppercase tracking-[0.12em] mb-1.5 block"
+                            >
+                              Participant {index + 1} Role
+                            </label>
+                            <select
+                              id={`participant-role-${participant.id}`}
+                              value={participant.role}
+                              onChange={(event) => {
+                                const nextRole = event.target.value as ContractParticipantRole;
+                                updateParticipant(participant.id, (current) => ({
+                                  ...current,
+                                  role: nextRole,
+                                  payoutSplit: isSplitEligible(nextRole)
+                                    ? current.payoutSplit || "0"
+                                    : "0",
+                                }));
+                              }}
+                              className="w-full border border-[hsl(230,20%,90%)] rounded-xl px-3 py-2.5 text-sm text-foreground bg-white outline-none focus:ring-2 focus:ring-emerald-500/30"
+                            >
+                              {participantRoleOptions.map((option) => (
+                                <option key={option.value} value={option.value}>
+                                  {option.label}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+
+                          <div>
+                            <label
+                              htmlFor={`participant-input-${participant.id}`}
+                              className="text-[10px] text-muted-foreground uppercase tracking-[0.12em] mb-1.5 block"
+                            >
+                              Participant {index + 1} {supportsUserResolution ? "(wallet address or @username)" : "wallet address"}
+                            </label>
+                            <div className="relative">
+                              <input
+                                id={`participant-input-${participant.id}`}
+                                type="text"
+                                placeholder={supportsUserResolution ? "0x... or @username" : "0x..."}
+                                value={participant.identifier}
+                                onChange={(event) =>
+                                  updateParticipant(participant.id, (current) => ({
+                                    ...current,
+                                    identifier: event.target.value,
+                                    walletAddress: "",
+                                    resolvedUser: null,
+                                    resolveError: null,
+                                  }))
+                                }
+                                onBlur={() => void handleParticipantBlur(participant.id)}
+                                className={`w-full border rounded-xl px-4 py-2.5 text-sm text-foreground bg-white outline-none focus:ring-2 transition-shadow pr-10 ${
+                                  participant.resolveError
+                                    ? "border-red-300 focus:ring-red-500/30"
+                                    : participant.resolvedUser
+                                    ? "border-emerald-300 focus:ring-emerald-500/30"
+                                    : "border-[hsl(230,20%,90%)] focus:ring-emerald-500/30"
+                                }`}
+                              />
+                              <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                                {participant.resolving && (
+                                  <Loader2 size={16} className="text-muted-foreground animate-spin" />
+                                )}
+                                {!participant.resolving && participant.resolvedUser && (
+                                  <CheckCircle size={16} className="text-emerald-500" />
+                                )}
+                                {!participant.resolving && participant.resolveError && (
+                                  <XCircle size={16} className="text-red-400" />
+                                )}
+                              </div>
+                            </div>
+                            {participant.resolvedUser && (
+                              <p className="text-[10px] text-emerald-600 mt-1">
+                                Resolved to {participant.resolvedUser.username ? `@${participant.resolvedUser.username}` : "user"}
+                                {participant.resolvedUser.walletAddress
+                                  ? ` — ${participant.resolvedUser.walletAddress.slice(0, 6)}...${participant.resolvedUser.walletAddress.slice(-4)}`
+                                  : " — wallet optional for this participant"}
+                              </p>
+                            )}
+                            {participant.resolveError && (
+                              <p className="text-[10px] text-red-500 mt-1">{participant.resolveError}</p>
+                            )}
+                            {!participant.resolvedUser && !participant.resolveError && !participant.resolving && (
+                              <p className="text-[10px] text-muted-foreground/60 mt-1">
+                                {supportsUserResolution
+                                  ? "Use a Ricardian username or 0x wallet address. Leave blank to remove this row from the contract."
+                                  : "Use a 0x wallet address. Leave blank to remove this row from the contract."}
+                              </p>
+                            )}
+                          </div>
+
+                          <div>
+                            <label
+                              htmlFor={`participant-split-${participant.id}`}
+                              className="text-[10px] text-muted-foreground uppercase tracking-[0.12em] mb-1.5 block"
+                            >
+                              Payout Split (%)
+                            </label>
+                            <input
+                              id={`participant-split-${participant.id}`}
+                              type="number"
+                              min="0"
+                              max="100"
+                              step="0.01"
+                              disabled={!isSplitEligible(participant.role)}
+                              value={participant.payoutSplit}
+                              onChange={(event) =>
+                                updateParticipant(participant.id, (current) => ({
+                                  ...current,
+                                  payoutSplit: event.target.value,
+                                }))
+                              }
+                              className="w-full border border-[hsl(230,20%,90%)] rounded-xl px-4 py-2.5 text-sm text-foreground bg-white outline-none focus:ring-2 focus:ring-emerald-500/30 disabled:opacity-50"
+                            />
+                          </div>
+
+                          <div className="flex items-end justify-end">
+                            <button
+                              type="button"
+                              onClick={() => removeParticipant(participant.id)}
+                              className="inline-flex items-center gap-1.5 text-xs text-muted-foreground border border-[hsl(230,20%,88%)] rounded-xl px-3 py-2.5 hover:bg-white transition-colors"
+                            >
+                              <Trash2 size={12} /> Remove
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={addParticipant}
+                    className="w-full flex items-center justify-center gap-1.5 text-xs text-muted-foreground border border-dashed border-[hsl(230,20%,85%)] rounded-xl py-3 hover:bg-[hsl(230,25%,96%)] transition-colors"
+                  >
+                    <Plus size={14} /> Add Participant
+                  </button>
+
+                  {totalAmount > 0 && payoutParticipants.length > 0 && (
+                    <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[hsl(230,20%,92%)] bg-[hsl(230,25%,98%)] px-4 py-3">
+                      <div>
+                        <p className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
+                          Split Total
+                        </p>
+                        <p className="text-sm font-medium text-foreground mt-1">
+                          {payoutSplitTotal.toFixed(2)}%
+                        </p>
+                      </div>
+                      {!hasValidSplitConfiguration && (
+                        <p className="text-xs text-red-500">
+                          Payout participants must add up to 100%.
+                        </p>
+                      )}
+                    </div>
+                  )}
                 </div>
-                {resolvedUser && (
-                  <p className="text-[10px] text-emerald-600 mt-1">
-                    Resolved to {resolvedUser.username ? `@${resolvedUser.username}` : "user"} —{" "}
-                    {resolvedUser.walletAddress?.slice(0, 6)}...{resolvedUser.walletAddress?.slice(-4)}
-                  </p>
-                )}
-                {resolveError && <p className="text-[10px] text-red-500 mt-1">{resolveError}</p>}
-                {!resolvedUser && !resolveError && !resolving && (
-                  <p className="text-[10px] text-muted-foreground/60 mt-1">
-                    Enter a Ricardian username or 0x wallet address. Leave empty to assign later.
-                  </p>
-                )}
-              </div>
+              ) : (
+                <div>
+                  <label htmlFor="contractor-input" className="text-xs text-muted-foreground mb-1.5 block">
+                    {supportsUserResolution
+                      ? "Contractor (wallet address or @username)"
+                      : "Contractor wallet address"}
+                  </label>
+                  <div className="relative">
+                    <input
+                      id="contractor-input"
+                      type="text"
+                      placeholder={supportsUserResolution ? "0x... or @username" : "0x..."}
+                      value={contractorInput}
+                      onChange={(event) => {
+                        setContractorInput(event.target.value);
+                        setResolvedUser(null);
+                        setResolveError(null);
+                      }}
+                      onBlur={handleContractorBlur}
+                      className={`w-full border rounded-xl px-4 py-2.5 text-sm text-foreground bg-white dark:bg-[hsl(220,18%,13%)] outline-none focus:ring-2 transition-shadow pr-10 ${
+                        resolveError
+                          ? "border-red-300 focus:ring-red-500/30"
+                          : resolvedUser
+                          ? "border-emerald-300 focus:ring-emerald-500/30"
+                          : "border-[hsl(230,20%,90%)] dark:border-[hsl(220,15%,25%)] focus:ring-emerald-500/30"
+                      }`}
+                    />
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                      {resolving && <Loader2 size={16} className="text-muted-foreground animate-spin" />}
+                      {!resolving && resolvedUser && <CheckCircle size={16} className="text-emerald-500" />}
+                      {!resolving && resolveError && <XCircle size={16} className="text-red-400" />}
+                    </div>
+                  </div>
+                  {resolvedUser && (
+                    <p className="text-[10px] text-emerald-600 mt-1">
+                      Resolved to {resolvedUser.username ? `@${resolvedUser.username}` : "user"} —{" "}
+                      {resolvedUser.walletAddress?.slice(0, 6)}...{resolvedUser.walletAddress?.slice(-4)}
+                    </p>
+                  )}
+                  {resolveError && <p className="text-[10px] text-red-500 mt-1">{resolveError}</p>}
+                  {!resolvedUser && !resolveError && !resolving && (
+                    <p className="text-[10px] text-muted-foreground/60 mt-1">
+                      {supportsUserResolution
+                        ? "Enter a Ricardian username or 0x wallet address. Leave empty to assign later."
+                        : "Enter a 0x wallet address. Leave empty to assign later."}
+                    </p>
+                  )}
+                </div>
+              )}
 
               <div>
                 <label htmlFor="business-context" className="text-xs text-muted-foreground mb-1.5 block">
@@ -540,9 +1001,19 @@ const CreateContract = () => {
                   <span className="text-foreground font-medium text-right">{clientLabel}</span>
                 </div>
                 <div className="flex justify-between gap-4">
-                  <span className="text-muted-foreground">Contractor</span>
+                  <span className="text-muted-foreground">
+                    {supportsMultiPartyContracts ? "Primary payee" : "Contractor"}
+                  </span>
                   <span className="text-foreground font-medium text-right">{contractorLabel}</span>
                 </div>
+                {supportsMultiPartyContracts && (
+                  <div className="flex justify-between gap-4">
+                    <span className="text-muted-foreground">Participants</span>
+                    <span className="text-foreground font-medium">
+                      {activeParticipants.length + 1}
+                    </span>
+                  </div>
+                )}
                 <div className="flex justify-between gap-4">
                   <span className="text-muted-foreground">Effective date</span>
                   <span className="text-foreground font-medium">{effectiveDate || "—"}</span>
@@ -646,9 +1117,32 @@ const CreateContract = () => {
                   <span className="text-foreground font-medium text-right">{title || "—"}</span>
                 </div>
                 <div className="flex justify-between gap-4">
-                  <span className="text-muted-foreground">Counterparty</span>
+                  <span className="text-muted-foreground">
+                    {supportsMultiPartyContracts ? "Primary payee" : "Counterparty"}
+                  </span>
                   <span className="text-foreground font-medium text-right">{contractorLabel}</span>
                 </div>
+                {supportsMultiPartyContracts && (
+                  <div className="flex justify-between gap-4">
+                    <span className="text-muted-foreground">Participants</span>
+                    <span className="text-foreground font-medium">
+                      {activeParticipants.length + 1}
+                    </span>
+                  </div>
+                )}
+                {supportsMultiPartyContracts && totalAmount > 0 && payoutParticipants.length > 0 && (
+                  <div className="flex justify-between gap-4">
+                    <span className="text-muted-foreground">Payout Split</span>
+                    <span className="text-foreground font-medium">
+                      {payoutSplitTotal.toFixed(2)}%
+                    </span>
+                  </div>
+                )}
+                {supportsMultiPartyContracts && payoutParticipants.length > 1 && (
+                  <div className="rounded-xl bg-[hsl(40,80%,96%)] px-3 py-3 text-xs text-[hsl(35,70%,32%)]">
+                    Additional split participants are recorded now and settle manually beyond the primary contractor escrow path.
+                  </div>
+                )}
                 <div className="flex justify-between gap-4">
                   <span className="text-muted-foreground">Milestones</span>
                   <span className="text-foreground font-medium">{validMilestones.length}</span>
@@ -664,6 +1158,26 @@ const CreateContract = () => {
                   </span>
                 </div>
               </div>
+              {supportsMultiPartyContracts && activeParticipants.length > 0 && (
+                <div className="mt-4 space-y-2 rounded-xl border border-[hsl(230,20%,92%)] bg-white/80 px-4 py-4">
+                  <p className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
+                    Participant Roster
+                  </p>
+                  {activeParticipants.map((participant) => (
+                    <div key={participant.id} className="flex items-start justify-between gap-3 text-xs">
+                      <div>
+                        <p className="font-medium text-foreground">{getParticipantLabel(participant)}</p>
+                        <p className="text-muted-foreground">{getParticipantRoleLabel(participant.role)}</p>
+                      </div>
+                      <span className="text-foreground">
+                        {isSplitEligible(participant.role)
+                          ? `${(parseFloat(participant.payoutSplit) || 0).toFixed(2)}%`
+                          : "No split"}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
               {createMutation.isError && (
                 <p className="text-sm text-red-500 mt-4">
                   Failed to create contract. Please try again.

@@ -1,3 +1,16 @@
+function parseCorsOrigins(value: string | undefined): string[] {
+  if (!value) {
+    return ['http://localhost:8080'];
+  }
+
+  const origins = value
+    .split(',')
+    .map((origin) => origin.trim())
+    .filter(Boolean);
+
+  return origins.length > 0 ? origins : ['http://localhost:8080'];
+}
+
 export default () => ({
   port: parseInt(process.env.PORT || '3000', 10),
   nodeEnv: process.env.NODE_ENV || 'development',
@@ -15,6 +28,6 @@ export default () => ({
     refreshExpiry: process.env.JWT_REFRESH_EXPIRY || '7d',
   },
   cors: {
-    origin: process.env.CORS_ORIGIN || 'http://localhost:8080',
+    origin: parseCorsOrigins(process.env.CORS_ORIGIN),
   },
 });

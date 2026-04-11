@@ -1,11 +1,24 @@
 import client from './client';
-import type { Contract, ApiResponse } from '@/types/api';
+import type {
+  Contract,
+  ContractParticipantRole,
+  ApiResponse,
+} from '@/types/api';
+
+export interface CreateContractParticipantPayload {
+  role: ContractParticipantRole;
+  user_id?: string;
+  wallet_address?: string;
+  username?: string;
+  payout_split?: number;
+}
 
 export interface CreateContractPayload {
   title: string;
   description?: string;
   template_id?: string;
   contractor_wallet?: string;
+  participants?: CreateContractParticipantPayload[];
   total_amount: number;
   currency?: string;
   start_date?: string;

@@ -12,6 +12,7 @@ import {
 import { User } from '../../users/entities/user.entity';
 import { ContractTemplate } from './contract-template.entity';
 import { Milestone } from '../../milestones/entities/milestone.entity';
+import { ContractParticipant } from './contract-participant.entity';
 
 export enum ContractStatus {
   DRAFT = 'draft',
@@ -92,4 +93,9 @@ export class Contract {
     cascade: true,
   })
   milestones!: Milestone[];
+
+  @OneToMany(() => ContractParticipant, (participant) => participant.contract, {
+    cascade: true,
+  })
+  participants!: ContractParticipant[];
 }

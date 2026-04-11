@@ -15,6 +15,7 @@ import {
 } from '../activity/activity.service';
 import { CreateDisputeDto } from './dto/create-dispute.dto';
 import { PaginationDto } from '../common/dto/pagination.dto';
+import { hasContractAccess } from '../contracts/utils/contract-participants';
 
 const STATUS_TRANSITIONS: Record<DisputeStatus, DisputeStatus[]> = {
   [DisputeStatus.UNDER_REVIEW]: [
@@ -46,14 +47,14 @@ export class DisputesService {
   async create(userId: string, dto: CreateDisputeDto): Promise<Dispute> {
     const contract = await this.contractRepo.findOne({
       where: { id: dto.contract_id },
-      relations: ['milestones'],
+      relations: ['milestones', 'participants'],
     });
 
     if (!contract) {
       throw new NotFoundException('Contract not found');
     }
 
-    if (contract.client_id !== userId && contract.contractor_id !== userId) {
+    if (!hasContractAccess(contract, userId)) {
       throw new ForbiddenException('You are not a party to this contract');
     }
 
@@ -115,7 +116,7 @@ export class DisputesService {
       .createQueryBuilder('dispute')
       .innerJoin('contracts', 'contract', 'contract.id = dispute.contract_id')
       .where(
-        '(dispute.initiated_by = :userId OR contract.client_id = :userId OR contract.contractor_id = :userId)',
+        '(dispute.initiated_by = :userId OR contract.client_id = :userId OR contract.contractor_id = :userId OR EXISTS (SELECT 1 FROM contract_participants cp WHERE cp.contract_id = contract.id AND cp.user_id = :userId))',
         { userId },
       );
 
@@ -149,14 +150,10 @@ export class DisputesService {
 
     const contract = await this.contractRepo.findOne({
       where: { id: dispute.contract_id },
+      relations: ['participants'],
     });
 
-    if (
-      !contract ||
-      (dispute.initiated_by !== userId &&
-        contract.client_id !== userId &&
-        contract.contractor_id !== userId)
-    ) {
+    if (!contract || (dispute.initiated_by !== userId && !hasContractAccess(contract, userId))) {
       throw new ForbiddenException('You do not have access to this dispute');
     }
 

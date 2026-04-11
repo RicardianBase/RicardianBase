@@ -5,7 +5,7 @@
 - **Platform**: Digital Ocean App Platform
 - **Service**: Node.js (basic-xxs, $5/mo)
 - **Database**: Managed PostgreSQL 16 (db-s-1vcpu-1gb, $15/mo)
-- **App Spec**: `.do/app.yaml`
+- **App Spec**: `.do/app.yaml` (configured for the monorepo `RicardianBase/RicardianBase` with `source_dir: ricardian-api`)
 
 ## Environment Variables
 
@@ -20,7 +20,7 @@
 | `JWT_SECRET` | Yes | Secret for signing JWTs. Must be 32+ characters. |
 | `JWT_ACCESS_EXPIRY` | No | Access token lifetime. Defaults to `24h`. |
 | `JWT_REFRESH_EXPIRY` | No | Refresh token lifetime. Defaults to `7d`. |
-| `CORS_ORIGIN` | No | Allowed CORS origin. Defaults to `http://localhost:8080`. Set to `https://ricardian.app` in production. |
+| `CORS_ORIGIN` | No | Allowed CORS origin(s). Defaults to `http://localhost:8080`. Comma-separated values are supported in production, for example `https://www.ricardianbase.com,https://ricardianbase.com`. |
 | `NODE_ENV` | No | Environment. Defaults to `development`. Set to `production` in prod. |
 | `PORT` | No | Server port. Defaults to `3000`. |
 
@@ -94,8 +94,20 @@ DATABASE_URL="<connection-string>" npm run seed:prod
 
 ```bash
 curl https://your-app.ondigitalocean.app/api/health
-# Expected: {"status":"ok","timestamp":"...","version":"1.0.0"}
+# Expected release 2 shape:
+# {"status":"ok","timestamp":"...","version":"1.0.0","features":{"usernames":true,"user_resolution":true}}
 ```
+
+## Release 2 Rollout
+
+1. Deploy the updated app spec and backend build.
+2. Confirm the pre-deploy migration job completes successfully.
+3. Run the seed step if templates are not already present or if the environment was rebuilt.
+4. Verify `GET /api/health` includes `features.usernames` and `features.user_resolution`.
+5. Verify authenticated `GET /api/users/resolve/:identifier` returns `401` when unauthenticated and resolves by username and wallet when authenticated.
+6. Verify production create-contract succeeds for both:
+   - `@username` input tied to an existing Ricardian profile
+   - raw `0x...` wallet input not yet tied to a Ricardian profile
 
 ## Logs
 

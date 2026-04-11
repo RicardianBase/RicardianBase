@@ -5,6 +5,12 @@ import { DataSource } from 'typeorm';
 import { ContractsService } from './contracts.service';
 import { Contract, ContractStatus } from './entities/contract.entity';
 import { ActivityService } from '../activity/activity.service';
+import { WalletAddress } from '../wallet/entities/wallet-address.entity';
+import { User } from '../users/entities/user.entity';
+import {
+  ContractParticipant,
+  ContractParticipantRole,
+} from './entities/contract-participant.entity';
 
 const CLIENT_ID = 'client-uuid';
 const CONTRACTOR_ID = 'contractor-uuid';
@@ -28,6 +34,7 @@ const mockContract = (overrides: Partial<Contract> = {}): Contract =>
     created_at: new Date(),
     updated_at: new Date(),
     milestones: [],
+    participants: [],
     client: {} as any,
     contractor: {} as any,
     template: null,
@@ -37,6 +44,8 @@ const mockContract = (overrides: Partial<Contract> = {}): Contract =>
 describe('ContractsService', () => {
   let service: ContractsService;
   let contractRepo: Record<string, jest.Mock>;
+  let walletRepo: Record<string, jest.Mock>;
+  let userRepo: Record<string, jest.Mock>;
   let mockQueryRunner: Record<string, any>;
   let mockDataSource: Record<string, any>;
   let activityService: Record<string, jest.Mock>;
@@ -47,6 +56,14 @@ describe('ContractsService', () => {
       save: jest.fn(),
       remove: jest.fn(),
       createQueryBuilder: jest.fn(),
+    };
+
+    walletRepo = {
+      findOne: jest.fn(),
+    };
+
+    userRepo = {
+      findOne: jest.fn(),
     };
 
     mockQueryRunner = {
@@ -80,6 +97,18 @@ describe('ContractsService', () => {
           useValue: contractRepo,
         },
         {
+          provide: getRepositoryToken(WalletAddress),
+          useValue: walletRepo,
+        },
+        {
+          provide: getRepositoryToken(User),
+          useValue: userRepo,
+        },
+        {
+          provide: getRepositoryToken(ContractParticipant),
+          useValue: { findOne: jest.fn() },
+        },
+        {
           provide: DataSource,
           useValue: mockDataSource,
         },
@@ -104,6 +133,12 @@ describe('ContractsService', () => {
         ],
       };
 
+      userRepo.findOne.mockResolvedValue({
+        id: CLIENT_ID,
+        username: 'founder',
+        wallet_addresses: [],
+      });
+      walletRepo.findOne.mockResolvedValue(null);
       contractRepo.findOne.mockResolvedValue(mockContract());
 
       await service.create(CLIENT_ID, dto);
@@ -111,14 +146,74 @@ describe('ContractsService', () => {
       expect(mockQueryRunner.connect).toHaveBeenCalled();
       expect(mockQueryRunner.startTransaction).toHaveBeenCalled();
       expect(mockQueryRunner.commitTransaction).toHaveBeenCalled();
-      // Contract save + milestones save = 2 manager.save calls
-      expect(mockQueryRunner.manager.save).toHaveBeenCalledTimes(2);
+      // Contract save + participants save + milestones save = 3 manager.save calls
+      expect(mockQueryRunner.manager.save).toHaveBeenCalledTimes(3);
       // Activity log via ActivityService with EntityManager
       expect(activityService.log).toHaveBeenCalledWith(
         mockQueryRunner.manager,
         expect.objectContaining({ action: 'contract_created' }),
       );
       expect(mockQueryRunner.release).toHaveBeenCalled();
+    });
+
+    it('links the contractor_id when the wallet belongs to an existing user', async () => {
+      const dto = {
+        title: 'Known Contractor',
+        contractor_wallet: '0x1111111111111111111111111111111111111111',
+        total_amount: 1000,
+        milestones: [{ title: 'Milestone 1', amount: 1000 }],
+      };
+
+      userRepo.findOne.mockResolvedValue({
+        id: CLIENT_ID,
+        username: 'founder',
+        wallet_addresses: [],
+      });
+      walletRepo.findOne.mockResolvedValue({
+        user_id: CONTRACTOR_ID,
+        address: '0xAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
+        user: {
+          id: CONTRACTOR_ID,
+          username: 'builder',
+          wallet_addresses: [],
+        },
+      });
+      contractRepo.findOne.mockResolvedValue(
+        mockContract({
+          contractor_id: CONTRACTOR_ID,
+          contractor_wallet: '0xAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
+          participants: [
+            {
+              id: 'participant-1',
+              role: ContractParticipantRole.CLIENT,
+              user_id: CLIENT_ID,
+              wallet_address: null,
+              username: 'founder',
+              payout_split: null,
+              position: 0,
+            } as ContractParticipant,
+            {
+              id: 'participant-2',
+              role: ContractParticipantRole.CONTRACTOR,
+              user_id: CONTRACTOR_ID,
+              wallet_address: '0xAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
+              username: 'builder',
+              payout_split: '100.00',
+              position: 1,
+            } as ContractParticipant,
+          ],
+        }),
+      );
+
+      await service.create(CLIENT_ID, dto);
+
+      expect(mockQueryRunner.manager.create).toHaveBeenCalledWith(
+        Contract,
+        expect.objectContaining({
+          contractor_id: CONTRACTOR_ID,
+          contractor_wallet: '0xAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
+        }),
+      );
     });
 
     it('should rollback transaction on milestone validation failure', async () => {
@@ -128,13 +223,96 @@ describe('ContractsService', () => {
         milestones: [{ title: 'Milestone 1', amount: 500 }],
       };
 
+      userRepo.findOne.mockResolvedValue({
+        id: CLIENT_ID,
+        username: 'founder',
+        wallet_addresses: [],
+      });
+      walletRepo.findOne.mockResolvedValue(null);
       mockQueryRunner.manager.save
         .mockResolvedValueOnce({ id: CONTRACT_ID }) // contract save
+        .mockResolvedValueOnce([]) // participants save
         .mockRejectedValueOnce(new Error('DB error')); // milestone save fails
 
       await expect(service.create(CLIENT_ID, dto)).rejects.toThrow('DB error');
       expect(mockQueryRunner.rollbackTransaction).toHaveBeenCalled();
       expect(mockQueryRunner.release).toHaveBeenCalled();
+    });
+
+    it('accepts multiple participants and preserves the primary contractor legacy fields', async () => {
+      const dto = {
+        title: 'Launch Team',
+        total_amount: 1000,
+        participants: [
+          {
+            role: ContractParticipantRole.CONTRACTOR,
+            wallet_address: '0x1111111111111111111111111111111111111111',
+            payout_split: 60,
+          },
+          {
+            role: ContractParticipantRole.COLLABORATOR,
+            wallet_address: '0x2222222222222222222222222222222222222222',
+            payout_split: 40,
+          },
+        ],
+        milestones: [{ title: 'Milestone 1', amount: 1000 }],
+      };
+
+      userRepo.findOne.mockResolvedValue({
+        id: CLIENT_ID,
+        username: 'founder',
+        wallet_addresses: [],
+      });
+      walletRepo.findOne
+        .mockResolvedValueOnce({
+          user_id: CONTRACTOR_ID,
+          address: '0x1111111111111111111111111111111111111111',
+          user: { id: CONTRACTOR_ID, username: 'builder', wallet_addresses: [] },
+        })
+        .mockResolvedValueOnce(null);
+      contractRepo.findOne.mockResolvedValue(
+        mockContract({
+          contractor_id: CONTRACTOR_ID,
+          contractor_wallet: '0x1111111111111111111111111111111111111111',
+          participants: [
+            {
+              id: 'participant-1',
+              role: ContractParticipantRole.CLIENT,
+              user_id: CLIENT_ID,
+              wallet_address: null,
+              username: 'founder',
+              payout_split: null,
+              position: 0,
+            } as ContractParticipant,
+            {
+              id: 'participant-2',
+              role: ContractParticipantRole.CONTRACTOR,
+              user_id: CONTRACTOR_ID,
+              wallet_address: '0x1111111111111111111111111111111111111111',
+              username: 'builder',
+              payout_split: '60.00',
+              position: 1,
+            } as ContractParticipant,
+          ],
+        }),
+      );
+
+      await service.create(CLIENT_ID, dto);
+
+      expect(mockQueryRunner.manager.create).toHaveBeenCalledWith(
+        Contract,
+        expect.objectContaining({
+          contractor_id: CONTRACTOR_ID,
+          contractor_wallet: '0x1111111111111111111111111111111111111111',
+        }),
+      );
+      expect(mockQueryRunner.manager.create).toHaveBeenCalledWith(
+        ContractParticipant,
+        expect.objectContaining({
+          role: ContractParticipantRole.COLLABORATOR,
+          payout_split: '40.00',
+        }),
+      );
     });
   });
 
@@ -171,8 +349,10 @@ describe('ContractsService', () => {
       const mockQb = {
         leftJoinAndSelect: jest.fn().mockReturnThis(),
         where: jest.fn().mockReturnThis(),
+        distinct: jest.fn().mockReturnThis(),
         andWhere: jest.fn().mockReturnThis(),
         orderBy: jest.fn().mockReturnThis(),
+        addOrderBy: jest.fn().mockReturnThis(),
         skip: jest.fn().mockReturnThis(),
         take: jest.fn().mockReturnThis(),
         getCount: jest.fn().mockResolvedValue(1),
@@ -188,7 +368,7 @@ describe('ContractsService', () => {
       });
 
       expect(mockQb.where).toHaveBeenCalledWith(
-        '(contract.client_id = :userId OR contract.contractor_id = :userId)',
+        '(contract.client_id = :userId OR contract.contractor_id = :userId OR EXISTS (SELECT 1 FROM contract_participants cp WHERE cp.contract_id = contract.id AND cp.user_id = :userId))',
         { userId: CLIENT_ID },
       );
       expect(result.data).toHaveLength(1);

@@ -24,12 +24,31 @@ const statusLabels: Record<ContractStatus, string> = {
 };
 
 function getContractorLabel(c: Contract): string {
+  const primaryParticipant = c.participants?.find(
+    (participant) =>
+      participant.role === "contractor" || participant.role === "collaborator",
+  );
+
+  if (primaryParticipant?.user?.display_name) return primaryParticipant.user.display_name;
+  if (primaryParticipant?.username) return `@${primaryParticipant.username}`;
   if (c.contractor?.username) return `@${c.contractor.username}`;
   if (c.contractor?.display_name) return c.contractor.display_name;
+  if (primaryParticipant?.wallet_address) {
+    return `${primaryParticipant.wallet_address.slice(0, 6)}...${primaryParticipant.wallet_address.slice(-4)}`;
+  }
   return "Unassigned";
 }
 
 function getContractorInitials(c: Contract): string {
+  const primaryParticipant = c.participants?.find(
+    (participant) =>
+      participant.role === "contractor" || participant.role === "collaborator",
+  );
+
+  if (primaryParticipant?.username) return primaryParticipant.username.slice(0, 2).toUpperCase();
+  if (primaryParticipant?.user?.display_name) {
+    return primaryParticipant.user.display_name.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase();
+  }
   if (c.contractor?.username) return c.contractor.username.slice(0, 2).toUpperCase();
   if (c.contractor?.display_name) {
     return c.contractor.display_name.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase();

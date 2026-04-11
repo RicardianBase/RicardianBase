@@ -16,43 +16,39 @@ export class DashboardService {
     private readonly activityLogRepo: Repository<ActivityLog>,
   ) {}
 
+  private contractAccessWhere(alias: string) {
+    return `(${alias}.client_id = :userId OR ${alias}.contractor_id = :userId OR EXISTS (SELECT 1 FROM contract_participants cp WHERE cp.contract_id = ${alias}.id AND cp.user_id = :userId))`;
+  }
+
   async getStats(userId: string) {
     const [activeContracts, totalValueResult, pendingReviews, completedContracts] =
       await Promise.all([
-        this.contractRepo.count({
-          where: [
-            { client_id: userId, status: ContractStatus.ACTIVE },
-            { contractor_id: userId, status: ContractStatus.ACTIVE },
-          ],
-        }),
+        this.contractRepo
+          .createQueryBuilder('c')
+          .where(this.contractAccessWhere('c'), { userId })
+          .andWhere('c.status = :status', { status: ContractStatus.ACTIVE })
+          .getCount(),
 
         this.contractRepo
           .createQueryBuilder('c')
           .select('COALESCE(SUM(c.total_amount), 0)', 'total')
-          .where(
-            '(c.client_id = :userId OR c.contractor_id = :userId)',
-            { userId },
-          )
+          .where(this.contractAccessWhere('c'), { userId })
           .getRawOne(),
 
         this.milestoneRepo
           .createQueryBuilder('m')
           .innerJoin('m.contract', 'c')
-          .where(
-            '(c.client_id = :userId OR c.contractor_id = :userId)',
-            { userId },
-          )
+          .where(this.contractAccessWhere('c'), { userId })
           .andWhere('m.status = :status', {
             status: MilestoneStatus.SUBMITTED,
           })
           .getCount(),
 
-        this.contractRepo.count({
-          where: [
-            { client_id: userId, status: ContractStatus.COMPLETED },
-            { contractor_id: userId, status: ContractStatus.COMPLETED },
-          ],
-        }),
+        this.contractRepo
+          .createQueryBuilder('c')
+          .where(this.contractAccessWhere('c'), { userId })
+          .andWhere('c.status = :status', { status: ContractStatus.COMPLETED })
+          .getCount(),
       ]);
 
     return {

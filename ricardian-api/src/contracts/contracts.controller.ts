@@ -9,6 +9,7 @@ import {
   Query,
   UseGuards,
   ParseUUIDPipe,
+  Header,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -37,6 +38,27 @@ export class ContractsController {
     @Query() query: ContractQueryDto,
   ) {
     return this.contractsService.findAll(userId, query);
+  }
+
+  @Get(':id/jsonld')
+  @Header('Content-Type', 'application/ld+json')
+  @ApiOperation({ summary: 'Get a contract as JSON-LD' })
+  findOneJsonLd(
+    @Param('id', ParseUUIDPipe) id: string,
+    @CurrentUser('id') userId: string,
+  ) {
+    return this.contractsService.getJsonLd(id, userId);
+  }
+
+  @Get(':id/mcp')
+  @ApiOperation({
+    summary: 'Get a contract as an MCP-ready read model (manual fallback)',
+  })
+  findOneMcp(
+    @Param('id', ParseUUIDPipe) id: string,
+    @CurrentUser('id') userId: string,
+  ) {
+    return this.contractsService.getMcpReadModel(id, userId);
   }
 
   @Get(':id')

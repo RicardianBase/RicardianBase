@@ -18,6 +18,11 @@ import { ActivityService } from '../activity/activity.service';
 import { ContractsService } from '../contracts/contracts.service';
 import { CreateMilestoneDto } from './dto/create-milestone.dto';
 import { UpdateMilestoneDto } from './dto/update-milestone.dto';
+import {
+  getPrimaryContractorParticipant,
+  isClientActor,
+  isContractorActor,
+} from '../contracts/utils/contract-participants';
 
 interface TransitionRule {
   to: MilestoneStatus[];
@@ -89,7 +94,7 @@ export class MilestonesService {
       );
     }
 
-    if (contract.client_id !== userId) {
+    if (!isClientActor(contract, userId)) {
       throw new ForbiddenException('Only the client can add milestones');
     }
 
@@ -124,7 +129,7 @@ export class MilestonesService {
       );
     }
 
-    if (contract.client_id !== userId) {
+    if (!isClientActor(contract, userId)) {
       throw new ForbiddenException('Only the client can update milestones');
     }
 
@@ -158,7 +163,7 @@ export class MilestonesService {
       );
     }
 
-    if (contract.client_id !== userId) {
+    if (!isClientActor(contract, userId)) {
       throw new ForbiddenException('Only the client can remove milestones');
     }
 
@@ -194,8 +199,15 @@ export class MilestonesService {
       );
     }
 
-    const callerRole =
-      userId === contract.client_id ? 'client' : 'contractor';
+    const callerRole = isClientActor(contract, userId)
+      ? 'client'
+      : isContractorActor(contract, userId)
+      ? 'contractor'
+      : null;
+
+    if (!callerRole && rule.role !== 'system') {
+      throw new ForbiddenException('You do not have access to this milestone');
+    }
 
     if (rule.role !== 'system' && rule.role !== callerRole) {
       throw new ForbiddenException(
@@ -215,10 +227,12 @@ export class MilestonesService {
 
     await this.milestoneRepo.save(milestone);
 
-    if (newStatus === MilestoneStatus.APPROVED && contract.contractor_id) {
+    const primaryContractor = getPrimaryContractorParticipant(contract);
+
+    if (newStatus === MilestoneStatus.APPROVED && primaryContractor?.user_id) {
       await this.transactionRepo.save(
         this.transactionRepo.create({
-          user_id: contract.contractor_id,
+          user_id: primaryContractor.user_id,
           contract_id: contractId,
           milestone_id: milestoneId,
           type: TransactionType.MILESTONE_RELEASE,

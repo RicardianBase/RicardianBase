@@ -8,7 +8,7 @@ import { useContractEscrows, useCreateEscrow, useConfirmFunding, useReleasePayme
 import { useWallet } from "@/contexts/WalletContext";
 import { USDC_BASE, USDC_DECIMALS, encodeTransfer, toRawAmount } from "@/lib/onchain";
 import { downloadContractPdf } from "@/lib/contractPdf";
-import type { MilestoneStatus } from "@/types/api";
+import type { ContractParticipant, MilestoneStatus } from "@/types/api";
 import { checkProfanity, censorText } from "@/lib/profanity";
 
 const statusColorMap: Record<MilestoneStatus, string> = {
@@ -49,6 +49,66 @@ function getPartyName(
 ): string {
   if (userName?.display_name) return userName.display_name;
   if (userName?.username) return `@${userName.username}`;
+  return fallback;
+}
+
+function getParticipantRoleLabel(role: ContractParticipant["role"]): string {
+  switch (role) {
+    case "client":
+      return "Client";
+    case "contractor":
+      return "Contractor";
+    case "collaborator":
+      return "Collaborator";
+    case "reviewer":
+      return "Reviewer";
+    case "observer":
+      return "Observer";
+    default:
+      return role;
+  }
+}
+
+function getParticipantDisplayName(participant: ContractParticipant): string {
+  if (participant.user?.display_name) return participant.user.display_name;
+  if (participant.username) return `@${participant.username}`;
+  if (participant.wallet_address) {
+    return `${participant.wallet_address.slice(0, 6)}...${participant.wallet_address.slice(-4)}`;
+  }
+  return "Unassigned";
+}
+
+function getDisplayParticipants(contract: any): ContractParticipant[] {
+  if (contract.participants?.length) {
+    return [...contract.participants].sort((left, right) => left.position - right.position);
+  }
+
+  const fallback: ContractParticipant[] = [
+    {
+      id: `legacy-client-${contract.id}`,
+      user_id: contract.client_id,
+      role: "client",
+      wallet_address: null,
+      username: contract.client?.username ?? null,
+      payout_split: null,
+      position: 0,
+      user: contract.client ?? null,
+    },
+  ];
+
+  if (contract.contractor_id || contract.contractor_wallet) {
+    fallback.push({
+      id: `legacy-contractor-${contract.id}`,
+      user_id: contract.contractor_id,
+      role: "contractor",
+      wallet_address: contract.contractor_wallet,
+      username: contract.contractor?.username ?? null,
+      payout_split: "100.00",
+      position: 1,
+      user: contract.contractor ?? null,
+    });
+  }
+
   return fallback;
 }
 
@@ -160,26 +220,36 @@ const ContractDetail = () => {
   }
 
   const milestones = contract.milestones ?? [];
-  const contractor = contract.contractor;
-  const contractorName = contractor?.username
-    ? `@${contractor.username}`
-    : contractor?.display_name
-    ? contractor.display_name
-    : contract.contractor_wallet
-    ? "Contractor"
+  const participants = getDisplayParticipants(contract);
+  const primaryParticipant =
+    participants.find((participant) => participant.role === "contractor")
+    ?? participants.find((participant) => participant.role === "collaborator")
+    ?? null;
+  const contractorName = primaryParticipant
+    ? getParticipantDisplayName(primaryParticipant)
     : "Unassigned";
-  const contractorInitials = contractor?.username
-    ? contractor.username.slice(0, 2).toUpperCase()
-    : getInitials(contractor?.display_name);
-  const hasContractor = !!contractor || !!contract.contractor_wallet;
+  const contractorInitials = primaryParticipant?.username
+    ? primaryParticipant.username.slice(0, 2).toUpperCase()
+    : getInitials(primaryParticipant?.user?.display_name);
+  const hasContractor = !!primaryParticipant;
+  const payoutParticipants = participants.filter(
+    (participant) => participant.role === "contractor" || participant.role === "collaborator",
+  );
+  const hasManualSplitFallback = payoutParticipants.length > 1 && parseFloat(contract.total_amount) > 0;
 
   const fundedEscrow = escrows?.find((e) => e.status === "funded");
   const totalFunded = escrows?.filter((e) => e.status === "funded" || e.status === "released")
     .reduce((sum, e) => sum + parseFloat(e.total_locked), 0) ?? 0;
   const isFunded = !!fundedEscrow;
   const isDraft = contract.status === "draft";
-  const isClient = user?.id === contract.client_id;
-  const isContractor = user?.id === contract.contractor_id;
+  const isClient = participants.some(
+    (participant) => participant.user_id === user?.id && participant.role === "client",
+  ) || user?.id === contract.client_id;
+  const isContractor = participants.some(
+    (participant) =>
+      participant.user_id === user?.id &&
+      (participant.role === "contractor" || participant.role === "collaborator"),
+  ) || user?.id === contract.contractor_id;
   const hasMonetaryValue = parseFloat(contract.total_amount) > 0;
   const shouldShowFundingCard = isDraft && !isFunded && isClient && hasMonetaryValue;
   const clientName = getPartyName(contract.client, "Client");
@@ -188,7 +258,7 @@ const ContractDetail = () => {
     : `Contract Title: ${contract.title}
 
 Client: ${clientName}
-Contractor: ${contractorName}
+Primary Contractor: ${contractorName}
 
 This contract does not yet include generated legal prose.`;
 
@@ -383,6 +453,12 @@ contract ${contract.title.replace(/\s+/g, "")} {
   address public contractor;
   uint256 public totalValue = ${parseFloat(contract.total_amount)}e6; // ${contract.currency}
 
+  struct Participant {
+    string role;
+    address wallet;
+    uint16 splitBps;
+  }
+
   enum Status { Pending, InProgress, Submitted, Approved }
 
   struct Milestone {
@@ -392,6 +468,7 @@ contract ${contract.title.replace(/\s+/g, "")} {
   }
 
   Milestone[] public milestones;
+  Participant[] public participants;
 
   function approveMilestone(uint256 id) external {
     require(msg.sender == client);
@@ -423,6 +500,48 @@ contract ${contract.title.replace(/\s+/g, "")} {
             </div>
           </div>
         )}
+
+        <div className="mt-4 rounded-2xl border border-[hsl(230,20%,92%)] bg-[hsl(230,25%,98%)] p-5">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4">
+            <div>
+              <p className="text-sm font-medium text-foreground">Participants</p>
+              <p className="text-xs text-muted-foreground mt-1">
+                Stored participant roles and payout splits for this contract.
+              </p>
+            </div>
+            <span className="text-xs text-muted-foreground">
+              {participants.length} total participant{participants.length === 1 ? "" : "s"}
+            </span>
+          </div>
+
+          <div className="space-y-3">
+            {participants.map((participant) => (
+              <div
+                key={participant.id}
+                className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 rounded-xl bg-white px-4 py-3 border border-[hsl(230,20%,92%)]"
+              >
+                <div>
+                  <p className="text-sm font-medium text-foreground">
+                    {getParticipantDisplayName(participant)}
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {getParticipantRoleLabel(participant.role)}
+                    {participant.wallet_address ? ` · ${participant.wallet_address.slice(0, 6)}...${participant.wallet_address.slice(-4)}` : ""}
+                  </p>
+                </div>
+                <div className="text-sm font-medium text-foreground">
+                  {participant.payout_split ? `${parseFloat(participant.payout_split).toFixed(2)}%` : "No payout split"}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {hasManualSplitFallback && (
+            <div className="mt-4 rounded-xl bg-[hsl(40,80%,96%)] px-4 py-3 text-xs text-[hsl(35,70%,32%)]">
+              Multi-party payout splits are stored for REST, MCP, and JSON-LD reads in this release. Escrow release still follows the primary contractor compatibility path, so additional split execution remains manual.
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Escrow funding card — shown for draft/unfunded contracts */}

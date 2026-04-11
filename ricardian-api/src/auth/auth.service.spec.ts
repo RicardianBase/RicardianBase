@@ -18,6 +18,7 @@ const NONCE = 'test-nonce-uuid';
 const mockUser = (overrides: Partial<User> = {}): User =>
   ({
     id: USER_ID,
+    username: 'builder',
     display_name: null,
     email: null,
     avatar_url: null,
@@ -138,7 +139,7 @@ describe('AuthService', () => {
         expect.objectContaining({
           address: WALLET_ADDRESS,
           provider: 'phantom',
-          chain: WalletChain.SOLANA,
+          chain: WalletChain.ETHEREUM,
         }),
       );
       expect(walletRepo.save).toHaveBeenCalled();
@@ -245,11 +246,19 @@ describe('AuthService', () => {
       );
       expect(result.accessToken).toBeDefined();
       expect(result.refreshToken).toBeDefined();
+      expect(result.user).toEqual(
+        expect.objectContaining({
+          username: 'builder',
+          walletAddress: WALLET_ADDRESS,
+        }),
+      );
     });
 
     it('should reject invalid signature', async () => {
-      const nacl = jest.requireMock('tweetnacl');
-      nacl.sign.detached.verify.mockReturnValueOnce(false);
+      const ethers = jest.requireMock('ethers');
+      ethers.verifyMessage.mockReturnValueOnce(
+        '0x0000000000000000000000000000000000000000',
+      );
       walletRepo.findOne.mockResolvedValue(mockWallet());
 
       await expect(

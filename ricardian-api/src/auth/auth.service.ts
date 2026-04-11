@@ -100,6 +100,7 @@ export class AuthService {
       ...tokens,
       user: {
         id: wallet.user.id,
+        username: wallet.user.username,
         display_name: wallet.user.display_name,
         role: wallet.user.role,
         walletAddress: wallet.address,

@@ -2,9 +2,13 @@ import { useState, useEffect } from "react";
 import { Shield, Key, Bell, User, Copy, RefreshCw, Check, X, Trash2, ExternalLink, Loader2 } from "lucide-react";
 import { useInViewAnimation } from "@/hooks/useInViewAnimation";
 import { useProfile, useUpdateProfile, useUpdateNotifications } from "@/hooks/api/useProfile";
+import { useBackendFeatures } from "@/hooks/api/useBackendFeatures";
 import { useApiKeys, useCreateApiKey, useRevokeApiKey } from "@/hooks/api/useApiKeys";
 import type { NewApiKey, ApiKeyScope } from "@/types/api";
+import { extractApiErrorMessage } from "@/lib/apiError";
 import { getStoredUser, setStoredUser } from "@/lib/auth";
+import { checkProfanity } from "@/lib/profanity";
+import { normalizeUsername, validateUsername } from "@/lib/username";
 
 const tabs = [
   { id: "profile", label: "Profile", icon: User },
@@ -29,30 +33,68 @@ const Settings = () => {
   const [activeTab, setActiveTab] = useState("profile");
   const { ref, isInView } = useInViewAnimation();
   const { data: profile, isLoading } = useProfile();
+  const { supportsUsernames, isLoading: featuresLoading } = useBackendFeatures();
   const updateProfileMutation = useUpdateProfile();
   const updateNotifMutation = useUpdateNotifications();
 
   const [username, setUsername] = useState("");
   const [avatarUrl, setAvatarUrl] = useState("");
   const [showAvatarModal, setShowAvatarModal] = useState(false);
+  const [profileError, setProfileError] = useState<string | null>(null);
+  const [profileSuccess, setProfileSuccess] = useState<string | null>(null);
 
   useEffect(() => {
     if (profile) {
       setUsername(profile.username ?? "");
       setAvatarUrl(profile.avatar_url ?? "");
+      setProfileError(null);
+      setProfileSuccess(null);
     }
   }, [profile]);
 
   const handleSaveProfile = () => {
-    const trimmed = username.trim();
+    if (!supportsUsernames) {
+      setProfileError("Username support is not available on this deployment yet.");
+      setProfileSuccess(null);
+      return;
+    }
+
+    const trimmed = normalizeUsername(username);
+    const validationError = validateUsername(trimmed);
+
+    if (validationError) {
+      setProfileError(validationError);
+      setProfileSuccess(null);
+      return;
+    }
+
+    const profanityCheck = checkProfanity(trimmed);
+    if (profanityCheck.isProfane) {
+      setProfileError("Username contains inappropriate language. Please choose another.");
+      setProfileSuccess(null);
+      return;
+    }
+
     updateProfileMutation.mutate(
-      { username: trimmed || undefined },
+      { username: trimmed },
       {
         onSuccess: () => {
           const storedUser = getStoredUser();
           if (storedUser) {
             setStoredUser({ ...storedUser, username: trimmed });
           }
+          setUsername(trimmed);
+          setProfileError(null);
+          setProfileSuccess("Profile updated successfully!");
+        },
+        onError: (error) => {
+          const message = extractApiErrorMessage(error);
+          setProfileSuccess(null);
+          if (message.toLowerCase().includes("taken")) {
+            setProfileError("Username already taken — try another");
+            return;
+          }
+          setProfileError(message);
         },
       },
     );
@@ -65,6 +107,12 @@ const Settings = () => {
         onSuccess: () => {
           setAvatarUrl(dataUrl);
           setShowAvatarModal(false);
+          setProfileError(null);
+          setProfileSuccess("Profile updated successfully!");
+        },
+        onError: (error) => {
+          setProfileSuccess(null);
+          setProfileError(extractApiErrorMessage(error));
         },
       },
     );
@@ -130,27 +178,46 @@ const Settings = () => {
               ) : (
                 <>
                   <div>
-                    <label className="text-xs text-muted-foreground mb-1.5 block">Username</label>
-                    <div className="relative">
-                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">@</span>
-                      <input
-                        type="text"
-                        value={username}
-                        onChange={(e) => setUsername(e.target.value)}
-                        className="w-full border border-[hsl(230,20%,90%)] rounded-xl pl-9 pr-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-emerald-500/30 text-foreground bg-white dark:bg-[hsl(220,18%,13%)] dark:border-[hsl(220,15%,25%)]"
-                      />
-                    </div>
+                    {supportsUsernames ? (
+                      <>
+                        <label className="text-xs text-muted-foreground mb-1.5 block">Username</label>
+                        <div className="relative">
+                          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">@</span>
+                          <input
+                            type="text"
+                            value={username}
+                            onChange={(e) => {
+                              setUsername(e.target.value.toLowerCase());
+                              setProfileError(null);
+                              setProfileSuccess(null);
+                            }}
+                            className="w-full border border-[hsl(230,20%,90%)] rounded-xl pl-9 pr-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-emerald-500/30 text-foreground bg-white dark:bg-[hsl(220,18%,13%)] dark:border-[hsl(220,15%,25%)]"
+                          />
+                        </div>
+                        <p className="text-[10px] text-muted-foreground/60 mt-1.5">
+                          3-30 characters. Letters, numbers, hyphens, and underscores only.
+                        </p>
+                      </>
+                    ) : (
+                      <>
+                        <label className="text-xs text-muted-foreground mb-1.5 block">Username</label>
+                        <div className="rounded-xl border border-[hsl(230,20%,92%)] bg-[hsl(230,25%,97%)] px-4 py-3 text-sm text-muted-foreground">
+                          {featuresLoading
+                            ? "Checking deployment support..."
+                            : "Username support is not available on this deployment yet."}
+                        </div>
+                      </>
+                    )}
                   </div>
                   <button
                     onClick={handleSaveProfile}
-                    disabled={updateProfileMutation.isPending}
+                    disabled={updateProfileMutation.isPending || !supportsUsernames}
                     className="text-sm font-medium bg-emerald-500 text-white px-6 py-2.5 rounded-full hover:bg-emerald-600 hover:shadow-lg hover:shadow-emerald-500/20 transition-all disabled:opacity-50"
                   >
                     {updateProfileMutation.isPending ? "Saving..." : "Save Changes"}
                   </button>
-                  {updateProfileMutation.isSuccess && (
-                    <p className="text-xs text-emerald-600">Profile updated successfully!</p>
-                  )}
+                  {profileSuccess && <p className="text-xs text-emerald-600">{profileSuccess}</p>}
+                  {profileError && <p className="text-xs text-red-500">{profileError}</p>}
                 </>
               )}
             </div>

@@ -8,6 +8,7 @@ import {
 } from 'typeorm';
 import { WalletAddress } from '../../wallet/entities/wallet-address.entity';
 import { Contract } from '../../contracts/entities/contract.entity';
+import { ContractParticipant } from '../../contracts/entities/contract-participant.entity';
 
 export enum UserRole {
   COMPANY_ADMIN = 'company_admin',
@@ -19,6 +20,9 @@ export enum UserRole {
 export class User {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
+
+  @Column({ type: 'varchar', length: 30, nullable: true, unique: true })
+  username!: string | null;
 
   @Column({ type: 'varchar', length: 100, nullable: true })
   display_name!: string | null;
@@ -62,4 +66,7 @@ export class User {
 
   @OneToMany(() => Contract, (contract) => contract.contractor)
   contractor_contracts!: Contract[];
+
+  @OneToMany(() => ContractParticipant, (participant) => participant.user)
+  contract_participations!: ContractParticipant[];
 }

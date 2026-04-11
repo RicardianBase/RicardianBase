@@ -14,6 +14,7 @@ import {
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { useProfile } from "@/hooks/api/useProfile";
+import { useBackendFeatures } from "@/hooks/api/useBackendFeatures";
 import { useDashboardActivity } from "@/hooks/api/useDashboard";
 import { useTheme } from "@/contexts/ThemeContext";
 import { Sun, Moon } from "lucide-react";
@@ -68,8 +69,18 @@ const DashboardLayout = () => {
   const navigate = useNavigate();
   const { theme, toggleTheme } = useTheme();
   const { data: profile, isLoading: profileLoading } = useProfile();
+  const {
+    supportsUsernames,
+    isLoading: featuresLoading,
+  } = useBackendFeatures();
   const { data: activity } = useDashboardActivity();
-  const needsUsername = !profileLoading && profile && !profile.username && !onboardingDone;
+  const needsUsername =
+    supportsUsernames &&
+    !profileLoading &&
+    !featuresLoading &&
+    profile &&
+    !profile.username &&
+    !onboardingDone;
 
   const notifications = useMemo(() => {
     if (!activity) return [];

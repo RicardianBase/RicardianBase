@@ -49,6 +49,27 @@ export type ContractStatus =
   | 'disputed'
   | 'cancelled';
 
+export type ContractParticipantRole =
+  | 'client'
+  | 'contractor'
+  | 'collaborator'
+  | 'reviewer'
+  | 'observer';
+
+export interface ContractParticipant {
+  id: string;
+  contract_id?: string;
+  user_id: string | null;
+  role: ContractParticipantRole;
+  wallet_address: string | null;
+  username: string | null;
+  payout_split: string | null;
+  position: number;
+  created_at?: string;
+  updated_at?: string;
+  user?: Pick<User, 'id' | 'username' | 'display_name'> | null;
+}
+
 export interface Contract {
   id: string;
   title: string;
@@ -68,6 +89,7 @@ export interface Contract {
   milestones?: Milestone[];
   client?: User;
   contractor?: User | null;
+  participants?: ContractParticipant[];
 }
 
 // ── Milestones ──

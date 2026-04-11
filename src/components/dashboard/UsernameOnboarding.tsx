@@ -2,7 +2,9 @@ import { useState } from "react";
 import { Loader2, User } from "lucide-react";
 import { useUpdateProfile } from "@/hooks/api/useProfile";
 import { checkProfanity } from "@/lib/profanity";
+import { extractApiErrorMessage } from "@/lib/apiError";
 import { getStoredUser, setStoredUser } from "@/lib/auth";
+import { normalizeUsername, validateUsername } from "@/lib/username";
 
 interface Props {
   onComplete: () => void;
@@ -13,17 +15,10 @@ const UsernameOnboarding = ({ onComplete }: Props) => {
   const [error, setError] = useState<string | null>(null);
   const updateProfile = useUpdateProfile();
 
-  const validate = (val: string): string | null => {
-    if (val.length < 3) return "Username must be at least 3 characters";
-    if (val.length > 30) return "Username cannot exceed 30 characters";
-    if (!/^[a-zA-Z0-9_-]+$/.test(val)) return "Only letters, numbers, hyphens, and underscores";
-    return null;
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const trimmed = username.trim();
-    const validationError = validate(trimmed);
+    const trimmed = normalizeUsername(username);
+    const validationError = validateUsername(trimmed);
     if (validationError) {
       setError(validationError);
       return;
@@ -44,14 +39,12 @@ const UsernameOnboarding = ({ onComplete }: Props) => {
         setStoredUser({ ...storedUser, username: trimmed });
       }
       onComplete();
-    } catch (err: any) {
-      const msg = err?.response?.data?.message;
-      if (typeof msg === "string" && msg.toLowerCase().includes("taken")) {
+    } catch (err) {
+      const message = extractApiErrorMessage(err);
+      if (message.toLowerCase().includes("taken")) {
         setError("Username already taken — try another");
-      } else if (typeof msg === "string") {
-        setError(msg);
       } else {
-        setError("Something went wrong. Try again.");
+        setError(message);
       }
     }
   };
@@ -83,7 +76,7 @@ const UsernameOnboarding = ({ onComplete }: Props) => {
                 type="text"
                 value={username}
                 onChange={(e) => {
-                  setUsername(e.target.value);
+                  setUsername(e.target.value.toLowerCase());
                   setError(null);
                 }}
                 placeholder="your_username"
