@@ -200,27 +200,8 @@ const ContractDetail = () => {
     setSubmitFiles({ ...submitFiles, [milestoneId]: existing.filter((_, i) => i !== index) });
   };
 
-  if (isLoading) {
-    return (
-      <div className="space-y-6 max-w-5xl animate-pulse">
-        <div className="h-8 w-32 bg-muted rounded-full" />
-        <div className="bg-white rounded-2xl p-6 shadow-sm"><div className="h-6 bg-muted rounded w-1/2 mb-2" /><div className="h-4 bg-muted rounded w-1/4" /></div>
-        <div className="bg-white rounded-2xl p-6 shadow-sm h-48" />
-      </div>
-    );
-  }
-
-  if (!contract) {
-    return (
-      <div className="text-center py-16">
-        <p className="text-muted-foreground">Contract not found</p>
-        <Link to="/dashboard/contracts" className="text-emerald-600 text-sm mt-2 inline-block">Back to contracts</Link>
-      </div>
-    );
-  }
-
-  const milestones = contract.milestones ?? [];
-  const participants = getDisplayParticipants(contract);
+  const milestones = contract?.milestones ?? [];
+  const participants = contract ? getDisplayParticipants(contract) : [];
   const primaryParticipant =
     participants.find((participant) => participant.role === "contractor")
     ?? participants.find((participant) => participant.role === "collaborator")
@@ -235,27 +216,31 @@ const ContractDetail = () => {
   const payoutParticipants = participants.filter(
     (participant) => participant.role === "contractor" || participant.role === "collaborator",
   );
-  const hasManualSplitFallback = payoutParticipants.length > 1 && parseFloat(contract.total_amount) > 0;
+  const hasManualSplitFallback = payoutParticipants.length > 1 && parseFloat(contract?.total_amount ?? "0") > 0;
 
   const fundedEscrow = escrows?.find((e) => e.status === "funded");
   const totalFunded = escrows?.filter((e) => e.status === "funded" || e.status === "released")
     .reduce((sum, e) => sum + parseFloat(e.total_locked), 0) ?? 0;
   const isFunded = !!fundedEscrow;
-  const isDraft = contract.status === "draft";
-  const isClient = participants.some(
-    (participant) => participant.user_id === user?.id && participant.role === "client",
-  ) || user?.id === contract.client_id;
-  const isContractor = participants.some(
-    (participant) =>
-      participant.user_id === user?.id &&
-      (participant.role === "contractor" || participant.role === "collaborator"),
-  ) || user?.id === contract.contractor_id;
-  const hasMonetaryValue = parseFloat(contract.total_amount) > 0;
-  const shouldShowFundingCard = isDraft && !isFunded && isClient && hasMonetaryValue;
-  const clientName = getPartyName(contract.client, "Client");
-  const legalText = contract.description?.trim()
+  const isDraft = contract?.status === "draft";
+  const isClient = contract
+    ? participants.some(
+        (participant) => participant.user_id === user?.id && participant.role === "client",
+      ) || user?.id === contract.client_id
+    : false;
+  const isContractor = contract
+    ? participants.some(
+        (participant) =>
+          participant.user_id === user?.id &&
+          (participant.role === "contractor" || participant.role === "collaborator"),
+      ) || user?.id === contract.contractor_id
+    : false;
+  const hasMonetaryValue = parseFloat(contract?.total_amount ?? "0") > 0;
+  const shouldShowFundingCard = !!contract && isDraft && !isFunded && isClient && hasMonetaryValue;
+  const clientName = getPartyName(contract?.client, "Client");
+  const legalText = contract?.description?.trim()
     ? contract.description
-    : `Contract Title: ${contract.title}
+    : `Contract Title: ${contract?.title ?? ""}
 
 Client: ${clientName}
 Primary Contractor: ${contractorName}
@@ -277,6 +262,25 @@ This contract does not yet include generated legal prose.`;
 
     return () => window.clearTimeout(timer);
   }, [location.search, shouldShowFundingCard]);
+
+  if (isLoading) {
+    return (
+      <div className="space-y-6 max-w-5xl animate-pulse">
+        <div className="h-8 w-32 bg-muted rounded-full" />
+        <div className="bg-white rounded-2xl p-6 shadow-sm"><div className="h-6 bg-muted rounded w-1/2 mb-2" /><div className="h-4 bg-muted rounded w-1/4" /></div>
+        <div className="bg-white rounded-2xl p-6 shadow-sm h-48" />
+      </div>
+    );
+  }
+
+  if (!contract) {
+    return (
+      <div className="text-center py-16">
+        <p className="text-muted-foreground">Contract not found</p>
+        <Link to="/dashboard/contracts" className="text-emerald-600 text-sm mt-2 inline-block">Back to contracts</Link>
+      </div>
+    );
+  }
 
   const handleFundContract = async () => {
     if (!address || !getEthProvider()) {
